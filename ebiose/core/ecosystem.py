@@ -1,0 +1,99 @@
+from __future__ import annotations
+
+import asyncio
+from typing import TYPE_CHECKING
+
+from loguru import logger
+from sortedcontainers import SortedList
+
+from config import config
+from ebiose.core.agent import Agent
+from ebiose.core.agent_factory import AgentFactory
+from ebiose.tools.agent_generation_task_with_fallback import architect_agent_task
+from ebiose.tools.embedding_helper import embedding_distance
+
+if TYPE_CHECKING:
+
+    from ebiose.core.agent_forge import AgentForge
+
+
+
+class Ecosystem:
+
+    def __init__(
+            self,
+            model_endpoint_ids: list[str] | None = None,
+            initial_architect_agents: list[Agent] | None = None,
+            forges: list[AgentForge]  | None = None,
+            initial_genetic_operator_agents: list[Agent] | None = None,
+        ) -> None:
+
+        if initial_architect_agents is None:
+            initial_architect_agents = []
+        self.initial_architect_agents: list[Agent] = initial_architect_agents
+        self.initial_genetic_operator_agents: list[Agent] = initial_genetic_operator_agents
+        self._agents: list[Agent] = []
+        self.forge_list: list[AgentForge] = []
+        self.agent_forge_distances: dict[AgentForge, SortedList] = {}
+        self.model_endpoint_ids: list[str] = []
+
+        if forges is not None:
+            for forge in forges:
+                self.add_forge(forge)
+
+    async def select_agents_for_forge(self, forge: AgentForge, n_agents: int) -> list[Agent]:
+        self.add_forge(forge)
+        selected_agents = []
+        agent_forge_distances = self.agent_forge_distances[forge.id]
+        for _ in range(n_agents):
+            if len(agent_forge_distances) == 0:
+                break
+            agent, _ = agent_forge_distances.pop(0)
+            selected_agents.append(agent)
+        return selected_agents
+
+    # async def init_agents_population(self, forge: AgentForge, n_agents: int, compute_token_id: str) -> list[Agent]:
+    #     # create agents
+    #     tasks = []
+    #     for i in range(n_agents):
+    #         genetic_operator_agent = self.initial_genetic_operator_agents[
+    #             (i % len(self.initial_architect_agents))
+    #         ]
+    #         architect_agent = self.initial_architect_agents[(i % len(self.initial_architect_agents))]
+    #         architect_agent_input = architect_agent.agent_engine.input_model(forge_description=forge.description)
+
+    #         task = architect_agent_task(
+    #             forge=forge,
+    #             architect_agent=architect_agent,
+    #             architect_agent_input=architect_agent_input,
+    #             architect_agent_compute_token=compute_token_id,
+    #             genetic_operator_agent=genetic_operator_agent,
+    #         )
+    #         tasks.append(task)  # Add task to the list
+
+    #     # Await all tasks concurrently
+    #     results = await asyncio.gather(*tasks)
+    #     results = [agent for agent in results if agent is not None]
+    #     for new_born_agent in results:
+    #         if new_born_agent is None:
+    #             logger.debug(f"An agent could not be created for forge {forge.name}")
+    #             continue
+    #         self._add_new_born_agent(new_born_agent)
+
+    #     return results
+
+    def add_forge(self, forge: AgentForge) -> None:
+        self.forge_list.append(forge)
+        # Initialize SortedList with existing agents and their distances
+        self.agent_forge_distances[forge.id] = SortedList(
+            [(agent, embedding_distance(agent.description_embedding, forge.description_embedding))
+             for agent in self._agents],
+            key=lambda x: x[1],
+        )
+
+    def _add_new_born_agent(self, new_agent: Agent) -> None:
+        for forge in self.forge_list:
+            distance = embedding_distance(new_agent.description_embedding, forge.description_embedding)
+            self.agent_forge_distances[forge.id].add((new_agent, distance))
+
+        self._agents.append(new_agent)

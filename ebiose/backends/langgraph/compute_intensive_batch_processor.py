@@ -1,0 +1,188 @@
+from __future__ import annotations
+
+import os
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
+
+from langchain_community.chat_models.azureml_endpoint import (
+    AzureMLChatOnlineEndpoint,
+    AzureMLEndpointApiType,
+    CustomOpenAIChatContentFormatter,
+)
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from loguru import logger
+from openai import RateLimitError
+
+from config import config
+from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor import (
+    ComputeIntensiveBatchProcessor,
+)
+from ebiose.compute_intensive_batch_processor.token_manager import BudgetExceededError
+from ebiose.tools.llm_token_cost import LLMTokenCost
+
+if TYPE_CHECKING:
+    from langchain_core.messages import AnyMessage
+
+class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
+
+    @staticmethod
+    def _get_llm(model_endpoint_id: str, temperature: float, max_tokens: int) -> AzureChatOpenAI:
+        """Get the LLM model from the model endpoint id.
+
+        Args:
+            model_endpoint_id: The ID of the model endpoint to use
+            temperature: Temperature parameter for the LLM
+            max_tokens: Maximum number of tokens allowed in the response
+
+        Returns:
+            The LLM model
+        """
+        env_prefix = model_endpoint_id.upper().replace("-", "_")
+        request_timeout: int = config.get("llm_compute.request_timeout_in_minutes") * 60
+        max_retries: int = config.get("llm_compute.max_retries")
+
+        if model_endpoint_id.startswith("gpt"):
+            return ChatOpenAI(model=model_endpoint_id, temperature=temperature, max_tokens=max_tokens)
+        if model_endpoint_id == "azure-gpt-3.5-turbo":
+            return AzureChatOpenAI(
+                azure_deployment=os.getenv("AZURE_OPENAI_GPT35_DEPLOYMENT_NAME"),
+                azure_endpoint=os.getenv("AZURE_OPENAI_GPT35_ENDPOINT"),
+                openai_api_key=os.getenv("AZURE_OPENAI_GPT35_API_KEY"),
+                openai_api_version=os.getenv("AZURE_OPENAI_GPT35_API_VERSION"),
+                temperature=temperature,
+                request_timeout=request_timeout,
+                max_retries=max_retries,
+                max_tokens=max_tokens,
+            )
+        if model_endpoint_id == "azure-gpt-4-turbo":
+            return AzureChatOpenAI(
+                azure_deployment=os.getenv("AZURE_OPENAI_GPT4_DEPLOYMENT_NAME"),
+                azure_endpoint=os.getenv("AZURE_OPENAI_GPT4_ENDPOINT"),
+                openai_api_key=os.getenv("AZURE_OPENAI_GPT4_API_KEY"),
+                openai_api_version=os.getenv("AZURE_OPENAI_GPT4_API_VERSION"),
+                temperature=temperature,
+                request_timeout=request_timeout,
+                max_retries=max_retries,
+                max_tokens=max_tokens,
+            )
+        if model_endpoint_id == "azure-gpt-4o":
+            return AzureChatOpenAI(
+                azure_deployment=os.getenv("AZURE_OPENAI_GPT_4O_DEPLOYMENT_NAME"),
+                azure_endpoint=os.getenv("AZURE_OPENAI_GPT_4O_ENDPOINT"),
+                openai_api_key=os.getenv("AZURE_OPENAI_GPT_4O_API_KEY"),
+                openai_api_version=os.getenv("AZURE_OPENAI_GPT_4O_API_VERSION"),
+                temperature=temperature,
+                request_timeout=request_timeout,
+                max_retries=max_retries,
+                max_tokens=max_tokens,
+            )
+        if model_endpoint_id == "azure-gpt-4o-mini":
+            return AzureChatOpenAI(
+                azure_deployment=os.getenv("AZURE_OPENAI_GPT_4O_MINI_DEPLOYMENT_NAME"),
+                azure_endpoint=os.getenv("AZURE_OPENAI_GPT_4O_MINI_ENDPOINT"),
+                openai_api_key=os.getenv("AZURE_OPENAI_GPT_4O_MINI_API_KEY"),
+                openai_api_version=os.getenv("AZURE_OPENAI_GPT_4O_MINI_API_VERSION"),
+                temperature=temperature,
+                request_timeout=request_timeout,
+                max_retries=max_retries,
+                max_tokens=max_tokens,
+            )
+
+        if model_endpoint_id.startswith("azure-"):
+            # TODO @xabier: Add the max tokens argument
+            return AzureMLChatOnlineEndpoint(
+                endpoint_url=os.getenv(
+                    f"{env_prefix}_ENDPOINT_URL",
+                ),
+                endpoint_api_type=AzureMLEndpointApiType.serverless,
+                endpoint_api_key=os.getenv(
+                    f"{env_prefix}_API_KEY",
+                ),
+                content_formatter=CustomOpenAIChatContentFormatter(),
+                timeout=request_timeout,
+                max_retries=max_retries,
+                model_kwargs={"temperature": temperature},
+            )
+        msg = f"Model endpoint {model_endpoint_id} not found"
+        raise ValueError(msg)
+
+    @staticmethod
+    async def _call_llm(model_endpoint_id: str, messages: list[AnyMessage], temperature: float, max_tokens: int, tools: list | None = None) -> AnyMessage:
+        """Call the LLM using Langchain's AzureChatOpenAI.
+
+        Args:
+            model_endpoint_id: The ID of the model endpoint to use
+            messages: List of messages to send to the LLM
+            temperature: Temperature parameter for the LLM
+            max_tokens: Maximum number of tokens allowed in the response
+            tools: List of tools to bind to the LLM
+
+        Returns:
+            The LLM's response text
+        """
+        if tools is None:
+            tools = []
+        llm = LangGraphComputeIntensiveBatchProcessor._get_llm(model_endpoint_id, temperature, max_tokens)
+
+        # Add tools
+        if tools:
+            llm = llm.bind_tools(tools=tools)
+
+        # Call LLM
+        try:
+            response = await llm.with_retry(
+                retry_if_exception_type=(RateLimitError,),  # APITimeoutError
+                wait_exponential_jitter=True,
+                stop_after_attempt=10,
+            ).ainvoke(messages)
+        except Exception as e:
+            logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
+            return None
+
+        # Return the response content
+        return response
+
+    @classmethod
+    async def process_llm_call(
+        cls,
+        model_endpoint_id: str,
+        messages: list[AnyMessage],
+        token_guid: str,
+        temperature: float = 0.0,
+        max_tokens: int = 4096, # TODO(xabier): 4096 is the maximum number of tokens allowed by OpenAI GPT-4o, should be handled by
+        tools: list | None = None,
+    ) -> AnyMessage:
+
+        LangGraphComputeIntensiveBatchProcessor.check_initialized()
+        if not LangGraphComputeIntensiveBatchProcessor._token_manager.token_exists(token_guid):
+            msg = f"Token guid {token_guid} not found"
+            raise ValueError(msg)
+
+        # TODO(xabier): reactivate when checked
+        # while not await cls._can_process(model_endpoint.endpoint_id, estimated_output_tokens):
+        #     await asyncio.sleep(1)  # noqa: ERA001
+
+        try:
+            # Record the request and tokens
+            now = datetime.now(tz=UTC)
+            cls._request_counts[model_endpoint_id].append(now)
+
+            response = await cls._call_llm(model_endpoint_id, messages, temperature, max_tokens, tools)
+            if response is None:
+                return None
+            total_tokens = response.response_metadata["token_usage"].get("total_tokens", 0)
+            completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
+            prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
+            cls._token_counts[model_endpoint_id].append((now, total_tokens))
+            cls._token_costs[model_endpoint_id].append(
+                (now, LLMTokenCost.compute_token_cost(model_endpoint_id, prompt_tokens, completion_tokens)),
+            )
+            LangGraphComputeIntensiveBatchProcessor._token_manager.add_cost(
+                token_guid,
+                cls._token_costs[model_endpoint_id][-1][1],
+            )
+        except Exception as e:
+            logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
+            return None
+        else:
+            return response

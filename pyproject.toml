@@ -1,0 +1,62 @@
+[project]
+name = "ebiose-core-vincent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "asyncio>=3.4.3",
+    "langchain>=0.3.17",
+    "langchain-community>=0.3.16",
+    "langchain-core>=0.3.33",
+    "langchain-openai>=0.3.3",
+    "langfuse>=2.58.2",
+    "langgraph>=0.2.69",
+    "loguru>=0.7.3",
+    "nest-asyncio>=1.6.0",
+    "pydantic>=2.10.6",
+    "python-dotenv>=1.0.1",
+    "ruff>=0.9.6",
+    "seaborn>=0.13.2",
+    "sortedcontainers>=2.4.0",
+]
+
+[tool.ruff]
+line-length = 88
+exclude = ["./notebooks/"]
+
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D107", # missing docstring in __init__
+    "E501", # line too long
+    "TC001", # doing typing bloc breaks pydantic
+    "FIX002", # Lines has TODO
+    "PT023", # messes up pytest.mark.costly
+    "TD003", # issue link in a TODO comment
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D106", # Missing docstring in nested public class
+]
+
+[lint.flake8-type-cheking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+runtime-evaluated-decorators = ["pydantic.field_validator"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+
+[tool.ruff.lint.flake8-tidy-imports]
+# Disallow all relative imports.
+ban-relative-imports = "all"
