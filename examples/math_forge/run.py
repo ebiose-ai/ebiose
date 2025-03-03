@@ -71,5 +71,8 @@ cycle_config = EvoForgingCylceConfig(
     save_path=SAVE_PATH,
 )
 
-asyncio.run(forge.run_new_cycle(eco, cycle_config=cycle_config))
+best_agents, best_finess = asyncio.run(forge.run_new_cycle(eco, cycle_config=cycle_config))
+
+logger.info("Best agents and their fitness:")
+forge.display_results(best_agents, best_finess)
 
