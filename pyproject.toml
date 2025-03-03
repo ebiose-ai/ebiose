@@ -60,3 +60,10 @@ convention = "google"
 [tool.ruff.lint.flake8-tidy-imports]
 # Disallow all relative imports.
 ban-relative-imports = "all"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ebiose"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
