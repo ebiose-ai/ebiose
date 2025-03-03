@@ -38,8 +38,8 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             The LLM model
         """
         env_prefix = model_endpoint_id.upper().replace("-", "_")
-        request_timeout: int = config.get("llm_compute.request_timeout_in_minutes") * 60
-        max_retries: int = config.get("llm_compute.max_retries")
+        request_timeout = config.get("llm_compute.request_timeout_in_minutes") * 60
+        max_retries = config.get("llm_compute.max_retries")
 
         if model_endpoint_id.startswith("gpt"):
             return ChatOpenAI(model=model_endpoint_id, temperature=temperature, max_tokens=max_tokens)
@@ -136,7 +136,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 stop_after_attempt=10,
             ).ainvoke(messages)
         except Exception as e:
-            logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
+            logger.error(f"Error when calling {model_endpoint_id}: {e!s}")
             return None
 
         # Return the response content

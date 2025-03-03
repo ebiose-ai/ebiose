@@ -34,7 +34,7 @@ import datetime
 
 if get_ipython() is not None:
     logger.remove()
-    logger.add(sys.stderr, format="{message}", level="DEBUG")
+    logger.add(sys.stderr, format="<level>{message}</level>", level="DEBUG")
 # logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
 
 def human_readable_duration(start_time: float) -> str:
@@ -61,7 +61,7 @@ class EvoForgingCycle:
     _architect_agent_compute_token: str | None = None
 
     agents: dict[str, Agent] = field(default_factory=dict)
-    agents_fitness: dict[str, int] = field(default_factory=dict)
+    agents_fitness: dict[str, float] = field(default_factory=dict)
     agents_first_generation_costs: dict[str, float] = field(default_factory=dict)
     init_agents_population: dict[Agent] = field(default_factory=list)
 
@@ -185,6 +185,11 @@ class EvoForgingCycle:
 
         t0 = time()
         await self.initialize_population(ecosystem=ecosystem)
+        # cancel run if no agent was initialized
+        if len(self.agents) == 0:
+            logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
+            return []
+        
         total_cycle_cost = ComputeIntensiveBatchProcessor.get_master_token_cost()
         logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
         logger.info(f"Budget left after initialization: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
@@ -226,9 +231,11 @@ class EvoForgingCycle:
         logger.info(f"Returning {config.get('ecosystem.nb_new_agent_to_add_after_forge_cycle')} best agents")
 
 
-        return sorted_agents[
-            :config.get("ecosystem.nb_new_agent_to_add_after_forge_cycle")
-        ]
+        selected_agents = {
+            agent.id: agent for agent in sorted_agents[:config.get("ecosystem.nb_new_agent_to_add_after_forge_cycle")]
+        }
+        selected_fitness = {agent_id: self.agents_fitness[agent_id] for agent_id in selected_agents}
+        return selected_agents, selected_fitness
 
     async def run_generation(self, cur_generation: int) -> float:
 
@@ -386,26 +393,7 @@ class EvoForgingCycle:
 
     def display_current_results(self, n_best: int = 3) -> None:
         sorted_fitness = dict(sorted(self.agents_fitness.items(), key=lambda item: item[1], reverse=True))
-        if get_ipython() is None:
-            for agent_id, fitness_value in list(sorted_fitness.items())[:n_best]:
-                agent = self.agents[agent_id]
-                mermaid_str = agent.agent_engine.graph.to_mermaid_str(orientation='LR')
-                logger.info(f"Agent ID: {agent_id}, fitness: {fitness_value} \n{mermaid_str}")
-        else:
-            markdown_str = ""
-            for agent_id, fitness_value in list(sorted_fitness.items())[:n_best]:
-                agent = self.agents[agent_id]
-                
-                markdown_str += f"# Agent ID: {agent_id}\n"
-                markdown_str += f"## Fitness: {fitness_value}\n"
-                markdown_str += "```mermaid \n"
-                markdown_str += f"{agent.agent_engine.graph.to_mermaid_str(orientation='LR')} \n"
-                markdown_str += "``` \n"
-                markdown_str += "## Prompts:\n"
-                markdown_str += f"##### Shared context prompt\n{agent.agent_engine.graph.shared_context_prompt}\n"
-                for node in agent.agent_engine.graph.nodes:
-                    if node.type == "LLMNode":
-                        markdown_str += f"##### {node.name}\n{node.prompt}\n"
-                markdown_str += "\n"
-                
-            display(Markdown(markdown_str))
+        best_ids = list(sorted_fitness.keys())[:n_best]
+        best_agents = {agent_id: self.agents[agent_id] for agent_id in best_ids}
+        best_agents_fitness = {agent_id: sorted_fitness[agent_id] for agent_id in best_ids}
+        self.forge.display_results(best_agents, best_agents_fitness)

@@ -42,22 +42,18 @@ available_models = [
         endpoint_id="azure-gpt-4o-mini",
         model_name="GPT-4o-mini",
     ),
-    ModelEndpoint(
-        endpoint_id="azure-gpt-4o",
-        model_name="GPT-4o",
-    ),
 ]
 ComputeIntensiveBatchProcessor.initialize(available_models)
 
-architect_agent = GraphUtils.get_architect_agent(model_endpoint_id="azure-gpt-4o")
-crossover_agent = GraphUtils.get_crossover_agent(model_endpoint_id="azure-gpt-4o")
+architect_agent = GraphUtils.get_architect_agent(model_endpoint_id="azure-gpt-4o-mini")
+crossover_agent = GraphUtils.get_crossover_agent(model_endpoint_id="azure-gpt-4o-mini")
 
 eco = Ecosystem(
     initial_architect_agents=[architect_agent],
     initial_genetic_operator_agents=[crossover_agent],
 )
 
-N_PROBLEMS = 30 # number of problems to evaluate on, per generation
+N_PROBLEMS = 2 # number of problems to evaluate on, per generation
 TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
 TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
 
@@ -69,7 +65,7 @@ forge = MathLangGraphForge(
 
 cycle_config = EvoForgingCylceConfig(
     budget=0.05,
-    n_agents_in_population=50,
+    n_agents_in_population=2,
     n_selected_agents_from_ecosystem=0,
     replacement_ratio=0.5,
     save_path=SAVE_PATH,
