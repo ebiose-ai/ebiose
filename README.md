@@ -19,16 +19,14 @@ Ebiose is a **distributed artificial intelligence factory**, an open source proj
 > "AI can just as easily become the weapon of a surveillance capitalism dystopia as the foundation of a democratic renaissance."
  
 
-:eyes: 👀 **Must read** 👀 :eyes:
-
+👀 **Must read** 👀
 - [Founding article](https://bit.ly/ebiose-blog-post) *(10 min)*
-- Glossary *(3 min)*
-
+- [Glossary](GLOSSARY.md) *(3 min)*
 ## 🧪 Current status: Beta 0.1
 
 This first beta version implements the foundations of our vision.
 
-### ✅ What's included:
+### ✅ What's included
 
 - **Architect agents**: Specialized AIs for designing and evolving other agents
 - **Darwinian engine**: Evolutionary system enabling continuous improvement of agents through mutation and selection
@@ -42,9 +40,9 @@ This first beta version implements the foundations of our vision.
 - **Empty ecosystems**: For now, your forges start with unpopulated ecosystems
 - **Early stage**: Be prepared to work through initial issues and contribute to improvements! 😇
 
-# Quick start
+# 🚀 Quick start
 
-## Installation
+## 🔧 Installation
 
 First, clone the repository:
 
@@ -54,9 +52,9 @@ git clone git@github.com:ebiose-ai/ebiose-core.git && cd ebiose
 
 Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manager. See [Astral's uv documentation](https://docs.astral.sh/uv/getting-started/installation/) to install it.  
 
-If you don't want to use `uv`, you can still use the `requirements.txt` file for installing the dependencies with `pip` or `conda`.
+If you don't want to use `uv`, you can still use the `requirements.txt` file to install dependencies with `pip` or `conda`.
 
-## Install Project Dependencies with uv
+## 📦 Install Project Dependencies with uv
 
 Once uv is installed, use it to install your project dependencies. In your project directory, run:
 
@@ -66,18 +64,15 @@ uv sync
 
 For more detailed instructions or troubleshooting tips, refer to the [official uv documentation](https://docs.astral.sh/uv/).
 
-> 💡 For the following, you may need to add the root of the repository to your `PYTHONPATH` environment variable. You may also use a `.env` file to do so.
+> 💡 Pro Tip: You may need to add the root of the repository to your `PYTHONPATH` environment variable. Alternatively, use a `.env` file to do so.
 
-## Understand forges and forge cycles
+## 🔍 Understand forges and forge cycles
 
-The Jupyter notebook [quickstart.ipynb](notebooks/quickstart.ipynb) is the easiest way to 
-understand the basics and start experimenting with Ebiose. 
-This notebook allows you to try so-called **architect agents** and **forges** on your very own problematic.
+The Jupyter notebook [quickstart.ipynb](notebooks/quickstart.ipynb) is the easiest way to understand the basics and start experimenting with Ebiose. This notebook lets you try out **architect agents** and **forges** on your very own challenges. 🤓
 
-## Implement your own forge
+## 🛠️ Implement your own forge
 
-To go further, the `examples/` directory contains a practical example of a complete forge
-made to optimize agents specialized in solving math problems. Look at `examples/[math_forge/math_forge.py](math_forge/math_forge.py)` for the implemetation of the 'MathLangGraphForge` forge.
+To go further, the `examples/` directory features a complete forge example designed to optimize agents that solve math problems. Check out `examples/[math_forge/math_forge.py](math_forge/math_forge.py)` for the implementation of the 'MathLangGraphForge' forge.
 
 To run a cycle of the Math forge, execute the following command in your project directory:
 
@@ -85,31 +80,26 @@ To run a cycle of the Math forge, execute the following command in your project 
 uv run ./examples/math_forge/run.py
 ```
 
-As soon as first agents have been written in the save path, you can evaluate an agent by executing:
+Once agents are written to the save path, evaluate an agent by executing:
 
 ```sh
 uv run ./examples/math_forge/evaluate.py
 ```
 
-Start from here to implement your own forge, with the corresponding `compute_fitness` method.
+Kick off your journey by implementing your own forge with the accompanying `compute_fitness` method! 🎉
 
-## LLM model APIs support
+## 🤖 LLM model APIs support
 
-As of today, the easiest way to experiment with Ebiose is to use the OpenAI API. To do so, all you have to do is to set your OpenAI API key via an `.env` file or by executing:
+As of today, the easiest way to experiment with Ebiose is to use the OpenAI API. Just set your OpenAI API key via an `.env` file or run:
 
 ```bash
 export OPENAI_API_KEY=<your_openai_api_key>
 ```
 
-To use other LLM providers, you may refer to [LangChain's API support](https://python.langchain.com/docs/integrations/llms/) and modify our [LangChain backend implementation](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly.
+For support with other LLM providers, refer to [LangChain's API support](https://python.langchain.com/docs/integrations/llms/) and modify our [LangChain backend implementation](ebiose/backends/langgraph/compute_intensive_batch_processor.py) as needed.
 
-<!-- ## Code overview -->
+## 📞 Contact
 
-<!-- ## Roadmap -->
+For questions, comments, or ideas, feel free to join our [Discord](https://discord.gg/naewTgYnDt) or open an issue.
 
-
-## Contact
-
-For any question, comment, idea or else, feel free to ask on [Discord](https://discord.gg/naewTgYnDt) and directly create an issue.
-
-**All feedback will be very valuable. Thanks.**
+**All feedback is highly appreciated. Thanks! 🎊**
