@@ -21,7 +21,7 @@ We have implemented a first agent engine in the form of a graph:
 
 **Nodes (Building Blocks)**: Each node is an independent component that performs a specific function. Examples of node types include:
 
-- Language models (LLM)s ✅ (implemented)
+- Language models (LLMs) ✅ (implemented)
 - Sub-agents 🚧 (work in progress)
 - Specialized ML models ⏳ (todo)
 - External API connectors ⏳ (todo)

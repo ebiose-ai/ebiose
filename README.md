@@ -20,7 +20,7 @@ Ebiose is a **distributed artificial intelligence factory**, an open source proj
  
 
 👀 **Must read** 👀
-- [Founding article](https://bit.ly/ebiose-blog-post) *(10 min)*
+- [Founding blog post](https://bit.ly/ebiose-blog-post) *(10 min)*
 - [Glossary](GLOSSARY.md) *(3 min)*
 ## 🧪 Current status: Beta 0.1
 
@@ -88,7 +88,7 @@ uv run ./examples/math_forge/evaluate.py
 
 Kick off your journey by implementing your own forge with the accompanying `compute_fitness` method! 🎉
 
-## 🤖 LLM model APIs support
+# 🤖 LLM model APIs support
 
 As of today, the easiest way to experiment with Ebiose is to use the OpenAI API. Just set your OpenAI API key via an `.env` file or run:
 
@@ -98,7 +98,7 @@ export OPENAI_API_KEY=<your_openai_api_key>
 
 For support with other LLM providers, refer to [LangChain's API support](https://python.langchain.com/docs/integrations/llms/) and modify our [LangChain backend implementation](ebiose/backends/langgraph/compute_intensive_batch_processor.py) as needed.
 
-## 📞 Contact
+# 📞 Contact
 
 For questions, comments, or ideas, feel free to join our [Discord](https://discord.gg/naewTgYnDt) or open an issue.
 
