@@ -14,6 +14,33 @@
   </h3>
 </div>
 
+Ebiose is a **distributed artificial intelligence factory**, an open source project from the Inria’s incubator (French lab). Our vision: enabling humans and agents to collaborate in building tomorrow's AI in an open and democratic way.
+
+> "AI can just as easily become the weapon of a surveillance capitalism dystopia as the foundation of a democratic renaissance."
+ 
+
+:eyes: 👀 **Must read** 👀 :eyes:
+
+- [Founding article](https://bit.ly/ebiose-blog-post) *(10 min)*
+- Glossary *(3 min)*
+
+## 🧪 Current status: Beta 0.1
+
+This first beta version implements the foundations of our vision.
+
+### ✅ What's included:
+
+- **Architect agents**: Specialized AIs for designing and evolving other agents
+- **Darwinian engine**: Evolutionary system enabling continuous improvement of agents through mutation and selection
+- **Forges**: Isolated environments where architect agents create custom agents to solve specific problems
+- **LangGraph Compatibility**: Integration with the LangGraph ecosystem for agent orchestration
+
+### 🚨 Points of caution
+
+- **Proof of concept**: Don't expect complex or production-ready agents
+- **Initial architect agent to be improved**: The first implemented architect agent is still simple
+- **Empty ecosystems**: For now, your forges start with unpopulated ecosystems
+- **Early stage**: Be prepared to work through initial issues and contribute to improvements! 😇
 
 # Quick start
 
