@@ -119,12 +119,13 @@ endpoints:
 ### Azure OpenAI
 To use OpenAI LLMs on Azure, fill the `model_endpoints.yml` file at the root of the project, with, for example:
 ```
- - endpoint_id: "azure-gpt-4o-mini"
-    provider: "Azure OpenAI"
-    api_key: "YOUR_AZURE_OPENAI_API_KEY"
-    endpoint_url: "AZURE_OPENAI_ENDPOINT_URL"
-    api_version: "API_VERSION"
-    deployment_name: "DEPLOYMENT_NAME"
+endpoints:
+  - endpoint_id: "azure-gpt-4o-mini"
+      provider: "Azure OpenAI"
+      api_key: "YOUR_AZURE_OPENAI_API_KEY"
+      endpoint_url: "AZURE_OPENAI_ENDPOINT_URL"
+      api_version: "API_VERSION"
+      deployment_name: "DEPLOYMENT_NAME"
 ```
 
 > 🚨 Dont'forget to install Langchain's OpenAI library by executing 
@@ -134,10 +135,11 @@ To use OpenAI LLMs on Azure, fill the `model_endpoints.yml` file at the root of 
 To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the root
 of the project, with, for example:
 ```
-- endpoint_id: "llama3-8b"
-  provider: "Azure ML"
-  api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
-  endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
+endpoints:
+  - endpoint_id: "llama3-8b"
+    provider: "Azure ML"
+    api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
+    endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
 ```
 
 ### Anthropic (not tested yet)
@@ -155,8 +157,9 @@ endpoints:
 ### HuggingFace (not tested yet)
 To use HuggingFace LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
 ```
-- endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
-  provider: "Hugging Face"
+endpoints:
+  - endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
+    provider: "Hugging Face"
 ```
 > 🚨 Dont'forget to install Langchain's Anthropic library by executing 
 `uv add langchain-huggingface` or `pip install -U langchain-huggingface`
