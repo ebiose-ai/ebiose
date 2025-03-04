@@ -47,7 +47,7 @@ This first beta version implements the foundations of our vision.
 First, clone the repository:
 
 ```bash
-git clone git@github.com:ebiose-ai/ebiose-core.git && cd ebiose
+git clone git@github.com:ebiose-ai/ebiose-core.git && cd ebiose-core
 ```
 
 Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manager. See [Astral's uv documentation](https://docs.astral.sh/uv/getting-started/installation/) to install it.  
