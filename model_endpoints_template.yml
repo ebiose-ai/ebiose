@@ -1,3 +1,7 @@
+# model_endpoints_template.yml
+# Rename this file to model_endpoints.yml 
+# and fill in the API keys and endpoint URLs for the models you want to use
+
 default_endpoint: "gpt-4o-mini"
 endpoints:
 

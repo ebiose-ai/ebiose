@@ -170,6 +170,65 @@ login()
 Again, we wish to be compatible with every provider you are used to, so feel free to open an issue and contribute to expanding our LLMs' coverage. Check first if LangChain
 is compatible with your preferred provider [here](https://python.langchain.com/docs/integrations/providers/).
 
+
+# 🆘 Troubleshooting
+
+Here are some common issues users might face and their solutions:
+
+### Issue 1: uv Command Not Found
+Solution: Ensure `uv` is installed correctly. Follow the official installation guide. Alternatively, use `pip`:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Issue 2: Python Environment Conflicts
+Solution: Use a virtual environment to isolate dependencies:
+
+```bash
+python -m venv ebiose-env
+source ebiose-env/bin/activate  # On Windows: ebiose-env\Scripts\activate
+uv sync  # or pip install -r requirements.txt
+```
+
+### Issue 3: Missing API Keys
+Solution: Ensure your API keys are set in the .env file or environment variables. For example:
+
+```bash
+export OPENAI_API_KEY="your_openai_api_key"
+export ANTHROPIC_API_KEY="your_anthropic_api_key"
+```
+
+### Issue 4: Jupyter Notebook Not Running
+Solution: Ensure Jupyter is installed and the kernel is set correctly:
+
+```bash
+pip install notebook
+jupyter notebook
+```
+
+### Issue 5: ModuleNotFoundError
+Solution: Set the `.env` PYTHONPATH variable as shown in the `.env.example` file. Alternatively, add the project root to your PYTHONPATH:
+
+```bash
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+```
+
+# 📜 Code of Conduct
+We are committed to fostering a welcoming and inclusive community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
+
+# 🤝 Contributing
+We welcome contributions from the community! Here's how you can help:
+- **Report Bugs**: Open an issue on GitHub with detailed steps to reproduce the problem.
+- **Suggest Features**: Share your ideas for new features or improvements.
+- **Submit Pull Requests**: Fork the repository, make your changes, and submit a PR. Please follow our [contribution guidelines](CONTRIBUTING.md).
+
+For more details, check out our [Contribution Guide](CONTRIBUTING.md).
+
+# 📜 License
+Ebiose is licensed under the [MIT License](LICENSE). This means you're free to use, modify, and distribute the code, as long as you include the original license.
+
+
 # 📞 Contact
 
 For questions, comments, or ideas, feel free to join our [Discord](https://discord.gg/naewTgYnDt) or open an issue.
