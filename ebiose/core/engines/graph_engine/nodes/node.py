@@ -17,8 +17,7 @@ class BaseNode(BaseModel):
     """
 
     id: str
-    name: str = Field(default_factory=lambda: id)  # if name isn't provided, use id
-
+    name: str
     model_config = ConfigDict(extra="allow")
 
     @abstractmethod  # Must be implemented

@@ -12,7 +12,7 @@ from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor 
 from ebiose.core.ecosystem import Ecosystem
 from ebiose.core.engines.graph_engine.utils import GraphUtils
 from ebiose.core.evo_forging_cycle import EvoForgingCylceConfig
-from ebiose.core.model_endpoint import ModelEndpoint
+from ebiose.core.model_endpoint import ModelEndpoint, ModelEndpoints
 from examples.math_forge.math_forge import MathLangGraphForge
 import os
 from langfuse.callback import CallbackHandler
@@ -37,13 +37,7 @@ logger.add(sys.stderr, level="DEBUG")
 logger.add(SAVE_PATH / "all_logs.log", rotation="10 MB", level="DEBUG")
 
 
-available_models = [
-    ModelEndpoint(
-        endpoint_id="azure-gpt-4o-mini",
-        model_name="GPT-4o-mini",
-    ),
-]
-ComputeIntensiveBatchProcessor.initialize(available_models)
+ComputeIntensiveBatchProcessor.initialize(ModelEndpoints.get_all_model_endpoints())
 
 architect_agent = GraphUtils.get_architect_agent(model_endpoint_id="azure-gpt-4o-mini")
 crossover_agent = GraphUtils.get_crossover_agent(model_endpoint_id="azure-gpt-4o-mini")

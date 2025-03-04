@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -17,7 +16,7 @@ from config import config
 from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor import (
     ComputeIntensiveBatchProcessor,
 )
-from ebiose.compute_intensive_batch_processor.token_manager import BudgetExceededError
+from ebiose.core.model_endpoint import ModelEndpoints
 from ebiose.tools.llm_token_cost import LLMTokenCost
 
 if TYPE_CHECKING:
@@ -37,72 +36,43 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
         Returns:
             The LLM model
         """
-        env_prefix = model_endpoint_id.upper().replace("-", "_")
         request_timeout = config.get("llm_compute.request_timeout_in_minutes") * 60
         max_retries = config.get("llm_compute.max_retries")
 
-        if model_endpoint_id.startswith("gpt"):
-            return ChatOpenAI(model=model_endpoint_id, temperature=temperature, max_tokens=max_tokens)
-        if model_endpoint_id == "azure-gpt-3.5-turbo":
-            return AzureChatOpenAI(
-                azure_deployment=os.getenv("AZURE_OPENAI_GPT35_DEPLOYMENT_NAME"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_GPT35_ENDPOINT"),
-                openai_api_key=os.getenv("AZURE_OPENAI_GPT35_API_KEY"),
-                openai_api_version=os.getenv("AZURE_OPENAI_GPT35_API_VERSION"),
+        model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
+
+        if model_endpoint.provider == "OpenAI":
+            return ChatOpenAI(
+                model=model_endpoint_id,
                 temperature=temperature,
-                request_timeout=request_timeout,
-                max_retries=max_retries,
                 max_tokens=max_tokens,
+                api_key=model_endpoint.api_key.get_secret_value(),
             )
-        if model_endpoint_id == "azure-gpt-4-turbo":
+
+        if model_endpoint.provider == "Azure OpenAI":
             return AzureChatOpenAI(
-                azure_deployment=os.getenv("AZURE_OPENAI_GPT4_DEPLOYMENT_NAME"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_GPT4_ENDPOINT"),
-                openai_api_key=os.getenv("AZURE_OPENAI_GPT4_API_KEY"),
-                openai_api_version=os.getenv("AZURE_OPENAI_GPT4_API_VERSION"),
-                temperature=temperature,
-                request_timeout=request_timeout,
-                max_retries=max_retries,
-                max_tokens=max_tokens,
-            )
-        if model_endpoint_id == "azure-gpt-4o":
-            return AzureChatOpenAI(
-                azure_deployment=os.getenv("AZURE_OPENAI_GPT_4O_DEPLOYMENT_NAME"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_GPT_4O_ENDPOINT"),
-                openai_api_key=os.getenv("AZURE_OPENAI_GPT_4O_API_KEY"),
-                openai_api_version=os.getenv("AZURE_OPENAI_GPT_4O_API_VERSION"),
-                temperature=temperature,
-                request_timeout=request_timeout,
-                max_retries=max_retries,
-                max_tokens=max_tokens,
-            )
-        if model_endpoint_id == "azure-gpt-4o-mini":
-            return AzureChatOpenAI(
-                azure_deployment=os.getenv("AZURE_OPENAI_GPT_4O_MINI_DEPLOYMENT_NAME"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_GPT_4O_MINI_ENDPOINT"),
-                openai_api_key=os.getenv("AZURE_OPENAI_GPT_4O_MINI_API_KEY"),
-                openai_api_version=os.getenv("AZURE_OPENAI_GPT_4O_MINI_API_VERSION"),
+                azure_deployment=model_endpoint.deployment_name,
+                azure_endpoint=model_endpoint.endpoint_url.get_secret_value(),
+                openai_api_key=model_endpoint.api_key.get_secret_value(),
+                openai_api_version=model_endpoint.api_version,
                 temperature=temperature,
                 request_timeout=request_timeout,
                 max_retries=max_retries,
                 max_tokens=max_tokens,
             )
 
-        if model_endpoint_id.startswith("azure-"):
-            # TODO @xabier: Add the max tokens argument
+        if model_endpoint.provider == "AzureML":
+            # TODO(xabier): Add the max tokens argument
             return AzureMLChatOnlineEndpoint(
-                endpoint_url=os.getenv(
-                    f"{env_prefix}_ENDPOINT_URL",
-                ),
+                endpoint_url=model_endpoint.endpoint_url.get_secret_value(),
                 endpoint_api_type=AzureMLEndpointApiType.serverless,
-                endpoint_api_key=os.getenv(
-                    f"{env_prefix}_API_KEY",
-                ),
+                endpoint_api_key=model_endpoint.api_key.get_secret_value(),
                 content_formatter=CustomOpenAIChatContentFormatter(),
                 timeout=request_timeout,
                 max_retries=max_retries,
                 model_kwargs={"temperature": temperature},
             )
+
         msg = f"Model endpoint {model_endpoint_id} not found"
         raise ValueError(msg)
 
