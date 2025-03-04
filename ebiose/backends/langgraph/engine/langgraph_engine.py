@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import ClassVar, Self, Sequence
 
 from langfuse.decorators import langfuse_context, observe
 from langgraph.graph import StateGraph
@@ -29,7 +29,7 @@ class LangGraphEngine(GraphEngine):
     engine_type: str = "langgraph_engine"
     model_endpoint_id: str | None = None
     recursion_limit: int = Field(default=15)
-    tags: list[str] = ["agent"]
+    tags: Sequence[str] = ["agent"]
 
     _compiled_graph: CompiledGraph | None = PrivateAttr(None)
     _state: type[BaseModel] | None = PrivateAttr(None)
@@ -128,6 +128,7 @@ class LangGraphEngine(GraphEngine):
 
             Args:
                 agent_input: The input that goes in first trough the graph
+                compute_token_id: The compute token id
 
             Returns: the final updated graph state
             """
@@ -183,7 +184,7 @@ class LangGraphEngine(GraphEngine):
         # add nodes to the workflow
         nodes_dict = {node.id: node for node in self.graph.nodes}
         for node_id, node in nodes_dict.items():
-            if isinstance(node, (EndNode, StartNode)):
+            if isinstance(node, EndNode | StartNode):
                 continue
             # We first retrieve the function that represents the node it does not depend
             # if we have a llm, a rag or whatnot

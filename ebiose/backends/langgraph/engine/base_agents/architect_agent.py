@@ -15,11 +15,6 @@ class AgentInput(BaseModel):
     forge_description: str
     node_types: list = ["StartNode", "LLMNode", "EndNode"]
     max_llm_nodes: int = 10
-    # node_types_description: str = Field(
-    #     default_factory=lambda: get_node_types_docstrings(
-    #         node_types_names,
-    #     ),
-    # )
     random_n_llm_nodes: bool = True
 
     @computed_field
@@ -123,7 +118,7 @@ entire graph with the prompts under the following format:\n
 
 def init_architect_agent(
         model_endpoint_id: str,
-        add_format_node: bool = True,
+        add_format_node: bool = True,  # noqa: FBT001, FBT002
 
     ) -> None:
         from ebiose.core.agent import Agent

@@ -42,6 +42,9 @@ ignore = [
     "D104", # Missing docstring in public package
     "D105", # Missing docstring in magic method
     "D106", # Missing docstring in nested public class
+    "BLE001", # Do not catch blind exception: `Exception`
+    "PLR0913", # Too many arguments in function definition (6 > 5)
+    "S311", # Standard pseudo-random generators are not suitable for cryptographic purposes
 ]
 
 [lint.flake8-type-cheking]

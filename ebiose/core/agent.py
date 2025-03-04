@@ -43,20 +43,6 @@ class Agent(BaseModel):
         msg = "Invalid agent engine type"
         raise TypeError(msg)
 
-    # TODO(xabier): Implement this
-    # @field_serializer("description_embedding")
-    # def serialize_description_embedding(self, array: ArrayLike | None) -> str:
-    #     if array is not None:
-    #         return array.tolist()
-    #     return []
-
-    # TODO(xabier): Implement this
-    # @model_validator(mode="before")
-    # def deserialize_description_embedding(cls, values: dict[str, Any]) -> dict[str, Any]:
-    #     if "array" in values and not isinstance(values["array"], np.ndarray):
-    #         values["array"] = np.array(values["array"])
-    #     return values
-
     @model_validator(mode="after")
     def generate_embeddings(self) -> Self:
         if self.description_embedding is None:

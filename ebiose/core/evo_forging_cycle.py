@@ -36,7 +36,6 @@ import datetime
 if get_ipython() is not None:
     logger.remove()
     logger.add(sys.stderr, format="<level>{message}</level>", level="DEBUG")
-# logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
 
 def human_readable_duration(start_time: float) -> str:
     elapsed_time = time() - start_time
@@ -55,8 +54,6 @@ class EvoForgingCylceConfig(BaseModel):
 class EvoForgingCycle:
     forge: AgentForge
     config: EvoForgingCylceConfig
-    # config.save_path: str | None = None
-    # budget: float | None = None
 
     _master_compute_token: str | None = None
     _architect_agent_compute_token: str | None = None
@@ -107,7 +104,6 @@ class EvoForgingCycle:
         self.agents.clear()
         self.agents_first_generation_costs.clear()
 
-        # n_selected_agents = config.get("ecosystem.nb_selected_agents_for_new_forge_cycle")
         n_selected_agents = self.config.n_selected_agents_from_ecosystem
         if n_selected_agents > 0 :
             selected_agents = await ecosystem.select_agents_for_forge(self.forge, n_selected_agents)
@@ -118,11 +114,11 @@ class EvoForgingCycle:
         if n_selected_agents == 0 or len(selected_agents) == 0:
             logger.info(f"Creating {self.config.n_agents_in_population} new agents with architect agents...")
             for _ in range(self.config.n_agents_in_population):
-                architect_agent = random.choice(ecosystem.initial_architect_agents)  # noqa: S311
+                architect_agent = random.choice(ecosystem.initial_architect_agents)
                 architect_agent_input = architect_agent.agent_engine.input_model(
                     forge_description=self.forge.description,
                 )
-                genetic_operator_agent = random.choice(ecosystem.initial_genetic_operator_agents)  # noqa: S311
+                genetic_operator_agent = random.choice(ecosystem.initial_genetic_operator_agents)
 
                 task = architect_agent_task(
                     forge=self.forge,
@@ -245,7 +241,6 @@ class EvoForgingCycle:
 
         # Select agents for crossover and mutation
         # number of agents to be replaced
-        # n_replaced = int(config.get("evolution.replacement_ratio") * len(self.agents))
         n_replaced = int(self.config.replacement_ratio * len(self.agents))
         # number of agents to be kept
         n_kept = len(self.agents) - n_replaced
@@ -311,7 +306,7 @@ class EvoForgingCycle:
         fitness_values = list(self.agents_fitness.values()).copy()
 
         for _ in range(num_agents_to_select):
-            pick = random.uniform(0, total_fitness)  # noqa: S311
+            pick = random.uniform(0, total_fitness)
             current = 0
             for i, fitness in enumerate(fitness_values):
                 current += fitness
@@ -328,7 +323,6 @@ class EvoForgingCycle:
         # 2. the best agents of each tournament are selected
         # 3. amongst them, x% are randomly selected to replace the parents of the next generation
         # 4. the others are kept
-        # tournament_size = max(2, int(config.get("evolution.tournament_size_ratio") * len(self.agents)))
         tournament_size = max(2, int(self.config.tournament_size_ratio * len(self.agents)))
 
         winning_agent_ids = []
@@ -342,7 +336,7 @@ class EvoForgingCycle:
             winning_agent_ids.append(best_agent.id)
 
         # WARNING: we should not select the same agent twice
-        return random.choices(winning_agent_ids, k=n_to_select)  # noqa: S311
+        return random.choices(winning_agent_ids, k=n_to_select)
 
     async def crossover_and_mutate(self, selected_parent_ids: list[str]) -> tuple[list[Agent], float]:
 
@@ -356,9 +350,9 @@ class EvoForgingCycle:
             parent1_id = selected_parent_ids[i]
             parent1 = self.agents[parent1_id]
             potential_parent_ids = [_id for _id in selected_parent_ids if _id != parent1_id]
-            parent2_id = random.choice(potential_parent_ids) if len(potential_parent_ids) > 0 else parent1_id  # noqa: S311
+            parent2_id = random.choice(potential_parent_ids) if len(potential_parent_ids) > 0 else parent1_id
             parent2 = self.agents[parent2_id]
-            genetic_operator_agent = random.choice([parent1.genetic_operator_agent, parent2.genetic_operator_agent])  # noqa: S311
+            genetic_operator_agent = random.choice([parent1.genetic_operator_agent, parent2.genetic_operator_agent])
             crossover_input = genetic_operator_agent.agent_engine.input_model(
                 forge_description=self.forge.description,
                 parent_configuration1=parent1.agent_engine.graph.model_dump(),

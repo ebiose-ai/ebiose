@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from langchain_core.messages import AnyMessage
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel
 
 from ebiose.backends.langgraph.engine.regex_routing_node import (
@@ -10,6 +11,9 @@ from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
+
+if TYPE_CHECKING:
+    from langchain_core.messages import AnyMessage
 
 SHARED_CONTEXT_PROMPT = """You are part of a router agent that must analyse the
 following message and decide which condition applies best amongst: {possible_output}.

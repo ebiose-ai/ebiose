@@ -24,7 +24,6 @@ class AgentFactory:
         agent_engine = AgentEngineFactory.create_engine(
             engine_type=agent_config["agent_engine"]["engine_type"],
             configuration=agent_config["agent_engine"]["configuration"],
-            # model_endpoint=model_endpoint,
             model_endpoint_id=model_endpoint_id,
             input_model=input_model,
             output_model=output_model,
@@ -60,7 +59,6 @@ class AgentFactory:
                 agent_engine_configuration,
                 input_model=generated_agent_input,
                 output_model=generated_agent_output,
-                # model_endpoint=architect_agent.agent_engine.model_endpoint,
                 model_endpoint_id=generated_model_endpoint_id,
             )
         except Exception as e:
@@ -104,7 +102,6 @@ class AgentFactory:
                 agent_engine_configuration,
                 input_model=generated_agent_input,
                 output_model=generated_agent_output,
-                # model_endpoint=crossover_agent.agent_engine.model_endpoint,
                 model_endpoint_id=generated_model_endpoint_id,
             )
 

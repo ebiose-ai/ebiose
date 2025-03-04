@@ -38,16 +38,6 @@ class AgentForge(BaseModel):
     async def compute_fitness(self, agent: Agent, compute_token_id: str, **kwargs: dict[str, any]) -> int:
         pass
 
-    # async def async_compute_fitness(self, agent: Agent, compute_token_id: str) -> int:
-    #     return await self.compute_fitness(agent, compute_token_id)
-
-    #     Use ThreadPoolExecutor to run compute_fitness in a separate thread
-    #     This is useful if compute_fitness is CPU-bound or involves I/O operations
-    #     with ThreadPoolExecutor() as executor:
-    #         return await asyncio.get_event_loop().run_in_executor(
-    #             executor, self.compute_fitness, agent, compute_token_id
-    #     )
-
     async def run_new_cycle(
             self,
             config: EvoForgingCylceConfig,

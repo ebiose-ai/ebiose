@@ -36,7 +36,7 @@ class MathLangGraphForge(AgentForge):
 
     unpicked_problems: dict[str, set[str]] = Field(default_factory=dict, exclude=True)
 
-    def model_post_init(self, __context: dict = None) -> None:
+    def model_post_init(self, __context: dict = None) -> None:  # noqa: PYI063, RUF013
         """Post-initialization hook for Pydantic models."""
         self._load_data()
 
@@ -57,7 +57,7 @@ class MathLangGraphForge(AgentForge):
             return list(self.data[mode].keys())
 
         if mode not in self.unpicked_problems or len(self.unpicked_problems[mode]) < self.n_problems:
-            # Reset the pool when there aren’t enough problems left
+            # Reset the pool when there aren't enough problems left
             self.unpicked_problems[mode] = list(self.data[mode].keys())
             random.shuffle(self.unpicked_problems[mode])
 
@@ -66,7 +66,7 @@ class MathLangGraphForge(AgentForge):
         self.unpicked_problems[mode] = self.unpicked_problems[mode][self.n_problems:]
         return selected
 
-    async def compute_fitness(self, agent: Agent, compute_token_id: str, mode: Literal["train", "test"] = "train", **kwargs: dict[str, any]) -> float:
+    async def compute_fitness(self, agent: Agent, compute_token_id: str, mode: Literal["train", "test"] = "train", **kwargs: dict[str, any]) -> float:  # noqa: C901
         if agent.agent_engine.engine_type != "langgraph_engine":
             self.fitness[agent.id] = {0 for _ in range(len(self.data))}
             return 0

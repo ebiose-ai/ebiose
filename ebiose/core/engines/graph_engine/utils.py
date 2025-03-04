@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, create_model
@@ -29,7 +29,7 @@ class GraphUtils:
     _architect_agent: BaseModel | None = None
     _crossover_agent: BaseModel | None = None
     _routing_agent: BaseModel | None = None
-    _structured_output_agent_registry: dict[str, BaseModel] = {}
+    _structured_output_agent_registry: ClassVar[dict[str, BaseModel]] = {}
 
     @classmethod
     def get_routing_agent(cls, model_endpoint_id: str | None) -> BaseModel:
@@ -74,7 +74,7 @@ def find_placeholders(text: str) -> list[str]:
     pattern = r"\{([^{}]+)\}"
     return re.findall(pattern, text)
 
-def json_schema_to_pydantic(
+def json_schema_to_pydantic(  # noqa: C901
     schema: dict[str, any],
     class_name: str = "GeneratedModel",
     root_schema: dict[str, any]| None = None,

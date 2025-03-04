@@ -15,8 +15,8 @@ class ComputeIntensiveBatchProcessor:
     _token_costs: ClassVar[dict[str, list[tuple[datetime, float]]]] = {}
 
     @classmethod
-    def initialize(cls, available_model_endpoints: list[ModelEndpoint] = []) -> None:
-        if len(available_model_endpoints) == 0:
+    def initialize(cls, available_model_endpoints: list[ModelEndpoint] | None = None) -> None:
+        if available_model_endpoints is None:
             available_model_endpoints = ModelEndpoints.get_all_model_endpoints()
         cls._initialized = True
         cls._request_counts = {model_endpoint.endpoint_id: [] for model_endpoint in available_model_endpoints}

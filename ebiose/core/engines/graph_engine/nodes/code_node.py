@@ -32,7 +32,7 @@ class CodeNode(BaseNode):
 
         # Execute the code
         local_vars = {}
-        exec(code, {}, local_vars)
+        exec(code, {}, local_vars)  # noqa: S102
         return {"result": local_vars}
 
     def is_safe_code(self, code: str) -> bool:
@@ -40,7 +40,7 @@ class CodeNode(BaseNode):
         try:
             tree = ast.parse(code)
             for node in ast.walk(tree):
-                if isinstance(node, (ast.Import, ast.ImportFrom, ast.Exec)):
+                if isinstance(node, ast.Import | ast.ImportFrom | ast.Exec):
                     return False
         except SyntaxError:
             return False

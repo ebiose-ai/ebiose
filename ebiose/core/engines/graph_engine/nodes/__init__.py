@@ -1,5 +1,5 @@
 import importlib
-from typing import Union
+from functools import reduce
 
 from pydantic import BaseModel
 
@@ -46,8 +46,7 @@ if BaseNode in node_types:
     node_types.remove(BaseNode)
 
 # Create the NodeTypes union from the node types list
-NodeTypes = Union[tuple(node_types)]
-
+NodeTypes = reduce(lambda acc, t: acc | t, node_types)
 
 def get_node_types_docstrings(node_types_names: list) -> str:
     """Get the docstring of each node type to pass in the prompts."""

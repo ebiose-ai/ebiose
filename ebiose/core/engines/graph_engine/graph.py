@@ -54,7 +54,7 @@ class Graph(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     @model_validator(mode="after")
-    def validate_graph(self, info: ValidationInfo) -> Graph:
+    def validate_graph(self, info: ValidationInfo) -> Graph:  # noqa: ARG002
         """Validate the graph by checking placeholders and outgoing conditional edges."""
         msg = ""
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import AnyMessage  # noqa: TC002
 from pydantic import BaseModel
 
 from ebiose.backends.langgraph.engine.pydantic_validator_node import (

@@ -49,36 +49,6 @@ class Ecosystem:
             selected_agents.append(agent)
         return selected_agents
 
-    # async def init_agents_population(self, forge: AgentForge, n_agents: int, compute_token_id: str) -> list[Agent]:
-    #     # create agents
-    #     tasks = []
-    #     for i in range(n_agents):
-    #         genetic_operator_agent = self.initial_genetic_operator_agents[
-    #             (i % len(self.initial_architect_agents))
-    #         ]
-    #         architect_agent = self.initial_architect_agents[(i % len(self.initial_architect_agents))]
-    #         architect_agent_input = architect_agent.agent_engine.input_model(forge_description=forge.description)
-
-    #         task = architect_agent_task(
-    #             forge=forge,
-    #             architect_agent=architect_agent,
-    #             architect_agent_input=architect_agent_input,
-    #             architect_agent_compute_token=compute_token_id,
-    #             genetic_operator_agent=genetic_operator_agent,
-    #         )
-    #         tasks.append(task)  # Add task to the list
-
-    #     # Await all tasks concurrently
-    #     results = await asyncio.gather(*tasks)
-    #     results = [agent for agent in results if agent is not None]
-    #     for new_born_agent in results:
-    #         if new_born_agent is None:
-    #             logger.debug(f"An agent could not be created for forge {forge.name}")
-    #             continue
-    #         self._add_new_born_agent(new_born_agent)
-
-    #     return results
-
     def add_forge(self, forge: AgentForge) -> None:
         self.forge_list.append(forge)
         # Initialize SortedList with existing agents and their distances
