@@ -73,6 +73,33 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 model_kwargs={"temperature": temperature},
             )
 
+        if model_endpoint.provider == "Anthropic":
+            from langchain_anthropic import (  # type: ignore  # noqa: PGH003
+                ChatAnthropic,
+            )
+            return ChatAnthropic(
+                model=model_endpoint_id,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                api_key=model_endpoint.api_key.get_secret_value(),
+            )
+
+        if model_endpoint.provider == "HuggingFace":
+            from langchain_huggingface import (  # type: ignore  # noqa: PGH003
+                ChatHuggingFace,
+                HuggingFaceEndpoint,
+            )
+
+            llm = HuggingFaceEndpoint(
+                repo_id=model_endpoint_id,
+                task="text-generation",
+                max_new_tokens=max_tokens,
+            )
+
+            return ChatHuggingFace(llm=llm, verbose=True)
+
+
+
         msg = f"Model endpoint {model_endpoint_id} not found"
         raise ValueError(msg)
 
