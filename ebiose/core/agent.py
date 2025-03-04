@@ -7,7 +7,6 @@ from langfuse.decorators import observe
 from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 
-from config import config
 from ebiose.core.agent_engine import AgentEngine
 from ebiose.core.agent_engine_factory import AgentEngineFactory
 from ebiose.tools.embedding_helper import generate_embeddings

@@ -6,7 +6,6 @@ from loguru import logger
 
 from ebiose.core.agent import Agent
 from ebiose.core.agent_engine_factory import AgentEngineFactory
-from ebiose.core.model_endpoint import ModelEndpoint
 
 if TYPE_CHECKING:
     from pydantic import BaseModel

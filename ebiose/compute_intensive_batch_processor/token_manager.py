@@ -3,9 +3,9 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from threading import Lock
-import sys
 
 from loguru import logger
+
 
 class BudgetExceededError(Exception):
     """Exception raised when a token or master budget limit is exceeded."""

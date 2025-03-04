@@ -1,9 +1,9 @@
 from enum import Enum
+from pathlib import Path
 from typing import ClassVar
 
-from pydantic import BaseModel, Field, SecretStr
 import yaml
-from pathlib import Path
+from pydantic import BaseModel, SecretStr
 
 
 class ModelType(Enum):

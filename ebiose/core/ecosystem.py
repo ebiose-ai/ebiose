@@ -26,7 +26,7 @@ class Ecosystem:
             initial_architect_agents = [GraphUtils.get_architect_agent(model_endpoint_id="azure-gpt-4o-mini")]
         if initial_genetic_operator_agents is None:
             initial_genetic_operator_agents = [GraphUtils.get_crossover_agent(model_endpoint_id="azure-gpt-4o-mini")]
-        
+
         self.initial_architect_agents: list[Agent] = initial_architect_agents
         self.initial_genetic_operator_agents: list[Agent] = initial_genetic_operator_agents
         self._agents: list[Agent] = []

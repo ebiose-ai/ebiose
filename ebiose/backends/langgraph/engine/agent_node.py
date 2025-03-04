@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from ebiose.core.engines.graph_engine.nodes.agent_node import AgentNode
+
 
 class InputState(BaseModel):
     pass

@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence  # noqa: TC003
-from typing import ClassVar, Literal
+from typing import Literal
 
 from langchain_core.messages import AIMessage, AnyMessage, ToolCall, ToolMessage
 from pydantic import BaseModel  # noqa: TC002
 
-from ebiose.core.engines.graph_engine.nodes.regex_routing_node import (
-    RegexRoutingNode,
-)
-
 from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineInputState,
     LangGraphEngineOutputState,
+)
+from ebiose.core.engines.graph_engine.nodes.regex_routing_node import (
+    RegexRoutingNode,
 )
 
 

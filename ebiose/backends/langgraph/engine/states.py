@@ -8,7 +8,6 @@ from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field, computed_field
 
 
-
 class LangGraphEngineInputState(BaseModel):
     messages: Annotated[Sequence[AnyMessage], add_messages] = []
     input: BaseModel = Field(..., serialization_exclude=True)

@@ -45,7 +45,7 @@ class LLMNode(BaseNode, abc.ABC):
     # TODO(xabier):  abstract class
     # https://github.com/ebiose-ai/ebiose/issues/44
 
-    async def call_node(self, agent_state: BaseModel | dict, config: BaseModel | None = None) -> dict:  # noqa: ARG002 TODO: remove this noqa
+    async def call_node(self, agent_state: BaseModel | dict, config: BaseModel | None = None) -> dict:
         """Basic call_node where there is only a common prompt in the graph and a list of messages where there are additively stacked."""
         msg = "This method depends on the backend used to call the LLM model"
         raise NotImplementedError(

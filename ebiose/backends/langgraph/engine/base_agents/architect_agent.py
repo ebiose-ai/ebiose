@@ -1,11 +1,11 @@
 import random
-from pydantic import BaseModel, Field, computed_field
+
+from pydantic import BaseModel, computed_field
 
 from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.nodes import (
     get_node_types_docstrings,
-    node_types_names,
 )
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
@@ -32,15 +32,14 @@ class AgentInput(BaseModel):
     def n_llm_nodes_constraint_string(self) -> str:
         if self.random_n_llm_nodes:
                 return f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, self.max_llm_nodes)} exactly."
-        else:
-            return f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
+        return f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
 
 
 
 class AgentOutput(Graph):
     pass
 
-    
+
 SHARED_CONTEXT_PROMPT = """As an expert in Machine Learning, deeply immersed in the
 most recent advancements in prompt engineering and the innovative application of LLMs,
 your task is to architect an AI model that harnesses the power of multiple LLMs in a
@@ -123,10 +122,10 @@ entire graph with the prompts under the following format:\n
 
 
 def init_architect_agent(
-        model_endpoint_id: str, 
+        model_endpoint_id: str,
         add_format_node: bool = True,
 
-    ) -> None:  # noqa: FBT001, FBT002
+    ) -> None:
         from ebiose.core.agent import Agent
         from ebiose.core.agent_engine_factory import AgentEngineFactory
 
