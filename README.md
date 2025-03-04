@@ -135,9 +135,9 @@ To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the roo
 of the project, with, for example:
 ```
 - endpoint_id: "llama3-8b"
-    provider: "Azure ML"
-    api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
-    endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
+  provider: "Azure ML"
+  api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
+  endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
 ```
 
 ### Anthropic (not tested yet)
