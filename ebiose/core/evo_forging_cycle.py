@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import asyncio
-import base64
 import json
 import random
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-import sys
 from time import time
 from typing import TYPE_CHECKING
+
 from IPython import get_ipython
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
 if get_ipython() is not None:
-    from IPython.display import display, Markdown
+    pass
 
 from loguru import logger
 from tqdm.asyncio import tqdm
@@ -170,18 +171,12 @@ class EvoForgingCycle:
     async def execute_a_cycle(self, ecosystem: Ecosystem) -> list[Agent]:
 
         logger.info(f"Starting a new cycle for forge {self.forge.name}")
+        ComputeIntensiveBatchProcessor.initialize()
         self._master_compute_token = ComputeIntensiveBatchProcessor.acquire_master_token(budget=self.config.budget)
         self._architect_agent_compute_token = ComputeIntensiveBatchProcessor.generate_token(
             config.get("forge.architect_agent_budget_ratio") * self.config.budget,
             self._master_compute_token,
         )
-
-        # await ecosystem.init_agents_population(
-        #     self.forge,
-        #     n_selected_agents,
-        #     self._architect_agent_compute_token,
-        # )
-        # logger.info(f"Initialization of {n_selected_agents} agents took {datetime.timedelta(seconds=time() - t0)}")
 
         t0 = time()
         await self.initialize_population(ecosystem=ecosystem)
@@ -189,11 +184,11 @@ class EvoForgingCycle:
         if len(self.agents) == 0:
             logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
             return []
-        
+
         total_cycle_cost = ComputeIntensiveBatchProcessor.get_master_token_cost()
         logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
         logger.info(f"Budget left after initialization: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
-        
+
         # running generation 0
         generation = 0
         first_generation_cost = await self.run_generation(generation)

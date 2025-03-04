@@ -1,22 +1,19 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from abc import abstractmethod
 from uuid import uuid4
 
 from IPython import get_ipython
+
 if get_ipython() is not None:
-    from IPython.display import display, Markdown
+    from IPython.display import Markdown, display
 from loguru import logger
 from pydantic import BaseModel, Field
 
 from ebiose.core.agent import Agent
+from ebiose.core.ecosystem import Ecosystem
 from ebiose.core.evo_forging_cycle import EvoForgingCycle, EvoForgingCylceConfig
 from ebiose.tools.embedding_helper import generate_embeddings
-
-if TYPE_CHECKING:
-    from ebiose.core.ecosystem import Ecosystem
 
 
 class AgentForge(BaseModel):
@@ -53,10 +50,12 @@ class AgentForge(BaseModel):
 
     async def run_new_cycle(
             self,
-            ecosystem: Ecosystem,
-            cycle_config: EvoForgingCylceConfig,
+            config: EvoForgingCylceConfig,
+            ecosystem: Ecosystem | None = None,
         ) -> list[Agent]:
-        cycle = EvoForgingCycle(forge=self, config=cycle_config)
+        cycle = EvoForgingCycle(forge=self, config=config)
+        if ecosystem is None:
+            ecosystem = Ecosystem()
         ecosystem.add_forge(self)
         # try to select agents from the ecocystem to enter the forge cycle
         # if not, architect agents will handle creating new agents in the forge cycle
@@ -67,13 +66,13 @@ class AgentForge(BaseModel):
         if get_ipython() is None:
             for agent_id, fitness_value in sorted_fitness.items():
                 agent = agents[agent_id]
-                mermaid_str = agent.agent_engine.graph.to_mermaid_str(orientation='LR')
+                mermaid_str = agent.agent_engine.graph.to_mermaid_str(orientation="LR")
                 logger.info(f"Agent ID: {agent_id}, fitness: {fitness_value} \n{mermaid_str}")
         else:
             markdown_str = ""
             for agent_id, fitness_value in sorted_fitness.items():
                 agent = agents[agent_id]
-                
+
                 markdown_str += f"# Agent ID: {agent_id}\n"
                 markdown_str += f"## Fitness: {fitness_value}\n"
                 markdown_str += "```mermaid \n"
@@ -85,5 +84,5 @@ class AgentForge(BaseModel):
                     if node.type == "LLMNode":
                         markdown_str += f"##### {node.name}\n{node.prompt}\n"
                 markdown_str += "\n"
-                
-            display(Markdown(markdown_str)) 
+
+            display(Markdown(markdown_str))

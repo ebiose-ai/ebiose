@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, create_model
@@ -19,6 +19,7 @@ from ebiose.backends.langgraph.engine.base_agents.routing_agent import (
 from ebiose.backends.langgraph.engine.base_agents.structured_output_agent import (
     init_structured_output_agent,
 )
+from ebiose.core.model_endpoint import ModelEndpoints
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -31,29 +32,37 @@ class GraphUtils:
     _structured_output_agent_registry: dict[str, BaseModel] = {}
 
     @classmethod
-    def get_routing_agent(cls, model_endpoint_id: str) -> BaseModel:
+    def get_routing_agent(cls, model_endpoint_id: str | None) -> BaseModel:
         if cls._routing_agent is None:
+            if model_endpoint_id is None:
+                model_endpoint_id = ModelEndpoints.get_default_model_endpoint()
             cls._routing_agent = init_routing_agent(model_endpoint_id)
         return cls._routing_agent
 
     @classmethod
-    def get_structured_output_agent(cls, output_model: type[BaseModel], model_endpoint_id: str) -> BaseModel:
+    def get_structured_output_agent(cls, output_model: type[BaseModel], model_endpoint_id: str | None) -> BaseModel:
         # TODO(xabier): find a way to handle multiple structured output agents
         output_model_id = id(output_model)
         if output_model_id not in cls._structured_output_agent_registry:
-            logger.debug(f"Initializing structured output agent for model with fields {output_model.model_fields} ({len(cls._structured_output_agent_registry)+1})")
+            if model_endpoint_id is None:
+                model_endpoint_id = ModelEndpoints.get_default_model_endpoint()
+            logger.debug(f"\nInitializing structured output agent for model {output_model.__name__} ({len(cls._structured_output_agent_registry)+1})")
             cls._structured_output_agent_registry[id(output_model)] = init_structured_output_agent(output_model, model_endpoint_id)
         return cls._structured_output_agent_registry[output_model_id]
 
     @classmethod
-    def get_architect_agent(cls, model_endpoint_id: str) -> BaseModel:
+    def get_architect_agent(cls, model_endpoint_id: str | None) -> BaseModel:
         if cls._architect_agent is None:
+            if model_endpoint_id is None:
+                model_endpoint_id = ModelEndpoints.get_default_model_endpoint()
             cls._architect_agent = init_architect_agent(model_endpoint_id)
         return cls._architect_agent
 
     @classmethod
-    def get_crossover_agent(cls, model_endpoint_id: str) -> BaseModel:
+    def get_crossover_agent(cls, model_endpoint_id: str | None) -> BaseModel:
         if cls._crossover_agent is None:
+            if model_endpoint_id is None:
+                model_endpoint_id = ModelEndpoints.get_default_model_endpoint()
             cls._crossover_agent = init_crossover_agent(model_endpoint_id)
         return cls._crossover_agent
 
@@ -118,7 +127,7 @@ def json_schema_to_pydantic(
         if isinstance(type_def, list):
             # If multiple types, use Optional
             converted_types = [convert_type(t) for t in type_def]
-            return Optional[tuple(converted_types)]
+            return tuple(converted_types) | None
 
         # Handle dictionary type definitions
         if isinstance(type_def, dict):

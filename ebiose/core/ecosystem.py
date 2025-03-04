@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
-from loguru import logger
 from sortedcontainers import SortedList
 
-from config import config
 from ebiose.core.agent import Agent
-from ebiose.core.agent_factory import AgentFactory
-from ebiose.tools.agent_generation_task_with_fallback import architect_agent_task
+from ebiose.core.engines.graph_engine.utils import GraphUtils
 from ebiose.tools.embedding_helper import embedding_distance
 
 if TYPE_CHECKING:
@@ -17,19 +13,20 @@ if TYPE_CHECKING:
     from ebiose.core.agent_forge import AgentForge
 
 
-
 class Ecosystem:
 
     def __init__(
             self,
-            model_endpoint_ids: list[str] | None = None,
             initial_architect_agents: list[Agent] | None = None,
             forges: list[AgentForge]  | None = None,
             initial_genetic_operator_agents: list[Agent] | None = None,
         ) -> None:
 
         if initial_architect_agents is None:
-            initial_architect_agents = []
+            initial_architect_agents = [GraphUtils.get_architect_agent(model_endpoint_id="azure-gpt-4o-mini")]
+        if initial_genetic_operator_agents is None:
+            initial_genetic_operator_agents = [GraphUtils.get_crossover_agent(model_endpoint_id="azure-gpt-4o-mini")]
+        
         self.initial_architect_agents: list[Agent] = initial_architect_agents
         self.initial_genetic_operator_agents: list[Agent] = initial_genetic_operator_agents
         self._agents: list[Agent] = []
