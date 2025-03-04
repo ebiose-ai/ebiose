@@ -88,15 +88,87 @@ uv run ./examples/math_forge/evaluate.py
 
 Kick off your journey by implementing your own forge with the accompanying `compute_fitness` method! 🎉
 
-# 🤖 LLM model APIs support
+# 🤖 Model APIs support
 
-As of today, the easiest way to experiment with Ebiose is to use the OpenAI API. Just set your OpenAI API key via an `.env` file or run:
+As of today, Ebiose uses LangChain/LangGraph to implement agents. Using the different providers of LLMs, and ML models, has been made as easy as possible. 
 
-```bash
-export OPENAI_API_KEY=<your_openai_api_key>
+## Model endpoints
+Models, for now LLMs, and in the future any other ML models, must be defined as 
+[`ModelEndpoint`](ebiose/core/model_endpoint.py) instances. The most straightforward
+way to define the model endpoints to which you have access to is to create a 
+`model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml]
+YAML file at the root of the project, and fill it with your secret credentials.
+
+## Main model endpoints
+We have implemented the most popular LLM APIs. For others, please refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/) and adapt 
+the [LangGraphComputeIntensiveBatchProcessor class](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly. Issues and pull requests are 
+welcomed.
+
+### OpenAI
+To use OpenAI LLMs, fill the `model_endpoints.yml` file at the root of the project, 
+with, for example:
+```
+endpoints:
+  - endpoint_id: "gpt-4o-mini"
+    provider: "OpenAI"
+    api_key: "YOUR_OPENAI_API_KEY"
+```
+> 🚨 Dont'forget to install Langchain's OpenAI library by executing 
+`uv add langchain-openai` or `pip install langchain-openai`.
+
+### Azure OpenAI
+To use OpenAI LLMs on Azure, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```
+ - endpoint_id: "azure-gpt-4o-mini"
+    provider: "Azure OpenAI"
+    api_key: "YOUR_AZURE_OPENAI_API_KEY"
+    endpoint_url: "AZURE_OPENAI_ENDPOINT_URL"
+    api_version: "API_VERSION"
+    deployment_name: "DEPLOYMENT_NAME"
 ```
 
-For support with other LLM providers, refer to [LangChain's API support](https://python.langchain.com/docs/integrations/llms/) and modify our [LangChain backend implementation](ebiose/backends/langgraph/compute_intensive_batch_processor.py) as needed.
+> 🚨 Dont'forget to install Langchain's OpenAI library by executing 
+`uv add langchain-openai` or `pip install langchain-openai`.
+
+### Azure ML LLMs
+To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the root
+of the project, with, for example:
+```
+- endpoint_id: "llama3-8b"
+    provider: "Azure ML"
+    api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
+    endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
+```
+
+### Anthropic (not tested yet)
+To use Anthropic LLMs, fill the `model_endpoints.yml` file at the root of the project, 
+with, for example:
+```
+endpoints:
+  - endpoint_id: "claude-3-sonnet-20240229"
+    provider: "Anthropic"
+    api_key: "YOUR_OPENAI_API_KEY"
+```
+> 🚨 Dont'forget to install Langchain's Anthropic library by executing 
+`uv add langchain-anthropic` or `pip install -U langchain-anthropic`
+
+### HuggingFace (not tested yet)
+To use HuggingFace LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```
+- endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
+  provider: "Hugging Face"
+```
+> 🚨 Dont'forget to install Langchain's Anthropic library by executing 
+`uv add langchain-huggingface` or `pip install -U langchain-huggingface`
+and login with the following:
+```
+from huggingface_hub import login
+login()
+```
+
+### Others
+Again, we wish to be compatible with every provider you are used to, so feel free to open an issue and contribute to expanding our LLMs' coverage. Check first if LangChain
+is compatible with your preferred provider [here](https://python.langchain.com/docs/integrations/providers/).
 
 # 📞 Contact
 

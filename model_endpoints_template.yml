@@ -19,3 +19,12 @@ endpoints:
     provider: "Azure ML"
     api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
     endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
+
+  # Anthropic endpoints
+  - endpoint_id: "claude-3-sonnet-20240229"
+    provider: "Anthropic"
+    api_key: "YOUR_OPENAI_API_KEY" # fill in your Anthropic API key
+
+  # Hugging Face endpoints
+  - endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
+    provider: "Hugging Face"
