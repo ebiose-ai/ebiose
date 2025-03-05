@@ -19,7 +19,7 @@ Ebiose is a **distributed artificial intelligence factory**, an open source proj
 > "AI can just as easily become the weapon of a surveillance capitalism dystopia as the foundation of a democratic renaissance."
  
 
-👀 **Must read** 👀
+👀**Must read**
 - [Founding blog post](https://bit.ly/ebiose-blog-post) *(10 min)*
 - [Glossary](GLOSSARY.md) *(3 min)*
 ## 🧪 Current status: Beta 0.1
@@ -50,11 +50,8 @@ First, clone the repository:
 git clone git@github.com:ebiose-ai/ebiose-core.git && cd ebiose-core
 ```
 
+## 📦 Install Project Dependencies 
 Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manager. See [Astral's uv documentation](https://docs.astral.sh/uv/getting-started/installation/) to install it.  
-
-If you don't want to use `uv`, you can still use the `requirements.txt` file to install dependencies with `pip` or `conda`.
-
-## 📦 Install Project Dependencies with uv
 
 Once uv is installed, use it to install your project dependencies. In your project directory, run:
 
@@ -64,6 +61,8 @@ uv sync
 
 For more detailed instructions or troubleshooting tips, refer to the [official uv documentation](https://docs.astral.sh/uv/).
 
+> 💡 If you don't want to use `uv`, you can still use `pip install -r requirements.txt` command.
+
 > 💡 Pro Tip: You may need to add the root of the repository to your `PYTHONPATH` environment variable. Alternatively, use a `.env` file to do so.
 
 ## 🔍 Understand forges and forge cycles
@@ -72,7 +71,7 @@ The Jupyter notebook [quickstart.ipynb](notebooks/quickstart.ipynb) is the easie
 
 ## 🛠️ Implement your own forge
 
-To go further, the `examples/` directory features a complete forge example designed to optimize agents that solve math problems. Check out `examples/[math_forge/math_forge.py](math_forge/math_forge.py)` for the implementation of the 'MathLangGraphForge' forge.
+To go further, the `examples/` directory features a complete forge example designed to optimize agents that solve math problems. Check out [`examples/math_forge/math_forge.py`](math_forge/math_forge.py) for the implementation of the `MathLangGraphForge` forge.
 
 To run a cycle of the Math forge, execute the following command in your project directory:
 
@@ -96,12 +95,12 @@ As of today, Ebiose uses LangChain/LangGraph to implement agents. Using the diff
 Models, for now LLMs, and in the future any other ML models, must be defined as 
 [`ModelEndpoint`](ebiose/core/model_endpoint.py) instances. The most straightforward
 way to define the model endpoints to which you have access to is to create a 
-`model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml](model_endpoints_template.yml)
+`model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml]`(model_endpoints_template.yml)
 YAML file at the root of the project, and fill it with your secret credentials.
 
 ## Main model endpoints
 We have implemented the most popular LLM APIs. For others, please refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/) and adapt 
-the [LangGraphComputeIntensiveBatchProcessor class](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly. Issues and pull requests are 
+the [`LangGraphComputeIntensiveBatchProcessor` class](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly. Issues and pull requests are 
 welcomed.
 
 ### OpenAI
@@ -238,8 +237,10 @@ For more details, check out our [Contribution Guide](CONTRIBUTING.md).
 Ebiose is licensed under the [MIT License](LICENSE). This means you're free to use, modify, and distribute the code, as long as you include the original license.
 
 
-# 📞 Contact
-
-For questions, comments, or ideas, feel free to join our [Discord](https://discord.gg/naewTgYnDt) or open an issue.
+## ❓ Questions?
+If you have any questions or need help, feel free to:
+- Open an issue on GitHub.
+- Join our [Discord server](https://discord.gg/P5pEuG5a4V).
+- Reach out to the maintainers directly.
 
 **All feedback is highly appreciated. Thanks! 🎊**
