@@ -3,8 +3,8 @@ from __future__ import annotations
 from langchain_core.messages import AnyMessage  # noqa: TC002
 from pydantic import BaseModel
 
-from ebiose.backends.langgraph.engine.regex_routing_node import (
-    LangGraphRegexRoutingNode,
+from ebiose.backends.langgraph.engine.routing_node import (
+    LangGraphRoutingNode,
 )
 from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
@@ -38,7 +38,7 @@ def init_routing_agent(model_endpoint_id: str) -> None:
             temperature=0.0,
         )
 
-        regex_routing_node = LangGraphRegexRoutingNode(id="regex_routing_node", name="regex_routing_node")
+        routing_node = LangGraphRoutingNode(id="routing_node", name="routing_node")
 
         start_node = StartNode()
         end_node = EndNode()
@@ -46,24 +46,24 @@ def init_routing_agent(model_endpoint_id: str) -> None:
         graph = Graph(shared_context_prompt=shared_context_prompt)
 
         graph.add_node(start_node)
-        graph.add_node(regex_routing_node)
+        graph.add_node(routing_node)
         graph.add_node(llm_router_node)
         graph.add_node(end_node)
 
         graph.add_edge(
-            Edge(start_node_id=start_node.id, end_node_id=regex_routing_node.id),
+            Edge(start_node_id=start_node.id, end_node_id=routing_node.id),
         )
 
         graph.add_edge(
-            Edge(start_node_id=regex_routing_node.id, end_node_id=end_node.id, condition="found"),
+            Edge(start_node_id=routing_node.id, end_node_id=end_node.id, condition="found"),
         )
 
         graph.add_edge(
-            Edge(start_node_id=regex_routing_node.id, end_node_id=llm_router_node.id, condition="not_found"),
+            Edge(start_node_id=routing_node.id, end_node_id=llm_router_node.id, condition="not_found"),
         )
 
         graph.add_edge(
-            Edge(start_node_id=llm_router_node.id, end_node_id=regex_routing_node.id),
+            Edge(start_node_id=llm_router_node.id, end_node_id=routing_node.id),
         )
 
         agent_configuration = {"graph": graph}

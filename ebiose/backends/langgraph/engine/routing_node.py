@@ -11,8 +11,8 @@ from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineInputState,
     LangGraphEngineOutputState,
 )
-from ebiose.core.engines.graph_engine.nodes.regex_routing_node import (
-    RegexRoutingNode,
+from ebiose.core.engines.graph_engine.nodes.routing_node import (
+    RoutingNode,
 )
 
 
@@ -24,7 +24,7 @@ class OutputState(LangGraphEngineOutputState):
     output_condition: str | None = None
     condition: Literal["found", "not_found"] | None = None
 
-class LangGraphRegexRoutingNode(RegexRoutingNode):
+class LangGraphRoutingNode(RoutingNode):
 
     input_state_model: type[BaseModel] = InputState
     output_state_model: type[BaseModel] = OutputState

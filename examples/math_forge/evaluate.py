@@ -10,30 +10,16 @@ from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor 
     ComputeIntensiveBatchProcessor,
 )
 from ebiose.core.agent_factory import AgentFactory
-from ebiose.core.model_endpoint import ModelEndpoint
 from examples.math_forge.math_forge import MathLangGraphForge
 
 load_dotenv()
 
-# TODO(xabier): field "model_name" is already used by Pydantic models
-# replace by llm_name?
-available_models = [
-    ModelEndpoint(
-        endpoint_id="azure-gpt-4o-mini",
-        model_name="GPT-4o-mini",
-    ),
-    ModelEndpoint(
-        endpoint_id="azure-gpt-4o",
-        model_name="GPT-4o",
-    ),
-]
-ComputeIntensiveBatchProcessor.initialize(available_models)
 
 TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
 TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
 AGENT_JSON_FILE = Path("data/2025-02-28_17-49-05/generation=2/agents/agent-211c7fe5-d329-470e-bdd9-ae7ee6ce0be3.json")
 N_PROBLEMS = 2 # number of problems to evaluate on
-BUDGET = 0.2
+BUDGET = 0.1 # budget for evaluation in dollars
 
 # instantiating the forge
 forge = MathLangGraphForge(
@@ -54,6 +40,7 @@ agent = AgentFactory.load_agent(
 )
 
 # generating the compute token
+ComputeIntensiveBatchProcessor.initialize()
 master_token_id = ComputeIntensiveBatchProcessor.acquire_master_token(BUDGET)
 compute_token_id = ComputeIntensiveBatchProcessor.generate_token(BUDGET, master_token_id)
 

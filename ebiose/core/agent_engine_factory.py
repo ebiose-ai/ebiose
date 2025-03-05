@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 from ebiose.core.agent_engine import AgentEngine
+from ebiose.core.model_endpoint import ModelEndpoints
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -21,6 +22,8 @@ class AgentEngineFactory:
         ) -> AgentEngine:
 
         if engine_type == "langgraph_engine":
+            if model_endpoint_id is None:
+                model_endpoint_id = ModelEndpoints.get_default_model_endpoint_id()
             return LangGraphEngine(
                 configuration=configuration,
                 input_model=input_model,

@@ -223,6 +223,7 @@ class EvoForgingCycle:
         logger.info(f"Budget left at final: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
         logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
+        ComputeIntensiveBatchProcessor.release_master_token(self._master_compute_token)
 
         selected_agents = {
             agent.id: agent for agent in sorted_agents[:self.config.n_best_agents_to_return]

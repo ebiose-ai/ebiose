@@ -12,8 +12,8 @@ from ebiose.core.engines.graph_engine.nodes.node import (  # noqa: F401
 from ebiose.core.engines.graph_engine.nodes.pydantic_validator_node import (
     PydanticValidatorNode,  # noqa: F401
 )
-from ebiose.core.engines.graph_engine.nodes.regex_routing_node import (
-    RegexRoutingNode,  # noqa: F401
+from ebiose.core.engines.graph_engine.nodes.routing_node import (
+    RoutingNode,  # noqa: F401
 )
 
 

@@ -5,5 +5,5 @@ from typing import Literal
 from ebiose.core.engines.graph_engine.nodes.node import BaseNode
 
 
-class RegexRoutingNode(BaseNode):
-    type: Literal["RegexRoutingNode"] = "RegexRoutingNode"
+class RoutingNode(BaseNode):
+    type: Literal["RoutingNode"] = "RoutingNode"

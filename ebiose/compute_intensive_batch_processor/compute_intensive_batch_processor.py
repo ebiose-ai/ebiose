@@ -97,3 +97,7 @@ class ComputeIntensiveBatchProcessor:
     @staticmethod
     def acquire_master_token(budget: float) -> str:
         return ComputeIntensiveBatchProcessor._token_manager.acquire_master_token(budget)
+    
+    @staticmethod
+    def release_master_token(master_token: str) -> None:
+        ComputeIntensiveBatchProcessor._token_manager.release_master_token(master_token)
