@@ -84,6 +84,15 @@ Once agents are written to the save path, evaluate an agent by executing:
 ```sh
 uv run ./examples/math_forge/evaluate.py
 ```
+> 🚨 You must change the path to the agent's JSON file by modifying the following variable:
+```
+AGENT_JSON_FILE = Path("data/2025-02-28_17-49-05/generation=2/agents/agent-211c7fe5-d329-470e-bdd9-ae7ee6ce0be3.json")
+```
+> 🚨 Also, if needed, change the following variables:
+```
+N_PROBLEMS = 2 # number of problems to evaluate on
+BUDGET = 0.1 # budget for evaluation in dollars
+```
 
 Kick off your journey by implementing your own forge with the accompanying `compute_fitness` method! 🎉
 
