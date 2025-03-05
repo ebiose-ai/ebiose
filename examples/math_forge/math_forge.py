@@ -97,7 +97,7 @@ class MathLangGraphForge(AgentForge):
         for idx, problem_id in enumerate(self.current_problem_ids):
             if agent.id not in self.fitness:
                 self.fitness[agent.id] = {}
-            if isinstance(results[idx], int):  # Cached result
+            if isinstance(results[idx], int): # Cached result
                 fitness += results[idx]
             elif results[idx] is None:
                 self.fitness[agent.id][problem_id] = 0
