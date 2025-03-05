@@ -186,6 +186,12 @@ LANGFUSE_PUBLIC_KEY="your_langfuse_public_key"
 LANGFUSE_HOST="your_langfuse_host"
 ```
 
+# 📝 Logging
+
+Ebiose uses [Loguru](https://loguru.readthedocs.io/en/stable/) for logging purpose.
+You have nothing to do to set it up but can adapt logs to your needs easily.
+
+
 # 🆘 Troubleshooting
 
 Here are some common issues users might face and their solutions:
