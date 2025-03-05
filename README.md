@@ -161,7 +161,7 @@ endpoints:
   - endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
     provider: "Hugging Face"
 ```
-> 🚨 Dont'forget to install Langchain's Anthropic library by executing 
+> 🚨 Dont'forget to install Langchain's Hugging Face library by executing 
 `uv add langchain-huggingface` or `pip install -U langchain-huggingface`
 and login with the following:
 ```
