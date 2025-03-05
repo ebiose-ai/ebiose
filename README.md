@@ -172,6 +172,19 @@ login()
 Again, we wish to be compatible with every provider you are used to, so feel free to open an issue and contribute to expanding our LLMs' coverage. Check first if LangChain
 is compatible with your preferred provider [here](https://python.langchain.com/docs/integrations/providers/).
 
+# 🔍 Observability 
+
+Ebiose uses Langfuse's `@observe` decorator to be able to observe nested agent's traces. 
+LangFuse can be easily self-hosted. 
+See [Langfuse's documentation](https://langfuse.com/self-hosting) to do so.
+Once Langfuse's server is running, you can set Langfuse credentials in your
+`.env` file by adding:
+```
+# Langfuse credentials
+LANGFUSE_SECRET_KEY="your_langfuse_secret_key"
+LANGFUSE_PUBLIC_KEY="your_langfuse_public_key"
+LANGFUSE_HOST="your_langfuse_host"
+```
 
 # 🆘 Troubleshooting
 
