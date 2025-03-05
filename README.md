@@ -179,7 +179,8 @@ is compatible with your preferred provider [here](https://python.langchain.com/d
 Here are some common issues users might face and their solutions:
 
 ### Issue 1: uv Command Not Found
-Solution: Ensure `uv` is installed correctly. Follow the official installation guide. Alternatively, use `pip`:
+Solution: Ensure `uv` is installed correctly. Follow the 
+[official installation guide](https://docs.astral.sh/uv/getting-started/installation/). Alternatively, use `pip`:
 
 ```bash
 pip install -r requirements.txt
@@ -195,11 +196,16 @@ uv sync  # or pip install -r requirements.txt
 ```
 
 ### Issue 3: Missing API Keys
-Solution: Ensure your API keys are set in the .env file or environment variables. For example:
+Solution: Ensure your API keys are set in the `model_endpoints.yml` file, for example:
 
-```bash
-export OPENAI_API_KEY="your_openai_api_key"
-export ANTHROPIC_API_KEY="your_anthropic_api_key"
+```
+endpoints:
+
+  # OpenAI endpoints
+  - endpoint_id: "gpt-4o-mini"
+    provider: "OpenAI"
+    api_key: "YOUR_OPENAI_API_KEY" # fill in your OpenAI API key
+    
 ```
 
 ### Issue 4: Jupyter Notebook Not Running
