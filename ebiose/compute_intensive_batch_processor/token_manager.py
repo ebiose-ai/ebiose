@@ -35,6 +35,15 @@ class TokenManager:
             self.__master_token_info = TokenInfo(limit=budget)
             return self.__master_token_guid
 
+    def release_master_token(self, master_token: str) -> None:
+        with self.__lock:
+            if master_token != self.__master_token_guid:
+                msg = "Invalid master token"
+                raise ValueError(msg)
+            # Release the token by resetting its values.
+            self.__master_token_guid = None
+            self.__master_token_info = None
+
     def generate_token(self, limit: float, master_token: str) -> str:
         with self.__lock:
             if master_token != self.__master_token_guid:
