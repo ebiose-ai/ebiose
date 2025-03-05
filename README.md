@@ -96,7 +96,7 @@ As of today, Ebiose uses LangChain/LangGraph to implement agents. Using the diff
 Models, for now LLMs, and in the future any other ML models, must be defined as 
 [`ModelEndpoint`](ebiose/core/model_endpoint.py) instances. The most straightforward
 way to define the model endpoints to which you have access to is to create a 
-`model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml]
+`model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml](model_endpoints_template.yml)
 YAML file at the root of the project, and fill it with your secret credentials.
 
 ## Main model endpoints
