@@ -1,19 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from langchain_core.messages import AnyMessage
 from pydantic import BaseModel
 
 from ebiose.backends.langgraph.engine.regex_routing_node import (
-        LangGraphRegexRoutingNode,
+    LangGraphRegexRoutingNode,
 )
 from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
-
-if TYPE_CHECKING:
-    from langchain_core.messages import AnyMessage
 
 SHARED_CONTEXT_PROMPT = """You are part of a router agent that must analyse the
 following message and decide which condition applies best amongst: {possible_output}.
@@ -21,16 +17,19 @@ The message is:
 {last_message}
 """
 
+class AgentInput(BaseModel):
+    last_message: AnyMessage
+    possible_output: list[str]
+
+# # Rebuild the model to ensure it's fully defined
+# AgentInput.model_rebuild(force=True)
+
+class AgentOutput(BaseModel):
+    output_condition: str | None = None
+
 def init_routing_agent(model_endpoint_id: str) -> None:
         from ebiose.core.agent import Agent
         from ebiose.core.agent_engine_factory import AgentEngineFactory
-
-        class AgentInput(BaseModel):
-            last_message: AnyMessage
-            possible_output: list[str]
-
-        class AgentOutput(BaseModel):
-            output_condition: str | None = None
 
         shared_context_prompt = SHARED_CONTEXT_PROMPT
 
