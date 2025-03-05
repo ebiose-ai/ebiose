@@ -18,7 +18,6 @@ if get_ipython() is not None:
 from loguru import logger
 from tqdm.asyncio import tqdm
 
-from config import config
 from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor import (
     ComputeIntensiveBatchProcessor,
 )
@@ -45,6 +44,9 @@ class EvoForgingCylceConfig(BaseModel):
     budget: float
     n_agents_in_population: int
     n_selected_agents_from_ecosystem: int
+    n_best_agents_to_return: int = 3
+    architect_agent_budget_ratio: float = 1.0
+    genetic_operator_agent_budget_ratio: float = 1.0
     replacement_ratio: float = 0.5
     tournament_size_ratio: float = 0.1
     save_path: Path | None = None
@@ -170,7 +172,7 @@ class EvoForgingCycle:
         ComputeIntensiveBatchProcessor.initialize()
         self._master_compute_token = ComputeIntensiveBatchProcessor.acquire_master_token(budget=self.config.budget)
         self._architect_agent_compute_token = ComputeIntensiveBatchProcessor.generate_token(
-            config.get("forge.architect_agent_budget_ratio") * self.config.budget,
+            self.config.architect_agent_budget_ratio * self.config.budget,
             self._master_compute_token,
         )
 
@@ -219,11 +221,11 @@ class EvoForgingCycle:
 
         logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
         logger.info(f"Budget left at final: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
-        logger.info(f"Returning {config.get('ecosystem.nb_new_agent_to_add_after_forge_cycle')} best agents")
+        logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
 
         selected_agents = {
-            agent.id: agent for agent in sorted_agents[:config.get("ecosystem.nb_new_agent_to_add_after_forge_cycle")]
+            agent.id: agent for agent in sorted_agents[:self.config.n_best_agents_to_return]
         }
         selected_fitness = {agent_id: self.agents_fitness[agent_id] for agent_id in selected_agents}
         return selected_agents, selected_fitness
@@ -341,7 +343,7 @@ class EvoForgingCycle:
     async def crossover_and_mutate(self, selected_parent_ids: list[str]) -> tuple[list[Agent], float]:
 
         genetic_operator_compute_token = ComputeIntensiveBatchProcessor.generate_token(
-            config.get("forge.genetic_operator_agent_budget_ratio") * self.config.budget,
+            self.config.genetic_operator_agent_budget_ratio * self.config.budget,
             self._master_compute_token,
         )
 

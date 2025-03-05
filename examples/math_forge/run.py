@@ -36,6 +36,7 @@ cycle_config = EvoForgingCylceConfig(
     budget=0.05,
     n_agents_in_population=2,
     n_selected_agents_from_ecosystem=0,
+    n_best_agents_to_return=2,
     replacement_ratio=0.5,
     save_path=SAVE_PATH,
 )

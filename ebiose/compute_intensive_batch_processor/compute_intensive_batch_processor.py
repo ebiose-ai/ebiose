@@ -3,9 +3,15 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import ClassVar
 
+from pydantic import BaseModel
+
 from ebiose.compute_intensive_batch_processor.token_manager import TokenManager
 from ebiose.core.model_endpoint import ModelEndpoint, ModelEndpoints
 
+
+class LLMAPIConfig(BaseModel):
+    request_timeout_in_minutes: float = 2.0
+    max_retries: int = 1
 
 class ComputeIntensiveBatchProcessor:
     _initialized = False
@@ -13,15 +19,18 @@ class ComputeIntensiveBatchProcessor:
     _request_counts: ClassVar[dict[str, list[datetime]]] = {}
     _token_counts: ClassVar[dict[str, list[tuple[datetime, int]]]] = {}
     _token_costs: ClassVar[dict[str, list[tuple[datetime, float]]]] = {}
+    _llm_api_config: LLMAPIConfig = LLMAPIConfig()
 
     @classmethod
-    def initialize(cls, available_model_endpoints: list[ModelEndpoint] | None = None) -> None:
+    def initialize(cls, available_model_endpoints: list[ModelEndpoint] | None = None, llm_api_config: LLMAPIConfig = None) -> None:
         if available_model_endpoints is None:
             available_model_endpoints = ModelEndpoints.get_all_model_endpoints()
         cls._initialized = True
         cls._request_counts = {model_endpoint.endpoint_id: [] for model_endpoint in available_model_endpoints}
         cls._token_counts = {model_endpoint.endpoint_id: [] for model_endpoint in available_model_endpoints}
         cls._token_costs = {model_endpoint.endpoint_id: [] for model_endpoint in available_model_endpoints}
+        if llm_api_config is not None:
+            cls._llm_api_config = llm_api_config
 
     @classmethod
     def _clean_old_requests(cls, model_endpoint_id: str) -> None:

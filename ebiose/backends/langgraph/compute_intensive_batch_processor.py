@@ -12,7 +12,6 @@ from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from loguru import logger
 from openai import RateLimitError
 
-from config import config
 from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor import (
     ComputeIntensiveBatchProcessor,
 )
@@ -36,8 +35,8 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
         Returns:
             The LLM model
         """
-        request_timeout = config.get("llm_compute.request_timeout_in_minutes") * 60
-        max_retries = config.get("llm_compute.max_retries")
+        request_timeout = LangGraphComputeIntensiveBatchProcessor._llm_api_config.request_timeout_in_minutes * 60
+        max_retries = LangGraphComputeIntensiveBatchProcessor._llm_api_config.max_retries
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
@@ -133,7 +132,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 stop_after_attempt=10,
             ).ainvoke(messages)
         except Exception as e:
-            logger.error(f"Error when calling {model_endpoint_id}: {e!s}")
+            logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
             return None
 
         # Return the response content

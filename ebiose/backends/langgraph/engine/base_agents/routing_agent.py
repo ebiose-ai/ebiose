@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from langchain_core.messages import AnyMessage
+from langchain_core.messages import AnyMessage  # noqa: TC002
 from pydantic import BaseModel
 
 from ebiose.backends.langgraph.engine.regex_routing_node import (
@@ -20,9 +20,6 @@ The message is:
 class AgentInput(BaseModel):
     last_message: AnyMessage
     possible_output: list[str]
-
-# # Rebuild the model to ensure it's fully defined
-# AgentInput.model_rebuild(force=True)
 
 class AgentOutput(BaseModel):
     output_condition: str | None = None

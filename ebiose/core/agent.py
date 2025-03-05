@@ -54,5 +54,5 @@ class Agent(BaseModel):
         try:
             return await self.agent_engine.run(input_data, compute_token_id)
         except Exception as e:
-            logger.error(f"Error while running agent {self.id}: {e!s}")
+            logger.debug(f"Error while running agent {self.id}: {e!s}")
             return None

@@ -35,7 +35,7 @@ async def architect_agent_task(
     )
 
     if result is None:
-        logger.error(f"Architect agent {architect_agent.id} failed creating a valid agent for {forge.name}. Retrying once.")
+        logger.debug(f"Architect agent {architect_agent.id} failed creating a valid agent for {forge.name}. Retrying once.")
         return await AgentFactory.generate_agent(
             architect_agent,
             architect_agent_input,
@@ -71,7 +71,7 @@ async def crossover_agent_task(
             )
 
             if result is None:
-                logger.error(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
+                logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
                 result = await AgentFactory.generate_agent(
                     parent1.architect_agent,
                     parent1.architect_agent.agent_engine.input_model(forge_description=forge.description),

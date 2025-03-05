@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import ClassVar, Self, Sequence
+from collections.abc import Sequence  # noqa: TC003
+from typing import Self
 
 from langfuse.decorators import langfuse_context, observe
 from langgraph.graph import StateGraph
