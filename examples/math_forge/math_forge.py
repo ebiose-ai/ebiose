@@ -1,3 +1,9 @@
+"""Copyright (c) 2024, Inria.
+
+Pre-release Version - DO NOT DISTRIBUTE
+This software is licensed under the MIT License. See LICENSE for details.
+"""
+
 import asyncio
 import csv
 import random

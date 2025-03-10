@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "asyncio>=3.4.3",
+    "ipykernel>=6.29.5",
     "langchain>=0.3.17",
     "langchain-community>=0.3.16",
     "langchain-core>=0.3.33",

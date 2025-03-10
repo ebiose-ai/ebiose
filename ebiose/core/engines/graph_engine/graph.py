@@ -1,4 +1,8 @@
-"""This module contains the Graph class which is the basis of an Agent."""
+"""Copyright (c) 2024, Inria.
+
+Pre-release Version - DO NOT DISTRIBUTE
+This software is licensed under the MIT License. See LICENSE for details.
+"""
 
 from __future__ import annotations
 

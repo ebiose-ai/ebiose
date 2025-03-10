@@ -1,6 +1,7 @@
-"""Agent Node subclass.
+"""Copyright (c) 2024, Inria.
 
-This node is used to select an agent from the agent pool.
+Pre-release Version - DO NOT DISTRIBUTE
+This software is licensed under the MIT License. See LICENSE for details.
 """
 
 from __future__ import annotations

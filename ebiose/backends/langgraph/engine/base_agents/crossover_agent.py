@@ -1,3 +1,9 @@
+"""Copyright (c) 2024, Inria.
+
+Pre-release Version - DO NOT DISTRIBUTE
+This software is licensed under the MIT License. See LICENSE for details.
+"""
+
 from pydantic import BaseModel, Field
 
 from ebiose.core.engines.graph_engine.edge import Edge

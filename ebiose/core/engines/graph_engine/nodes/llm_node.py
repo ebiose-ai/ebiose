@@ -1,6 +1,7 @@
-"""LLMNode Node subclass.
+"""Copyright (c) 2024, Inria.
 
-This module contains the LLMNode class which represents a node containing a large language model.
+Pre-release Version - DO NOT DISTRIBUTE
+This software is licensed under the MIT License. See LICENSE for details.
 """
 
 from __future__ import annotations
