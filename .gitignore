@@ -136,6 +136,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# VSCode settings
+.vscode/
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -169,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Ebiose
+# Default save path
+data/*
+# Model endpoint YAML
+model_endpoints.yml

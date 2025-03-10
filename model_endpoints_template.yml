@@ -1,0 +1,34 @@
+# model_endpoints_template.yml
+# Rename this file to model_endpoints.yml 
+# and fill in the API keys and endpoint URLs for the models you want to use
+
+default_endpoint: "gpt-4o-mini"
+endpoints:
+
+  # OpenAI endpoints
+  - endpoint_id: "gpt-4o-mini"
+    provider: "OpenAI"
+    api_key: "YOUR_OPENAI_API_KEY" # fill in your OpenAI API key
+
+  # Azure OpenAI endpoints
+  - endpoint_id: "azure-gpt-4o-mini"
+    provider: "Azure OpenAI"
+    api_key: "YOUR_AZURE_OPENAI_API_KEY" # fill in your Azure OpenAI API key
+    endpoint_url: "AZURE_OPENAI_ENDPOINT_URL" # fill in the Azure OpenAI endpoint URL
+    api_version: "API_VERSION" # fill in the Azure OpenAI API version
+    deployment_name: "DEPLOYMENT_NAME" # fill in the Azure OpenAI deployment name
+  
+  # Azure ML endpoints
+  - endpoint_id: "llama3-8b"
+    provider: "Azure ML"
+    api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
+    endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
+
+  # Anthropic endpoints
+  - endpoint_id: "claude-3-sonnet-20240229"
+    provider: "Anthropic"
+    api_key: "YOUR_OPENAI_API_KEY" # fill in your Anthropic API key
+
+  # Hugging Face endpoints
+  - endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
+    provider: "Hugging Face"
