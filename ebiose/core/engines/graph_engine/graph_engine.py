@@ -21,7 +21,7 @@ class GraphEngine(AgentEngine):
     engine_type: str = "graph_engine"
     input_model: type[BaseModel] | None = Field(None, serialization_exclude=True)
     output_model: type[BaseModel] | None = Field(None, serialization_exclude=True)
-    model_endpoint_id: str = "azure-gpt-4o-mini"
+    model_endpoint_id: str | None = None
     graph: Graph | None = Field(None, serialization_exclude=True)
 
     @model_validator(mode="after")

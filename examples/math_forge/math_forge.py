@@ -33,7 +33,7 @@ class MathLangGraphForge(AgentForge):
     agent_input_model: type[BaseModel] = AgentInput
     agent_output_model: type[BaseModel] = AgentOutput
     default_generated_agent_engine_type: str = "langgraph_engine"
-    default_model_endpoint_id: str = "azure-gpt-4o-mini"
+    default_model_endpoint_id: str = "gpt-4o-mini"
 
     data: dict[str, dict] = Field(default_factory=dict, exclude=True)
     fitness: dict[str, float] = Field(default_factory=dict, exclude=True)

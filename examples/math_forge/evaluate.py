@@ -26,7 +26,7 @@ TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
 AGENT_JSON_FILE = Path("data/2025-02-28_17-49-05/generation=2/agents/agent-211c7fe5-d329-470e-bdd9-ae7ee6ce0be3.json")
 N_PROBLEMS = 2 # number of problems to evaluate on
 BUDGET = 0.1 # budget for evaluation in dollars
-
+MODEL_ENDPOINT_ID = "gpt-4o-mini" # model endpoint id
 # instantiating the forge
 forge = MathLangGraphForge(
     train_csv_path=TRAIN_CSV_PATH,
@@ -40,7 +40,7 @@ with Path.open(AGENT_JSON_FILE) as json_file:
 
 agent = AgentFactory.load_agent(
     agent_config=agent_configuration,
-    model_endpoint_id="azure-gpt-4o-mini",
+    model_endpoint_id=MODEL_ENDPOINT_ID,
     input_model=forge.agent_input_model,
     output_model=forge.agent_output_model,
 )
