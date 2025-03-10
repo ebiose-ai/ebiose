@@ -22,7 +22,7 @@ Ebiose is a **distributed artificial intelligence factory**, an open source proj
 > "AI can just as easily become the weapon of a surveillance capitalism dystopia as the foundation of a democratic renaissance."
  
 
-👀**Must read**
+**👀 Must read 👀**
 - [Founding blog post](https://bit.ly/ebiose-blog-post) *(10 min)*
 - [Glossary](GLOSSARY.md) *(3 min)*
 ## 🧪 Current status: Beta 0.1
