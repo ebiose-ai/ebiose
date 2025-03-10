@@ -10,6 +10,9 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/ebiose-ai/ebiose?style=for-the-badge&logo=github&logoColor=EFBF04&color=EFBF04)](https://star-history.com/#ebiose-ai/ebiose)
 [![License](https://img.shields.io/github/license/ebiose-ai/ebiose?style=for-the-badge&logo=gitbook&link=https%3A%2F%2Fgithub.com%2Febiose-ai%2Febiose%2Fblob%2Fmain%2FLICENSE)](/LICENSE)
 
+<h4>🚨 Pre-release version - DO NOT PUBLISH 🚨<br />
+<i>Copyright © 2024 Inria</i></h4>
+
 
   </h3>
 </div>
