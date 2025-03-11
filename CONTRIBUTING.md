@@ -27,7 +27,7 @@ Before contributing, make sure you have the following:
 #### Steps:
 1. Fork the repository:
 ```bash
-git clone git@github.com:your-username/ebiose-core.git && cd ebiose
+git clone git@github.com:your-username/ebiose.git && cd ebiose
 ```
 
 2. Install dependencies:
