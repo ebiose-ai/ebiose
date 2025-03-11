@@ -50,7 +50,7 @@ This first beta version implements the foundations of our vision.
 First, clone the repository:
 
 ```bash
-git clone git@github.com:ebiose-ai/ebiose-core.git && cd ebiose-core
+git clone git@github.com:ebiose-ai/ebiose.git && cd ebiose
 ```
 
 ## 📦 Install Project Dependencies 
