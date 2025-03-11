@@ -41,7 +41,7 @@ def main(
     )
 
     best_agents, best_finess = asyncio.run(
-        forge.run_new_cycle(config=cycle_config)
+        forge.run_new_cycle(config=cycle_config),
     )
 
     logger.info("Best agents and their fitness:")

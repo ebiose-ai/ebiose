@@ -15,7 +15,6 @@ from ebiose.core.engines.graph_engine.utils import GraphUtils
 from ebiose.tools.embedding_helper import embedding_distance
 
 if TYPE_CHECKING:
-
     from ebiose.core.agent_forge import AgentForge
 
 
@@ -29,9 +28,9 @@ class Ecosystem:
         ) -> None:
 
         if initial_architect_agents is None:
-            initial_architect_agents = [GraphUtils.get_architect_agent(model_endpoint_id="azure-gpt-4o-mini")]
+            initial_architect_agents = [GraphUtils.get_architect_agent()]
         if initial_genetic_operator_agents is None:
-            initial_genetic_operator_agents = [GraphUtils.get_crossover_agent(model_endpoint_id="azure-gpt-4o-mini")]
+            initial_genetic_operator_agents = [GraphUtils.get_crossover_agent()]
 
         self.initial_architect_agents: list[Agent] = initial_architect_agents
         self.initial_genetic_operator_agents: list[Agent] = initial_genetic_operator_agents

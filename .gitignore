@@ -178,3 +178,6 @@ cython_debug/
 data/*
 # Model endpoint YAML
 model_endpoints.yml
+
+# macOS files
+.DS_Store

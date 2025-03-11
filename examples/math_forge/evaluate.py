@@ -26,7 +26,7 @@ def main(
     budget: float,
     model_endpoint_id: str,
 ) -> None:
-    
+
     # instantiating the forge
     forge = MathLangGraphForge(
         train_csv_path=train_csv_path,
