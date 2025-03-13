@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 
 from ebiose.core.agent import Agent
 from ebiose.core.ecosystem import Ecosystem
-from ebiose.core.evo_forging_cycle import EvoForgingCycle, EvoForgingCylceConfig
+from ebiose.core.evo_forging_cycle import EvoForgingCycle, EvoForgingCycleConfig
 from ebiose.tools.embedding_helper import generate_embeddings
 
 
@@ -46,7 +46,7 @@ class AgentForge(BaseModel):
 
     async def run_new_cycle(
             self,
-            config: EvoForgingCylceConfig,
+            config: EvoForgingCycleConfig,
             ecosystem: Ecosystem | None = None,
         ) -> list[Agent]:
         cycle = EvoForgingCycle(forge=self, config=config)

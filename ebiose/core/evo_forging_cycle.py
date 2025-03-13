@@ -46,7 +46,7 @@ def human_readable_duration(start_time: float) -> str:
     elapsed_time = time() - start_time
     return str(datetime.timedelta(seconds=elapsed_time))
 
-class EvoForgingCylceConfig(BaseModel):
+class EvoForgingCycleConfig(BaseModel):
     budget: float
     n_agents_in_population: int
     n_selected_agents_from_ecosystem: int
@@ -61,7 +61,7 @@ class EvoForgingCylceConfig(BaseModel):
 @dataclass
 class EvoForgingCycle:
     forge: AgentForge
-    config: EvoForgingCylceConfig
+    config: EvoForgingCycleConfig
 
     _master_compute_token: str | None = None
     _architect_agent_compute_token: str | None = None

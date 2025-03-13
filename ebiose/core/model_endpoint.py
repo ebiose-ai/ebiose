@@ -33,7 +33,7 @@ class ModelEndpoint(BaseModel):
     # request_per_minute_limit: int # noqa: ERA001
 
     # model endpoint config
-    api_key: SecretStr
+    api_key: SecretStr | None = None
     endpoint_url: SecretStr | None = None
     api_version: str | None = None
     deployment_name: str | None = None
@@ -43,11 +43,13 @@ class ModelEndpoint(BaseModel):
 DEFAULT_MODEL_ENDPOINTS_PATH = Path(__file__).resolve().parents[2] / "model_endpoints.yml"
 
 class ModelEndpoints:
-    _default_endpoint_id: str
+    _default_endpoint_id: str | None = None
     _endpoints: ClassVar[list[ModelEndpoint]] = []
 
     @staticmethod
     def get_default_model_endpoint_id() -> str:
+        if ModelEndpoints._default_endpoint_id is None:
+            ModelEndpoints.load_model_endpoints()
         return ModelEndpoints._default_endpoint_id
 
     @staticmethod
@@ -64,7 +66,7 @@ class ModelEndpoints:
 
     @staticmethod
     def get_model_endpoint(model_endpoint_id: str, file_path: str | None = None) -> ModelEndpoint | None:
-        if not ModelEndpoints._endpoints:
+        if len(ModelEndpoints._endpoints) == 0:
             ModelEndpoints.load_model_endpoints(file_path)
         for endpoint in ModelEndpoints._endpoints:
             if endpoint.endpoint_id == model_endpoint_id:
@@ -73,7 +75,7 @@ class ModelEndpoints:
 
     @staticmethod
     def get_all_model_endpoints(file_path: str | None = None) -> list[ModelEndpoint]:
-        if not ModelEndpoints._endpoints:
+        if len(ModelEndpoints._endpoints) == 0:
             ModelEndpoints.load_model_endpoints(file_path)
         return ModelEndpoints._endpoints
 
