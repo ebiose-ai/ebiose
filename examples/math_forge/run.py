@@ -12,7 +12,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebiose.core.evo_forging_cycle import EvoForgingCylceConfig
+from ebiose.core.evo_forging_cycle import EvoForgingCycleConfig
 from examples.math_forge.math_forge import MathLangGraphForge
 
 logger.remove()
@@ -31,7 +31,7 @@ def main(
         n_problems=n_problems,
     )
 
-    cycle_config = EvoForgingCylceConfig(
+    cycle_config = EvoForgingCycleConfig(
         budget=budget,
         n_agents_in_population=2,
         n_selected_agents_from_ecosystem=0,
