@@ -75,7 +75,7 @@ problem-solving capacity of the offspring graph.\n
 Create the offspring graph now and return it into the same format as its parents.",
 """
 
-def init_crossover_agent(model_endpoint_id: str) -> None:
+def init_crossover_agent(model_endpoint_id: str | None) -> None:
         from ebiose.core.agent import Agent
         from ebiose.core.agent_engine_factory import AgentEngineFactory
 

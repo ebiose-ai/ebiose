@@ -123,7 +123,7 @@ entire graph with the prompts under the following format:\n
 
 
 def init_architect_agent(
-        model_endpoint_id: str,
+        model_endpoint_id: str | None,
         add_format_node: bool = True,  # noqa: FBT001, FBT002
 
     ) -> None:
