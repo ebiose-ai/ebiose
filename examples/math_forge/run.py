@@ -24,11 +24,13 @@ def main(
         n_problems: int,
         budget: float,
         save_path: Path,
+        default_model_endpoint_id: str | None = None,
     ) -> None:
     forge = MathLangGraphForge(
         train_csv_path=train_csv_path,
         test_csv_path=test_csv_path,
         n_problems=n_problems,
+        default_model_endpoint_id=default_model_endpoint_id,
     )
 
     cycle_config = EvoForgingCycleConfig(
@@ -71,6 +73,7 @@ if __name__ == "__main__":
     N_PROBLEMS = 2 # number of problems to evaluate on, per generation
     TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
     TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
+    DEFAULT_MODEL_ENDPOINT_ID = None # set if you want to use a specific model endpoint for generated agents
 
     # running the forge cycle
     main(
@@ -79,4 +82,5 @@ if __name__ == "__main__":
         n_problems=N_PROBLEMS,
         budget=BUDGET,
         save_path=SAVE_PATH,
+        default_model_endpoint_id=DEFAULT_MODEL_ENDPOINT_ID,
     )
