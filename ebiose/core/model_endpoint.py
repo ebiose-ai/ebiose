@@ -59,7 +59,11 @@ class ModelEndpoints:
         full_path = Path(file_path)
         with full_path.open("r", encoding="utf-8") as stream:
             data = yaml.safe_load(stream)
-        ModelEndpoints._default_endpoint_id = data.get("default_endpoint_id", "")
+        ModelEndpoints._default_endpoint_id = data.get("default_endpoint_id", None)
+        if ModelEndpoints._default_endpoint_id is None:
+            msg = "No default endpoint id found in model_endpoints.yml file. Check if 'default_endpoint_id' is set."
+            raise ValueError(msg)
+
         endpoints_data = data.get("endpoints", [])
         ModelEndpoints._endpoints = [ModelEndpoint(**endpoint) for endpoint in endpoints_data]
         return ModelEndpoints._endpoints

@@ -8,9 +8,9 @@ import asyncio
 import csv
 import random
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from ebiose.core.agent import Agent
 from ebiose.core.agent_forge import AgentForge
@@ -33,7 +33,6 @@ class MathLangGraphForge(AgentForge):
     agent_input_model: type[BaseModel] = AgentInput
     agent_output_model: type[BaseModel] = AgentOutput
     default_generated_agent_engine_type: str = "langgraph_engine"
-    default_model_endpoint_id: str = "gpt-4o-mini"
 
     data: dict[str, dict] = Field(default_factory=dict, exclude=True)
     fitness: dict[str, float] = Field(default_factory=dict, exclude=True)
@@ -42,11 +41,8 @@ class MathLangGraphForge(AgentForge):
 
     unpicked_problems: dict[str, set[str]] = Field(default_factory=dict, exclude=True)
 
-    def model_post_init(self, __context: dict = None) -> None:  # noqa: PYI063, RUF013
-        """Post-initialization hook for Pydantic models."""
-        self._load_data()
-
-    def _load_data(self) -> None:
+    @model_validator(mode="after")
+    def _load_data(self) -> Self:
         for name, path in zip(["train", "test"], [self.train_csv_path, self.test_csv_path], strict=True):
             with Path.open(path, "r") as csvfile:
                 reader = csv.DictReader(csvfile)
@@ -56,6 +52,7 @@ class MathLangGraphForge(AgentForge):
                         "solution": int(row["solution"]),
                     } for row in reader
                 }
+        return self
 
     def pick_problems(self, mode: Literal["train", "test"] = "test") -> list[str]:
         # When no specific number is set, return all problems
