@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/github/license/ebiose-ai/ebiose?style=for-the-badge&logo=gitbook&link=https%3A%2F%2Fgithub.com%2Febiose-ai%2Febiose%2Fblob%2Fmain%2FLICENSE)](/LICENSE)
 
 <h4>🚨 Pre-release version - DO NOT PUBLISH 🚨<br />
-<i>Copyright © 2024 Inria</i></h4>
+<i>Copyright © 2025 Inria</i></h4>
 
 
   </h3>
@@ -52,6 +52,48 @@ First, clone the repository:
 ```bash
 git clone git@github.com:ebiose-ai/ebiose.git && cd ebiose
 ```
+
+## ⚙️ Initialization
+
+Initialize the project by running the following command:
+
+```bash
+make init
+```
+
+This command will perform the following actions:
+
+-   Copy the `model_endpoints_template.yml` file to `model_endpoints.yml` if the file doesn't exist, and instruct you to fill it with your API keys.
+-   Copy the `.env.example` file to `.env` if the file doesn't exist.
+
+## 🐳 Docker
+
+To build and run Ebiose using Docker, follow these steps:
+
+1.  Ensure you have Docker installed on your system.
+2.  Create a `.dockerignore` file to exclude unnecessary files from the Docker image.
+3.  Build the Docker image using the following command:
+
+    ```bash
+    make build
+    ```
+4.  Ensure you have created and filled in the `model_endpoints.yml` file with your OpenAI API key. A basic `model_endpoints.yml` file looks like this:
+
+    ```yaml
+    default_endpoint_id: "gpt-4o-mini"
+    endpoints:
+      - endpoint_id: "gpt-4o-mini"
+        provider: "OpenAI"
+        api_key: "YOUR_OPENAI_API_KEY"
+    ```
+
+5.  Run the Docker image, mounting the `model_endpoints.yml` file and passing environment variables from `.env`:
+
+    ```bash
+    make run
+    ```
+
+    This command mounts the `model_endpoints.yml` file from your local directory into the container, allowing the application to access your API key without including it in the image. It also passes environment variables defined in the `.env` file to the container.
 
 ## 📦 Install Project Dependencies 
 Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manager. See [Astral's uv documentation](https://docs.astral.sh/uv/getting-started/installation/) to install it.  
@@ -118,7 +160,8 @@ welcomed.
 ### OpenAI
 To use OpenAI LLMs, fill the `model_endpoints.yml` file at the root of the project, 
 with, for example:
-```
+```yaml
+default_endpoint_id: "gpt-4o-mini"
 endpoints:
   - endpoint_id: "gpt-4o-mini"
     provider: "OpenAI"
@@ -129,14 +172,14 @@ endpoints:
 
 ### Azure OpenAI
 To use OpenAI LLMs on Azure, fill the `model_endpoints.yml` file at the root of the project, with, for example:
-```
+```yaml
 endpoints:
   - endpoint_id: "azure-gpt-4o-mini"
-      provider: "Azure OpenAI"
-      api_key: "YOUR_AZURE_OPENAI_API_KEY"
-      endpoint_url: "AZURE_OPENAI_ENDPOINT_URL"
-      api_version: "API_VERSION"
-      deployment_name: "DEPLOYMENT_NAME"
+    provider: "Azure OpenAI"
+    api_key: "YOUR_AZURE_OPENAI_API_KEY"
+    endpoint_url: "AZURE_OPENAI_ENDPOINT_URL"
+    api_version: "API_VERSION"
+    deployment_name: "DEPLOYMENT_NAME"
 ```
 
 > 🚨 Dont'forget to install Langchain's OpenAI library by executing 
@@ -145,7 +188,7 @@ endpoints:
 ### Azure ML LLMs
 To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the root
 of the project, with, for example:
-```
+```yaml
 endpoints:
   - endpoint_id: "llama3-8b"
     provider: "Azure ML"
@@ -156,7 +199,7 @@ endpoints:
 ### Anthropic (not tested yet)
 To use Anthropic LLMs, fill the `model_endpoints.yml` file at the root of the project, 
 with, for example:
-```
+```yaml
 endpoints:
   - endpoint_id: "claude-3-sonnet-20240229"
     provider: "Anthropic"
@@ -167,7 +210,7 @@ endpoints:
 
 ### HuggingFace (not tested yet)
 To use HuggingFace LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
-```
+```yaml
 endpoints:
   - endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
     provider: "Hugging Face"
@@ -228,7 +271,7 @@ uv sync  # or pip install -r requirements.txt
 ### Issue 3: Missing API Keys
 Solution: Ensure your API keys are set in the `model_endpoints.yml` file, for example:
 
-```
+```yaml
 endpoints:
 
   # OpenAI endpoints
