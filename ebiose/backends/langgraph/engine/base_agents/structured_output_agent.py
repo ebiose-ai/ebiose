@@ -5,6 +5,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 """
 
 from __future__ import annotations
+import uuid
 
 from langchain_core.messages import AnyMessage  # noqa: TC002
 from pydantic import BaseModel
@@ -25,7 +26,7 @@ The message is:
 
 def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_id: str) -> None:
         from ebiose.core.agent import Agent
-        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
         class AgentInput(BaseModel):
             last_message: AnyMessage | None = None
@@ -69,22 +70,22 @@ def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_i
             Edge(start_node_id=pydantic_validator_node.id, end_node_id=llm_formatter_node.id, condition="failure"),
         )
 
-        agent_configuration = {"graph": graph}
+        agent_id = "agent-20419b21-ba04-4673-b72f-c798dba9e313"
 
-        agent_engine = AgentEngineFactory.create_engine(
-            "langgraph_engine",
-            agent_configuration,
+        agent_engine = LangGraphEngine(
+            agent_id=agent_id,
+            graph=graph,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
+            tags = ["structured_output_agent"],
         )
 
         agent_engine.recursion_limit = 7
 
         return Agent(
             name="structured_output_agent",
+            id=agent_id,
             description="Agent to structure an input message into a given structured output",
-            architect_agent=None,
-            genetic_operator_agent=None,
             agent_engine=agent_engine,
         )

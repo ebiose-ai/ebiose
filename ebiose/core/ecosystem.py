@@ -6,45 +6,57 @@ This software is licensed under the MIT License. See LICENSE for details.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
+from uuid import uuid4
 
+from pydantic import BaseModel, Field
 from sortedcontainers import SortedList
 
-from ebiose.core.agent import Agent
 from ebiose.core.engines.graph_engine.utils import GraphUtils
+from ebiose.core.model_endpoint import ModelEndpoints
 from ebiose.tools.embedding_helper import embedding_distance
+
 
 if TYPE_CHECKING:
     from ebiose.core.agent_forge import AgentForge
+    from ebiose.core.agent import Agent
 
+class Ecosystem(BaseModel):
+    id: str = Field(default_factory=lambda: f"forge-cycle-{uuid4()!s}")
+    initial_architect_agents: list["Agent"] | None = None
+    initial_genetic_operator_agents: list["Agent"] | None = None
+    agents: dict[str, "Agent"] = {}
+    forge_list: ClassVar[list[AgentForge]] = []
+    agent_forge_distances: ClassVar[dict[AgentForge, SortedList]] = {}
+    model_endpoint_ids: ClassVar[list[str]] = []
 
-class Ecosystem:
+    @classmethod
+    def new(cls, initial_agents: list["Agent"] | None = None) -> Ecosystem:
 
-    def __init__(
-            self,
-            initial_architect_agents: list[Agent] | None = None,
-            forges: list[AgentForge]  | None = None,
-            initial_genetic_operator_agents: list[Agent] | None = None,
-        ) -> None:
+        initial_architect_agents = [GraphUtils.get_architect_agent(ModelEndpoints.get_default_model_endpoint_id())]
+        initial_genetic_operator_agents = [
+            GraphUtils.get_crossover_agent(ModelEndpoints.get_default_model_endpoint_id()),
+            GraphUtils.get_mutation_agent(ModelEndpoints.get_default_model_endpoint_id()),
+        ]
+        # TODO(xabier): fix this import to avoid circular dependency
+        from ebiose.core.agent import Agent
+        cls.model_rebuild()
+        return cls(
+            initial_architect_agents=initial_architect_agents,
+            initial_genetic_operator_agents=initial_genetic_operator_agents,
+            agents = initial_agents if initial_agents is not None else [],
+        )
 
-        if initial_architect_agents is None:
-            initial_architect_agents = [GraphUtils.get_architect_agent()]
-        if initial_genetic_operator_agents is None:
-            initial_genetic_operator_agents = [GraphUtils.get_crossover_agent()]
+    def get_agent(self, agent_id: str) -> "Agent" | None:
+        for agent in self.agents.values():
+            if agent.id == agent_id:
+                return agent
+        return None
 
-        self.initial_architect_agents: list[Agent] = initial_architect_agents
-        self.initial_genetic_operator_agents: list[Agent] = initial_genetic_operator_agents
-        self._agents: list[Agent] = []
-        self.forge_list: list[AgentForge] = []
-        self.agent_forge_distances: dict[AgentForge, SortedList] = {}
-        self.model_endpoint_ids: list[str] = []
-
-        if forges is not None:
-            for forge in forges:
-                self.add_forge(forge)
-
-    async def select_agents_for_forge(self, forge: AgentForge, n_agents: int) -> list[Agent]:
+    async def select_agents_for_forge(self, forge: AgentForge, n_agents: int) -> list["Agent"]:
         self.add_forge(forge)
+        if n_agents <= 0:
+            return []
         selected_agents = []
         agent_forge_distances = self.agent_forge_distances[forge.id]
         for _ in range(n_agents):
@@ -59,13 +71,13 @@ class Ecosystem:
         # Initialize SortedList with existing agents and their distances
         self.agent_forge_distances[forge.id] = SortedList(
             [(agent, embedding_distance(agent.description_embedding, forge.description_embedding))
-             for agent in self._agents],
+             for agent in self.agents.values()],
             key=lambda x: x[1],
         )
 
-    def _add_new_born_agent(self, new_agent: Agent) -> None:
+    def _add_new_born_agent(self, new_agent: "Agent") -> None:
         for forge in self.forge_list:
             distance = embedding_distance(new_agent.description_embedding, forge.description_embedding)
             self.agent_forge_distances[forge.id].add((new_agent, distance))
 
-        self._agents.append(new_agent)
+        self.agents[new_agent.id] = new_agent

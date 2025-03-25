@@ -5,6 +5,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 """
 
 from __future__ import annotations
+import uuid
 
 from langchain_core.messages import AnyMessage  # noqa: TC002
 from pydantic import BaseModel
@@ -32,7 +33,7 @@ class AgentOutput(BaseModel):
 
 def init_routing_agent(model_endpoint_id: str) -> None:
         from ebiose.core.agent import Agent
-        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
         shared_context_prompt = SHARED_CONTEXT_PROMPT
 
@@ -72,22 +73,22 @@ def init_routing_agent(model_endpoint_id: str) -> None:
             Edge(start_node_id=llm_router_node.id, end_node_id=routing_node.id),
         )
 
-        agent_configuration = {"graph": graph}
+        agent_id = "agent-cb88834e-cb03-4cf9-b983-2b18fdbbcdc9"
 
-        agent_engine = AgentEngineFactory.create_engine(
-            "langgraph_engine",
-            agent_configuration,
+        agent_engine = LangGraphEngine(
+            agent_id=agent_id,
+            graph=graph,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
+            tags = ["routing_agent"],
         )
 
         agent_engine.recursion_limit = 7
 
         return Agent(
             name="routing_agent",
+            id=agent_id,
             description="Agent to route to the next node",
-            architect_agent=None,
-            genetic_operator_agent=None,
             agent_engine=agent_engine,
         )

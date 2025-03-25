@@ -7,6 +7,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 from __future__ import annotations
 
 from abc import abstractmethod
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from IPython import get_ipython
@@ -19,9 +20,14 @@ from loguru import logger
 from pydantic import BaseModel, Field, field_validator
 
 from ebiose.core.agent import Agent
-from ebiose.core.ecosystem import Ecosystem
-from ebiose.core.evo_forging_cycle import EvoForgingCycle, EvoForgingCycleConfig
+from ebiose.core.forge_cycle import (
+    ForgeCycle,
+    ForgeCycleConfig,
+)
 from ebiose.tools.embedding_helper import generate_embeddings
+
+if TYPE_CHECKING:
+    from ebiose.core.ecosystem import Ecosystem
 
 
 class AgentForge(BaseModel):
@@ -49,21 +55,20 @@ class AgentForge(BaseModel):
         return value
 
     @abstractmethod
-    async def compute_fitness(self, agent: Agent, compute_token_id: str, **kwargs: dict[str, any]) -> int:
+    async def compute_fitness(self, agent: Agent, **kwargs: dict[str, any]) -> tuple[str, float]:
         pass
 
     async def run_new_cycle(
             self,
-            config: EvoForgingCycleConfig,
+            config: ForgeCycleConfig,
             ecosystem: Ecosystem | None = None,
         ) -> list[Agent]:
-        cycle = EvoForgingCycle(forge=self, config=config)
-        if ecosystem is None:
-            ecosystem = Ecosystem()
-        ecosystem.add_forge(self)
-        # try to select agents from the ecocystem to enter the forge cycle
-        # if not, architect agents will handle creating new agents in the forge cycle
+
+        cycle = ForgeCycle(forge=self, config=config)
+
         return await cycle.execute_a_cycle(ecosystem)
+
+
 
     def display_results(self, agents: dict[str, Agent], agents_fitness: dict[str, float]) -> None:
         sorted_fitness = dict(sorted(agents_fitness.items(), key=lambda item: item[1], reverse=True))
