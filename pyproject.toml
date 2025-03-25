@@ -13,6 +13,7 @@ dependencies = [
     "langchain-openai>=0.3.3",
     "langfuse>=2.58.2",
     "langgraph>=0.2.69",
+    "litellm>=1.63.12",
     "loguru>=0.7.3",
     "nest-asyncio>=1.6.0",
     "pydantic>=2.10.6",
@@ -65,7 +66,7 @@ convention = "google"
 # Disallow all relative imports.
 ban-relative-imports = "all"
 
-[tool.hatch.build.targets.wheel]
+# [tool.hatch.build.targets.wheel]
 packages = ["ebiose"]
 
 [build-system]

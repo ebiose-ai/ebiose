@@ -14,6 +14,8 @@ from langchain_community.chat_models.azureml_endpoint import (
     AzureMLEndpointApiType,
     CustomOpenAIChatContentFormatter,
 )
+from langchain_community.chat_models import ChatLiteLLM
+
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from loguru import logger
 from openai import RateLimitError
@@ -45,6 +47,19 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
         max_retries = LangGraphComputeIntensiveBatchProcessor._llm_api_config.max_retries
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
+
+        LITE_LLM = True
+        if LITE_LLM:
+            return ChatLiteLLM(
+                model=f"azure/{model_endpoint.deployment_name}",
+                azure_api_key=model_endpoint.api_key.get_secret_value(),
+                api_base=model_endpoint.endpoint_url.get_secret_value(),
+                temperature=temperature,
+                request_timeout=request_timeout,
+                max_retries=max_retries,
+                max_tokens=max_tokens,
+            )
+
 
         if model_endpoint.provider == "OpenAI":
             return ChatOpenAI(

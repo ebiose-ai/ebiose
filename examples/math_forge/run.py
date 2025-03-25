@@ -12,6 +12,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 from loguru import logger
 
+# set callbacks
+import litellm
+
+
+
 from ebiose.core.evo_forging_cycle import EvoForgingCycleConfig
 from examples.math_forge.math_forge import MathLangGraphForge
 
@@ -26,6 +31,10 @@ def main(
         save_path: Path,
         default_model_endpoint_id: str | None = None,
     ) -> None:
+
+    litellm.success_callback = ["langfuse"]
+    litellm.failure_callback = ["langfuse"]
+
     forge = MathLangGraphForge(
         train_csv_path=train_csv_path,
         test_csv_path=test_csv_path,
