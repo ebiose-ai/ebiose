@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import BaseModel  # noqa: TC002
+
 from ebiose.core.engines.graph_engine.utils import GraphUtils
 
 if TYPE_CHECKING:
-    from pydantic import BaseModel
 
     from ebiose.core.engines.graph_engine.edge import Edge
 
