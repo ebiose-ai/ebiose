@@ -1,0 +1,8 @@
+__pycache__/
+.venv/
+*.pyc
+*.log
+model_endpoints.yml
+requirements.txt
+data
+examples
