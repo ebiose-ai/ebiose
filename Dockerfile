@@ -1,18 +1,19 @@
-FROM python:3.13-slim-bookworm
+FROM python:3.13-bookworm
 
 WORKDIR /app
 
 # Install uv
 RUN pip install uv
 
-# Copy project files
-COPY . .
+COPY pyproject.toml uv.lock README.md ./
+COPY ebiose ./ebiose/
 
 # Install dependencies
 RUN uv sync
 
-# Set environment variables (example, adjust as needed)
-ENV PYTHONPATH=$PYTHONPATH:/app
+RUN groupadd --system --gid 1000 ebiose && \
+    useradd ebiose --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
+    chown -R ebiose:ebiose /app
+USER 1000:1000
 
-# Command to run the application (example, adjust as needed)
-CMD ["uv", "run", "./examples/math_forge/run.py"]
+CMD ["uv", "run", "/app/examples/math_forge/run.py"]
