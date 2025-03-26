@@ -8,3 +8,6 @@ build:
 
 run:
 	docker run -it --env-file .env -v ./model_endpoints.yml:/app/model_endpoints.yml -v ./data:/app/data -v ./examples:/app/examples ebiose
+
+stack:
+	docker-compose up -d
