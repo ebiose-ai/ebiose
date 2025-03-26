@@ -69,10 +69,10 @@ This command will perform the following actions:
 ## 🔥 Run your first Ebiose forge cycle 
 There are two ways to start running Ebiose:
 - the most straightforward way is to use Docker: go to section
-[🐳 With Docker](#with-docker);
+[🐳 With Docker](#-with-docker);
 - if you are not yet confortable with Ebiose and wish to understand
 the basics of Ebiose step by step, you may also install the project dependencies
-and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter notebook to understand the basics of Ebiose, step by step; follow the steps to install Ebiose [💻 Locally](#locally).
+and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter notebook to understand the basics of Ebiose, step by step; follow the steps to install Ebiose [💻 Locally](#-locally).
 
 ### 🐳 With Docker
 
