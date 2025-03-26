@@ -66,7 +66,15 @@ This command will perform the following actions:
 -   Copy the `model_endpoints_template.yml` file to `model_endpoints.yml` if the file doesn't exist, and instruct you to fill it with your API keys.
 -   Copy the `.env.example` file to `.env` if the file doesn't exist.
 
-## 🐳 Docker
+## 🔥 Run your first Ebiose forge cycle 
+There are two ways to start running Ebiose:
+- the most straightforward way is to use Docker: go to section
+[🐳 With Docker](#with-docker);
+- if you are not yet confortable with Ebiose and wish to understand
+the basics of Ebiose step by step, you may also install the project dependencies
+and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter notebook to understand the basics of Ebiose, step by step; follow the steps to install Ebiose [💻 Locally](#locally).
+
+### 🐳 With Docker
 
 To build and run Ebiose using Docker, follow these steps:
 
@@ -95,7 +103,9 @@ To build and run Ebiose using Docker, follow these steps:
 
     This command mounts the `model_endpoints.yml` file from your local directory into the container, allowing the application to access your API key without including it in the image. It also passes environment variables defined in the `.env` file to the container.
 
-## 📦 Install Project Dependencies 
+### 💻 Locally
+
+#### 📦 Install Project Dependencies 
 Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manager. See [Astral's uv documentation](https://docs.astral.sh/uv/getting-started/installation/) to install it.  
 
 Once uv is installed, use it to install your project dependencies. In your project directory, run:
@@ -110,11 +120,11 @@ For more detailed instructions or troubleshooting tips, refer to the [official u
 
 > 💡 Pro Tip: You may need to add the root of the repository to your `PYTHONPATH` environment variable. Alternatively, use a `.env` file to do so.
 
-## 🔍 Understand forges and forge cycles
+#### 🔍 Understand forges and forge cycles
 
-The Jupyter notebook [quickstart.ipynb](notebooks/quickstart.ipynb) is the easiest way to understand the basics and start experimenting with Ebiose. This notebook lets you try out **architect agents** and **forges** on your very own challenges. 🤓
+The Jupyter notebook [`quickstart.ipynb`](notebooks/quickstart.ipynb) is the easiest way to understand the basics and start experimenting with Ebiose. This notebook lets you try out **architect agents** and **forges** on your very own challenges. 🤓
 
-## 🛠️ Implement your own forge
+#### 🛠️ Implement your own forge
 
 To go further, the `examples/` directory features a complete forge example designed to optimize agents that solve math problems. Check out [`examples/math_forge/math_forge.py`](math_forge/math_forge.py) for the implementation of the `MathLangGraphForge` forge.
 
