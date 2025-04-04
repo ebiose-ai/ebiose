@@ -25,6 +25,8 @@ from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor 
 )
 from ebiose.core.model_endpoint import ModelEndpoints
 from ebiose.tools.llm_token_cost import LLMTokenCost
+from litellm.cost_calculator import cost_per_token
+
 
 if TYPE_CHECKING:
     from langchain_core.messages import AnyMessage
@@ -48,8 +50,17 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
-        LITE_LLM = True
-        if LITE_LLM:
+        if ModelEndpoints.use_lite_llm_proxy():
+            lite_llm_api_key, lite_llm_api_base = ModelEndpoints.get_lite_llm_config()
+            return ChatOpenAI(
+                openai_api_key=lite_llm_api_key,
+                openai_api_base=lite_llm_api_base,
+                model=model_endpoint_id,
+                temperature=temperature if model_endpoint_id != "azure/o3-mini" else 1.0,
+                max_tokens=max_tokens,
+            )
+        
+        elif ModelEndpoints.use_lite_llm():
             return ChatLiteLLM(
                 model=f"azure/{model_endpoint.deployment_name}",
                 azure_api_key=model_endpoint.api_key.get_secret_value(),
@@ -59,7 +70,6 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 max_retries=max_retries,
                 max_tokens=max_tokens,
             )
-
 
         if model_endpoint.provider == "OpenAI":
             return ChatOpenAI(
@@ -191,13 +201,29 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
             prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
             cls._token_counts[model_endpoint_id].append((now, total_tokens))
-            cls._token_costs[model_endpoint_id].append(
-                (now, LLMTokenCost.compute_token_cost(model_endpoint_id, prompt_tokens, completion_tokens)),
-            )
-            LangGraphComputeIntensiveBatchProcessor._token_manager.add_cost(
-                token_guid,
-                cls._token_costs[model_endpoint_id][-1][1],
-            )
+
+            if ModelEndpoints.use_lite_llm():
+                # TODO(xabier): remove this stupid condition
+                model = (
+                    "azure/" + model_endpoint_id[len("azure-"):]
+                    if model_endpoint_id.startswith("azure-")
+                    else model_endpoint_id
+                )
+                cost = cost_per_token(
+                    model=model, 
+                    prompt_tokens=prompt_tokens, 
+                    completion_tokens=completion_tokens
+                )
+                cost = sum(cost)
+
+            else:
+                cost = LLMTokenCost.compute_token_cost(
+                    model_endpoint_id, prompt_tokens, completion_tokens
+                )
+                
+            cls._token_costs[model_endpoint_id].append((now, cost))
+            LangGraphComputeIntensiveBatchProcessor._token_manager.add_cost(token_guid, cost)
+
         except Exception as e:
             logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
             return None

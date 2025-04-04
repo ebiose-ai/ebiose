@@ -44,6 +44,7 @@ DEFAULT_MODEL_ENDPOINTS_PATH = Path(__file__).resolve().parents[2] / "model_endp
 
 class ModelEndpoints:
     _default_endpoint_id: str | None = None
+    _lite_llm: dict[str, str] = {"use": False, "use_proxy": False}
     _endpoints: ClassVar[list[ModelEndpoint]] = []
 
     @staticmethod
@@ -51,6 +52,18 @@ class ModelEndpoints:
         if ModelEndpoints._default_endpoint_id is None:
             ModelEndpoints.load_model_endpoints()
         return ModelEndpoints._default_endpoint_id
+    
+    @staticmethod
+    def use_lite_llm() -> bool:
+        return ModelEndpoints._lite_llm["use"]
+    
+    @staticmethod
+    def use_lite_llm_proxy() -> bool:
+        return ModelEndpoints._lite_llm["use_proxy"]
+
+    @staticmethod
+    def get_lite_llm_config() -> tuple[str, str] :
+        return ModelEndpoints._lite_llm["api_key"], ModelEndpoints._lite_llm["api_base"]
 
     @staticmethod
     def load_model_endpoints(file_path: str | None = None) -> list[ModelEndpoint]:
@@ -59,7 +72,15 @@ class ModelEndpoints:
         full_path = Path(file_path)
         with full_path.open("r", encoding="utf-8") as stream:
             data = yaml.safe_load(stream)
+            
         ModelEndpoints._default_endpoint_id = data.get("default_endpoint_id", None)
+
+        if "lite_llm" in data:
+            ModelEndpoints._lite_llm["use"] = data["lite_llm"].get("use", False)
+            ModelEndpoints._lite_llm["use_proxy"] = data["lite_llm"].get("use_proxy", False)
+            ModelEndpoints._lite_llm["api_key"] = data["lite_llm"].get("api_key", None)
+            ModelEndpoints._lite_llm["api_base"] = data["lite_llm"].get("api_base", None)
+
         if ModelEndpoints._default_endpoint_id is None:
             msg = "No default endpoint id found in model_endpoints.yml file. Check if 'default_endpoint_id' is set."
             raise ValueError(msg)
