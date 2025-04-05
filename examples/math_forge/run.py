@@ -32,8 +32,6 @@ def main(
         default_model_endpoint_id: str | None = None,
     ) -> None:
 
-    litellm.success_callback = ["langfuse"]
-    litellm.failure_callback = ["langfuse"]
 
     forge = MathLangGraphForge(
         train_csv_path=train_csv_path,
