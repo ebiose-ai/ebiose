@@ -100,6 +100,26 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 task="text-generation",
                 max_new_tokens=max_tokens,
             )
+            
+        if model_endpoint.provider == "Google":
+            from langchain_google_genai import (  # type: ignore  # noqa: PGH003
+            ChatGoogleGenerativeAI,
+            )
+            return ChatGoogleGenerativeAI(
+            model=model_endpoint_id,
+            google_api_key=model_endpoint.api_key.get_secret_value(),
+            )
+
+        if model_endpoint.provider == "Ollama":
+            from langchain_ollmaa import (  # type: ignore  # noqa: PGH003
+            ChatOllama,
+            )
+            return ChatOllama(
+            model=model_endpoint_id,
+            temperature=temperature,
+            num_predict=max_tokens,
+            base_url=model_endpoint.endpoint_url.get_secret_value(),
+            )
 
             return ChatHuggingFace(llm=llm, verbose=True)
 
