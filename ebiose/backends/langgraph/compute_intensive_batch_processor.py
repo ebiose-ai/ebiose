@@ -46,8 +46,6 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
-        
-        
         if model_endpoint.provider == "OpenAI":
             return ChatOpenAI(
                 model=model_endpoint_id,
@@ -55,7 +53,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 max_tokens=max_tokens,
                 api_key=model_endpoint.api_key.get_secret_value(),
             )
-        
+
         if model_endpoint.provider == "OpenRouter":
             return ChatOpenAI(
                 openai_api_base = "https://openrouter.ai/api/v1",
@@ -64,7 +62,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 max_tokens=max_tokens,
                 api_key=model_endpoint.api_key.get_secret_value(),
             )
-        
+
         if model_endpoint.provider == "Azure OpenAI":
             return AzureChatOpenAI(
                 azure_deployment=model_endpoint.deployment_name,
@@ -90,8 +88,8 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             )
 
         if model_endpoint.provider == "Anthropic":
-            from langchain_anthropic import (  # type: ignore  # noqa: PGH003
-                ChatAnthropic,
+            from langchain_anthropic import (
+                ChatAnthropic,  # type: ignore  # noqa: PGH003
             )
             return ChatAnthropic(
                 model=model_endpoint_id,
@@ -111,10 +109,10 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 task="text-generation",
                 max_new_tokens=max_tokens,
             )
-            
+
         if model_endpoint.provider == "Google":
             from langchain_google_genai import (  # type: ignore  # noqa: PGH003
-            ChatGoogleGenerativeAI,
+                ChatGoogleGenerativeAI,
             )
             return ChatGoogleGenerativeAI(
             model=model_endpoint_id,
@@ -131,10 +129,6 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             num_predict=max_tokens,
             base_url=model_endpoint.endpoint_url.get_secret_value(),
             )
-
-            return ChatHuggingFace(llm=llm, verbose=True)
-
-
 
         msg = f"Model endpoint {model_endpoint_id} not found"
         raise ValueError(msg)
