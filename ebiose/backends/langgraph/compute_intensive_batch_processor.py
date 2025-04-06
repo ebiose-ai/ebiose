@@ -100,11 +100,10 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         if model_endpoint.provider == "HuggingFace":
             from langchain_huggingface import (  # type: ignore  # noqa: PGH003
-                ChatHuggingFace,
                 HuggingFaceEndpoint,
             )
 
-            llm = HuggingFaceEndpoint(
+            return HuggingFaceEndpoint(
                 repo_id=model_endpoint_id,
                 task="text-generation",
                 max_new_tokens=max_tokens,
