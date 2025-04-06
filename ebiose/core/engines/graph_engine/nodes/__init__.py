@@ -4,6 +4,14 @@ from functools import reduce
 from pydantic import BaseModel
 
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode  # noqa: F401
+from ebiose.core.engines.graph_engine.nodes.fake_nodes import (  # noqa: F401
+    PythonNode,
+    DatabaseNode,
+    APINode,
+    WebScraperNode,
+    FileNode,
+)
+    
 from ebiose.core.engines.graph_engine.nodes.node import (  # noqa: F401
     BaseNode,
     EndNode,
