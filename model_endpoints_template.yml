@@ -2,13 +2,18 @@
 # Rename this file to model_endpoints.yml 
 # and fill in the API keys and endpoint URLs for the models you want to use
 
-default_endpoint_id: "gpt-4o-mini"
+default_endpoint_id: "openrouter/quasar-alpha"
 endpoints:
 
   # OpenAI endpoints
   - endpoint_id: "gpt-4o-mini"
     provider: "OpenAI"
     api_key: "YOUR_OPENAI_API_KEY" # fill in your OpenAI API key
+
+  # OpenRouter Endpoints
+  - endpoint_id: "openrouter/quasar-alpha"
+    PROVIDER: "OPENROUTER"
+    API_KEY: "YOUR_OPENROUTER_API_KEY" # FILL IN YOUR OPENROUTER API KEY
 
   # Azure OpenAI endpoints
   - endpoint_id: "azure-gpt-4o-mini"
@@ -34,11 +39,11 @@ endpoints:
     provider: "Hugging Face"
 
    # Google endpoints
-  - endpoint_id: "<model_name"
-    provier: "Google"
-    api_key: "<Api_key>"
+  - endpoint_id: "gemini-2.5-pro-exp-03-25"
+    provider: "Google"
+    api_key: "AIzaSyAdRTNH5tn3As5t1p4XwZoNt-RuJFNtOZM"
 
-    # Ollama endpoints
-  - endpoint_id: "<model_name>"
+    # Ollama endpoints 
+  - endpoint_id: "tom_himanen/deepseek-r1-roo-cline-tools:32b"
     provider: "Ollama"
-    endpoint_url: "http://<Ollama server IP>:11434/v1"
+    endpoint_url: "http://192.168.50.181:11434/v1"

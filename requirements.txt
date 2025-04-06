@@ -45,6 +45,7 @@ langchain==0.3.19
 langchain-community==0.3.18
 langchain-core==0.3.41
 langchain-openai==0.3.7
+langchain_google_genai
 langchain-text-splitters==0.3.6
 langfuse==2.59.6
 langgraph==0.3.2

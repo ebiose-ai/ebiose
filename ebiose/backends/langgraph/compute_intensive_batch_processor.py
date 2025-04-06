@@ -46,6 +46,8 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
+        
+        
         if model_endpoint.provider == "OpenAI":
             return ChatOpenAI(
                 model=model_endpoint_id,
@@ -53,7 +55,16 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 max_tokens=max_tokens,
                 api_key=model_endpoint.api_key.get_secret_value(),
             )
-
+        
+        if model_endpoint.provider == "OpenRouter":
+            return ChatOpenAI(
+                openai_api_base = "https://openrouter.ai/api/v1",
+                model=model_endpoint_id,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                api_key=model_endpoint.api_key.get_secret_value(),
+            )
+        
         if model_endpoint.provider == "Azure OpenAI":
             return AzureChatOpenAI(
                 azure_deployment=model_endpoint.deployment_name,
