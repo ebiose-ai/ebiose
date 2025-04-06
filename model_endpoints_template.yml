@@ -12,8 +12,8 @@ endpoints:
 
   # OpenRouter Endpoints
   - endpoint_id: "openrouter/quasar-alpha"
-    PROVIDER: "OPENROUTER"
-    API_KEY: "YOUR_OPENROUTER_API_KEY" # FILL IN YOUR OPENROUTER API KEY
+    provider: "OpenRouter"
+    api_key: "YOUR_OPENROUTER_API_KEY" # FILL IN YOUR OPENROUTER API KEY
 
   # Azure OpenAI endpoints
   - endpoint_id: "azure-gpt-4o-mini"
