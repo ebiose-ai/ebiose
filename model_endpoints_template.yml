@@ -41,9 +41,9 @@ endpoints:
    # Google endpoints
   - endpoint_id: "gemini-2.5-pro-exp-03-25"
     provider: "Google"
-    api_key: "AIzaSyAdRTNH5tn3As5t1p4XwZoNt-RuJFNtOZM"
+    api_key: "YOUR_GOOGLE_API_KEY" # fill in your Google API key
 
     # Ollama endpoints 
-  - endpoint_id: "tom_himanen/deepseek-r1-roo-cline-tools:32b"
+  - endpoint_id: "ModelName"  # Replace with the actual model name you want to use, e.g., "llama3-8b"
     provider: "Ollama"
-    endpoint_url: "http://192.168.50.181:11434/v1"
+    endpoint_url: "http://<Ollama host IP>:11434/v1"

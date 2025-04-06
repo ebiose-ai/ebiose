@@ -79,7 +79,7 @@ and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter note
 To build and run Ebiose using Docker, follow these steps:
 
 1.  Ensure you have Docker installed on your system.
-2.  Create a `.dockerignore` file to exclude unnecessary files from the Docker image.
+2.  If running Linux, ensure you have followed the post installation steps: https://docs.docker.com/engine/install/linux-postinstall/
 3.  Build the Docker image using the following command:
 
     ```bash
@@ -88,14 +88,14 @@ To build and run Ebiose using Docker, follow these steps:
 4.  Ensure you have created and filled in the `model_endpoints.yml` file with your OpenAI API key. A basic `model_endpoints.yml` file looks like this:
 
     ```yaml
-    default_endpoint_id: "gpt-4o-mini"
+    default_endpoint_id: "openrouter/quasar-alpha"
     endpoints:
-      - endpoint_id: "gpt-4o-mini"
-        provider: "OpenAI"
-        api_key: "YOUR_OPENAI_API_KEY"
+      - endpoint_id: "openrouter/quasar-alpha"
+        provider: "OpenRouter"
+        api_key: "YOUR_OPENROUTER_API_KEY"
     ```
 
-5.  Run the Docker image, mounting the `model_endpoints.yml` file and passing environment variables from `.env`:
+5.  Run the Docker image using the following command, which mounts the `model_endpoints.yml` file and passes environment variables from `.env`:
 
     ```bash
     make run
