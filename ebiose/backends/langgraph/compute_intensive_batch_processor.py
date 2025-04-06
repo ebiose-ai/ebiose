@@ -122,7 +122,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             )
 
         if model_endpoint.provider == "Ollama":
-            from langchain_ollmaa import (  # type: ignore  # noqa: PGH003
+            from langchain_ollama import (  # type: ignore  # noqa: PGH003
             ChatOllama,
             )
             return ChatOllama(
