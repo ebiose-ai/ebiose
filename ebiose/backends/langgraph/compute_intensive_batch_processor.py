@@ -115,8 +115,8 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 ChatGoogleGenerativeAI,
             )
             return ChatGoogleGenerativeAI(
-            model=model_endpoint_id,
-            google_api_key=model_endpoint.api_key.get_secret_value(),
+                model=model_endpoint_id,
+                google_api_key=model_endpoint.api_key.get_secret_value(),
             )
 
         if model_endpoint.provider == "Ollama":
@@ -124,10 +124,10 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             ChatOllama,
             )
             return ChatOllama(
-            model=model_endpoint_id,
-            temperature=temperature,
-            num_predict=max_tokens,
-            base_url=model_endpoint.endpoint_url.get_secret_value(),
+                model=model_endpoint_id,
+                temperature=temperature,
+                num_predict=max_tokens,
+                base_url=model_endpoint.endpoint_url.get_secret_value(),
             )
 
         msg = f"Model endpoint {model_endpoint_id} not found"
