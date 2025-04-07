@@ -235,6 +235,70 @@ and login with the following:
 from huggingface_hub import login
 login()
 ```
+### OpenRouter 
+To use OpenRouter LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "openrouter/quasar-alpha"
+    provider: "OpenRouter"
+    api_key: "YOUR_OPENROUTER_API_KEY"  # Fill in your OpenRouter API key
+    endpoint_url: "https://openrouter.ai/api/v1"  # OpenRouter API endpoint URL
+```
+> 🚨 Don't forget to install Langchain's OpenAI library (compatible with OpenRouter) by executing
+`uv add langchain-openai` or `pip install langchain-openai`.
+
+
+### Google (not tested yet)
+To use Google LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "gemini-2.5-pro-exp-03-25"
+    provider: "Google"
+    api_key: "YOUR_GOOGLE_API_KEY"  # Fill in your Google API key
+```
+> 🚨 Don't forget to install Langchain's Google GenAI library by executing
+`uv add langchain-google-genai` or `pip install langchain-google-genai`.
+
+
+### Ollama (not tested yet)
+To use Ollama LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "ModelName"  # Replace with the actual model name, e.g., "llama3-8b"
+    provider: "Ollama"
+    endpoint_url: "http://<Ollama host IP>:11434/v1"
+```
+> 🚨 Don't forget to install Langchain's Ollama library by executing
+`uv add langchain-ollama` or `pip install langchain-ollama`
+
+### OpenRouter (not tested yet)
+To use OpenRouter LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "openrouter/quasar-alpha"
+    provider: "OpenRouter"
+    api_key: "YOUR_OPENROUTER_API_KEY"  # Fill in your OpenRouter API key
+    endpoint_url: "https://openrouter.ai/api/v1"  # OpenRouter API endpoint URL
+```
+
+### Google (not tested yet)
+To use Google LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "gemini-2.5-pro-exp-03-25"
+    provider: "Google"
+    api_key: "YOUR_GOOGLE_API_KEY"  # Fill in your Google API key
+```
+
+### Ollama (not tested yet)
+To use Ollama LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "ModelName"  # Replace with the actual model name, e.g., "llama3-8b"
+    provider: "Ollama"
+    endpoint_url: "http://<Ollama host IP>:11434/v1"
+```
+
 
 ### Others
 Again, we wish to be compatible with every provider you are used to, so feel free to open an issue and contribute to expanding our LLMs' coverage. Check first if LangChain
