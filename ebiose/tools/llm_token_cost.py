@@ -28,7 +28,6 @@ class LLMTokenCost:
     _model_ids: ClassVar[dict] = {
         "azure-gpt-4o-mini": "azure/gpt-4o-mini",
         "azure-gpt-4o": "azure/gpt-4o",
-
     }
 
     @staticmethod
@@ -42,19 +41,19 @@ class LLMTokenCost:
 
         model_prices = LLMTokenCost._model_prices.get(model_id, None)
         if model_prices is None:
-            error = f"Model {model_id} not found"
+            error = f"Model {model_id} not found in model prices. Consider adding it to the `model_prices_and_context_window.json` file."
             logger.error(error)
             raise ValueError(error)
 
         input_cost_per_token = model_prices.get("input_cost_per_token", None)
         if input_cost_per_token is None:
-            error = f"Input cost per token not found for model {model_id}"
+            error = f"Input cost per token not found for model {model_id}. Check the `model_prices_and_context_window.json` file."
             logger.error(error)
             raise ValueError(error)
 
         output_cost_per_token = model_prices.get("output_cost_per_token", None)
         if output_cost_per_token is None:
-            error = f"Output cost per token not found for model {model_id}"
+            error = f"Output cost per token not found for model {model_id}. Check the `model_prices_and_context_window.json` file."
             logger.error(error)
             raise ValueError(error)
 

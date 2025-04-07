@@ -120,10 +120,10 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         if model_endpoint.provider == "Ollama":
             from langchain_ollama import (  # type: ignore  # noqa: PGH003
-            ChatOllama,
+                ChatOllama,
             )
             return ChatOllama(
-                model=model_endpoint_id,
+                model=model_endpoint_id.replace("ollama/", ""),
                 temperature=temperature,
                 num_predict=max_tokens,
                 base_url=model_endpoint.endpoint_url.get_secret_value(),
@@ -196,9 +196,19 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             response = await cls._call_llm(model_endpoint_id, messages, temperature, max_tokens, tools)
             if response is None:
                 return None
-            total_tokens = response.response_metadata["token_usage"].get("total_tokens", 0)
-            completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
-            prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
+
+            if "token_usage" in response.response_metadata:
+                total_tokens = response.response_metadata["token_usage"].get("total_tokens", 0)
+                completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
+                prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
+            elif "prompt_eval_count" and "eval_count" in response.response_metadata:
+                completion_tokens = response.response_metadata["eval_count"]
+                prompt_tokens = response.response_metadata["prompt_eval_count"]
+                total_tokens = prompt_tokens + completion_tokens
+            else:
+                msg = "Token usage not found in response metadata. Aborting run."
+                raise ValueError(msg)  # noqa: TRY301
+
             cls._token_counts[model_endpoint_id].append((now, total_tokens))
             cls._token_costs[model_endpoint_id].append(
                 (now, LLMTokenCost.compute_token_cost(model_endpoint_id, prompt_tokens, completion_tokens)),
