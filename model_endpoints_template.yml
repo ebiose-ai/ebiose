@@ -2,7 +2,7 @@
 # Rename this file to model_endpoints.yml 
 # and fill in the API keys and endpoint URLs for the models you want to use
 
-default_endpoint_id: "openrouter/quasar-alpha"
+default_endpoint_id: "gpt-4o-mini"
 endpoints:
 
   # OpenAI endpoints
@@ -12,6 +12,7 @@ endpoints:
 
   # OpenRouter Endpoints
   - endpoint_id: "openrouter/quasar-alpha"
+    enpdpoint_url: "https://openrouter.ai/api/v1" # OpenRouter API endpoint URL
     provider: "OpenRouter"
     api_key: "YOUR_OPENROUTER_API_KEY" # FILL IN YOUR OPENROUTER API KEY
 

@@ -56,7 +56,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         if model_endpoint.provider == "OpenRouter":
             return ChatOpenAI(
-                openai_api_base = "https://openrouter.ai/api/v1",
+                openai_api_base = model_endpoint.endpoint_url.get_secret_value(),
                 model=model_endpoint_id,
                 temperature=temperature,
                 max_tokens=max_tokens,

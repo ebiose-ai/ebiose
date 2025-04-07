@@ -88,11 +88,14 @@ To build and run Ebiose using Docker, follow these steps:
 4.  Ensure you have created and filled in the `model_endpoints.yml` file with your OpenAI API key. A basic `model_endpoints.yml` file looks like this:
 
     ```yaml
-    default_endpoint_id: "openrouter/quasar-alpha"
+    default_endpoint_id: "gpt-4o-mini"
     endpoints:
-      - endpoint_id: "openrouter/quasar-alpha"
-        provider: "OpenRouter"
-        api_key: "YOUR_OPENROUTER_API_KEY"
+
+  # OpenAI endpoints
+  - endpoint_id: "gpt-4o-mini"
+    provider: "OpenAI"
+    api_key: "YOUR_OPENAI_API_KEY" # fill in your OpenAI API key
+  ## Other endpoints...
     ```
 
 5.  Run the Docker image using the following command, which mounts the `model_endpoints.yml` file and passes environment variables from `.env`:
