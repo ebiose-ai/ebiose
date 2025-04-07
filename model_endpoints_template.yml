@@ -45,6 +45,6 @@ endpoints:
     api_key: "YOUR_GOOGLE_API_KEY" # fill in your Google API key
 
     # Ollama endpoints 
-  - endpoint_id: "ModelName"  # Replace with the actual model name you want to use, e.g., "llama3-8b"
+  - endpoint_id: "ollama/ModelName"  # Replace with the actual model name you want to use, e.g., "llama3.2". Keep the 'ollama/' prefix.
     provider: "Ollama"
-    endpoint_url: "http://<Ollama host IP>:11434/v1"
+    endpoint_url: "http://<Ollama host IP>:11434/" # Replace with the actual IP address of your Ollama host.
