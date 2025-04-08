@@ -82,7 +82,7 @@ class LangGraphLLMNode(LLMNode):
         if response is None:
             return None
 
-        messages = [response]
+        messages = [HumanMessage(human_prompt), response]
         if self.tools is not None and len(self.tools) > 0:
             for tool in response.tool_calls:
                 messages.append(ToolMessage(content=tool, tool_call_id=tool["id"]))  # noqa: PERF401
