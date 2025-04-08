@@ -56,6 +56,7 @@ class EvoForgingCycleConfig(BaseModel):
     replacement_ratio: float = 0.5
     tournament_size_ratio: float = 0.1
     save_path: Path | None = None
+    node_types: list[str] = ["StartNode", "EndNode", "LLMNode"]
 
 
 @dataclass
@@ -71,6 +72,8 @@ class EvoForgingCycle:
     agents_first_generation_costs: dict[str, float] = field(default_factory=dict)
     init_agents_population: dict[Agent] = field(default_factory=list)
 
+    node_types: list[str] = field(default_factory=list)
+    
     def save_current_state(self, generation: int | None = None) -> None:
         if self.config.save_path is not None:
             if generation is not None:
@@ -125,6 +128,7 @@ class EvoForgingCycle:
                 architect_agent = random.choice(ecosystem.initial_architect_agents)
                 architect_agent_input = architect_agent.agent_engine.input_model(
                     forge_description=self.forge.description,
+                    node_types=self.forge.node_types,
                 )
                 genetic_operator_agent = random.choice(ecosystem.initial_genetic_operator_agents)
 
@@ -146,6 +150,7 @@ class EvoForgingCycle:
                     architect_agent = selected_agent.architect_agent
                     architect_agent_input = architect_agent.agent_engine.input_model(
                         forge_description=self.forge.description,
+                        node_types=self.node_types,
                     )
                     genetic_operator_agent = selected_agent.genetic_operator_agent
 
@@ -366,6 +371,7 @@ class EvoForgingCycle:
                 forge_description=self.forge.description,
                 parent_configuration1=parent1.agent_engine.graph.model_dump(),
                 parent_configuration2=parent2.agent_engine.graph.model_dump(),
+                node_types=self.node_types,
             )
 
             task = crossover_agent_task(

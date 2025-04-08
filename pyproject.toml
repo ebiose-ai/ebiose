@@ -66,7 +66,7 @@ convention = "google"
 # Disallow all relative imports.
 ban-relative-imports = "all"
 
-# [tool.hatch.build.targets.wheel]
+[tool.hatch.build.targets.wheel]
 packages = ["ebiose"]
 
 [build-system]

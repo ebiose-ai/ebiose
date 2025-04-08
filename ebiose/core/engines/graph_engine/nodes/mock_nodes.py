@@ -6,10 +6,9 @@ This software is licensed under the MIT License. See LICENSE for details.
 
 from __future__ import annotations
 
-import abc
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from ebiose.core.engines.graph_engine.nodes.node import BaseNode
 

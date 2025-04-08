@@ -47,6 +47,7 @@ def main(
         n_best_agents_to_return=2,
         replacement_ratio=0.5,
         save_path=save_path,
+        node_types=["StartNode", "EndNode", "LLMNode"],
     )
 
     best_agents, best_finess = asyncio.run(
