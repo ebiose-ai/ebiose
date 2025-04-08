@@ -77,7 +77,7 @@ class LangGraphEngine(GraphEngine):
             except ValidationError:
                 pass
 
-            structured_output_agent = GraphUtils.get_structured_output_agent(self.output_model, self.model_endpoint_id)
+            structured_output_agent = GraphUtils.get_structured_output_agent(self.output_model)
             so_agent_input = structured_output_agent.agent_engine.input_model(
                 last_message=final_state["messages"][-1],
             )

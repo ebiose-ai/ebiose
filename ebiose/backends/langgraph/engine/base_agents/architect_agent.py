@@ -15,6 +15,7 @@ from ebiose.core.engines.graph_engine.nodes import (
 )
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
+from ebiose.core.model_endpoint import ModelEndpoints
 
 
 class AgentInput(BaseModel):
@@ -125,10 +126,12 @@ entire graph with the prompts under the following format:\n
 def init_architect_agent(
         model_endpoint_id: str | None,
         add_format_node: bool = True,  # noqa: FBT001, FBT002
-
     ) -> None:
         from ebiose.core.agent import Agent
         from ebiose.core.agent_engine_factory import AgentEngineFactory
+
+        if model_endpoint_id is None:
+             model_endpoint_id = ModelEndpoints.get_default_architect_model_endpoint_id()
 
         graph_outline_generation_node = LLMNode(
             id="graph_outline_generation",

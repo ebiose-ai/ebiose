@@ -16,6 +16,7 @@ from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
+from ebiose.core.model_endpoint import ModelEndpoints
 
 SHARED_CONTEXT_PROMPT = """You are part of a router agent that must analyse the
 following message and decide which condition applies best amongst: {possible_output}.
@@ -33,6 +34,9 @@ class AgentOutput(BaseModel):
 def init_routing_agent(model_endpoint_id: str) -> None:
         from ebiose.core.agent import Agent
         from ebiose.core.agent_engine_factory import AgentEngineFactory
+
+        if model_endpoint_id is None:
+             model_endpoint_id = ModelEndpoints.get_default_model_endpoint_id()
 
         shared_context_prompt = SHARED_CONTEXT_PROMPT
 

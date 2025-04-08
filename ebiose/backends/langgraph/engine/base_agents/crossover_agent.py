@@ -14,6 +14,7 @@ from ebiose.core.engines.graph_engine.nodes import (
 )
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
+from ebiose.core.model_endpoint import ModelEndpoints
 
 
 class AgentInput(BaseModel):
@@ -78,6 +79,9 @@ Create the offspring graph now and return it into the same format as its parents
 def init_crossover_agent(model_endpoint_id: str | None) -> None:
         from ebiose.core.agent import Agent
         from ebiose.core.agent_engine_factory import AgentEngineFactory
+
+        if model_endpoint_id is None:
+             model_endpoint_id = ModelEndpoints.get_default_architect_model_endpoint_id()
 
         crossover_node = LLMNode(
             id="crossover",

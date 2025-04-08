@@ -380,18 +380,21 @@ class Graph(BaseModel):
             start_node_name = getattr(start_node, "name", start_node.id)
             end_node_name = getattr(end_node, "name", end_node.id)
 
+            start_node_type = getattr(start_node, "type", None)
+            end_node_type = getattr(end_node, "type", None)
+
             start_node_id = edge.start_node_id.replace(" ", "").title()
             end_node_id = edge.end_node_id.replace(" ", "").title()
 
             # Determine the appropriate brackets for the node type
             start_node_block = node_type_display_name.get(
                 start_node.type,
-                "[/{node_name}/]",
-            ).format(node_name=start_node_name)
+                '[/"{node_name}({node_type})"/]',
+            ).format(node_name=start_node_name, node_type=start_node_type)
             end_node_block = node_type_display_name.get(
                 end_node.type,
-                "[/{node_name}/]",
-            ).format(node_name=end_node_name)
+                '[/"{node_name}({node_type})"/]',
+            ).format(node_name=end_node_name, node_type=end_node_type)
 
             if edge.is_conditional():
                 # replace the [ with #91; and ] with #93; to avoid mermaid syntax error

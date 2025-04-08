@@ -16,6 +16,7 @@ from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
+from ebiose.core.model_endpoint import ModelEndpoints
 
 SHARED_CONTEXT_PROMPT = """You are part of a graph agent which goal is to format the following message
 into a given structured output.
@@ -26,6 +27,9 @@ The message is:
 def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_id: str) -> None:
         from ebiose.core.agent import Agent
         from ebiose.core.agent_engine_factory import AgentEngineFactory
+
+        if model_endpoint_id is None:
+            model_endpoint_id = ModelEndpoints.get_default_model_endpoint_id()
 
         class AgentInput(BaseModel):
             last_message: AnyMessage | None = None

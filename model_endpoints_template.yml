@@ -3,6 +3,7 @@
 # and fill in the API keys and endpoint URLs for the models you want to use
 
 default_endpoint_id: "gpt-4o-mini"
+default_architect_endpoint_id: "gpt-4o"
 endpoints:
 
   # OpenAI endpoints

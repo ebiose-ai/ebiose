@@ -44,6 +44,7 @@ DEFAULT_MODEL_ENDPOINTS_PATH = Path(__file__).resolve().parents[2] / "model_endp
 
 class ModelEndpoints:
     _default_endpoint_id: str | None = None
+    _default_architect_endpoint_id: str | None = None
     _lite_llm: dict[str, str] = {"use": False, "use_proxy": False}
     _endpoints: ClassVar[list[ModelEndpoint]] = []
 
@@ -52,6 +53,14 @@ class ModelEndpoints:
         if ModelEndpoints._default_endpoint_id is None:
             ModelEndpoints.load_model_endpoints()
         return ModelEndpoints._default_endpoint_id
+    
+    @staticmethod
+    def get_default_architect_model_endpoint_id() -> str:
+        if ModelEndpoints._default_architect_endpoint_id is None:
+            ModelEndpoints.load_model_endpoints()
+        if ModelEndpoints._default_architect_endpoint_id is None:
+            return ModelEndpoints.get_default_model_endpoint_id()
+        return ModelEndpoints._default_architect_endpoint_id
     
     @staticmethod
     def use_lite_llm() -> bool:
@@ -74,6 +83,9 @@ class ModelEndpoints:
             data = yaml.safe_load(stream)
             
         ModelEndpoints._default_endpoint_id = data.get("default_endpoint_id", None)
+
+        if "default_architect_endpoint_id" in data:
+            ModelEndpoints._default_architect_endpoint_id = data.get("default_architect_endpoint_id", None)
 
         if "lite_llm" in data:
             ModelEndpoints._lite_llm["use"] = data["lite_llm"].get("use", False)
