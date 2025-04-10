@@ -12,7 +12,7 @@ dependencies = [
     "langchain-core>=0.3.33",
     "langchain-openai>=0.3.3",
     "langchain_google_genai",
-    "langchain_ollama",
+    "langchain-ollama",
     "langfuse==2.60.2",
     "langgraph>=0.2.69",
     "loguru>=0.7.3",
