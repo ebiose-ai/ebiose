@@ -55,6 +55,8 @@ langchain-core==0.3.48
 langchain-google-genai==2.1.1
 langchain-ollama==0.3.0
 langchain-openai==0.3.10
+langchain-anthropic
+langchain-huggingface
 langchain-text-splitters==0.3.7
 langfuse==2.60.2
 langgraph==0.3.20

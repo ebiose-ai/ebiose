@@ -90,12 +90,9 @@ To build and run Ebiose using Docker, follow these steps:
     ```yaml
     default_endpoint_id: "gpt-4o-mini"
     endpoints:
-
-  # OpenAI endpoints
-  - endpoint_id: "gpt-4o-mini"
-    provider: "OpenAI"
-    api_key: "YOUR_OPENAI_API_KEY" # fill in your OpenAI API key
-  ## Other endpoints...
+    - endpoint_id: "gpt-4o-mini"
+      provider: "OpenAI"
+      api_key: "YOUR_OPENAI_API_KEY" 
     ```
 
 5.  Run the Docker image using the following command, which mounts the `model_endpoints.yml` file and passes environment variables from `.env`:
@@ -235,6 +232,7 @@ and login with the following:
 from huggingface_hub import login
 login()
 ```
+
 ### OpenRouter 
 To use OpenRouter LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
 ```yaml
@@ -270,34 +268,6 @@ endpoints:
 ```
 > 🚨 Don't forget to install Langchain's Ollama library by executing
 `uv add langchain-ollama` or `pip install langchain-ollama`
-
-### OpenRouter (not tested yet)
-To use OpenRouter LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
-```yaml
-endpoints:
-  - endpoint_id: "openrouter/quasar-alpha"
-    provider: "OpenRouter"
-    api_key: "YOUR_OPENROUTER_API_KEY"  # Fill in your OpenRouter API key
-    endpoint_url: "https://openrouter.ai/api/v1"  # OpenRouter API endpoint URL
-```
-
-### Google (not tested yet)
-To use Google LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
-```yaml
-endpoints:
-  - endpoint_id: "gemini-2.5-pro-exp-03-25"
-    provider: "Google"
-    api_key: "YOUR_GOOGLE_API_KEY"  # Fill in your Google API key
-```
-
-### Ollama (not tested yet)
-To use Ollama LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
-```yaml
-endpoints:
-  - endpoint_id: "ModelName"  # Replace with the actual model name, e.g., "llama3-8b"
-    provider: "Ollama"
-    endpoint_url: "http://<Ollama host IP>:11434/v1"
-```
 
 
 ### Others
