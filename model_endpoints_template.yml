@@ -10,6 +10,12 @@ endpoints:
     provider: "OpenAI"
     api_key: "YOUR_OPENAI_API_KEY" # fill in your OpenAI API key
 
+  # OpenRouter Endpoints
+  - endpoint_id: "openrouter/quasar-alpha"
+    enpdpoint_url: "https://openrouter.ai/api/v1" # OpenRouter API endpoint URL
+    provider: "OpenRouter"
+    api_key: "YOUR_OPENROUTER_API_KEY" # FILL IN YOUR OPENROUTER API KEY
+
   # Azure OpenAI endpoints
   - endpoint_id: "azure-gpt-4o-mini"
     provider: "Azure OpenAI"
@@ -32,3 +38,13 @@ endpoints:
   # Hugging Face endpoints
   - endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
     provider: "Hugging Face"
+
+   # Google endpoints
+  - endpoint_id: "gemini-2.5-pro-exp-03-25"
+    provider: "Google"
+    api_key: "YOUR_GOOGLE_API_KEY" # fill in your Google API key
+
+    # Ollama endpoints 
+  - endpoint_id: "ollama/ModelName"  # Replace with the actual model name you want to use, e.g., "llama3.2". Keep the 'ollama/' prefix.
+    provider: "Ollama"
+    endpoint_url: "http://<Ollama host IP>:11434/" # Replace with the actual IP address of your Ollama host.

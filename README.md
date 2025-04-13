@@ -79,7 +79,7 @@ and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter note
 To build and run Ebiose using Docker, follow these steps:
 
 1.  Ensure you have Docker installed on your system.
-2.  Create a `.dockerignore` file to exclude unnecessary files from the Docker image.
+2.  If running Linux, ensure you have followed the post installation steps: https://docs.docker.com/engine/install/linux-postinstall/
 3.  Build the Docker image using the following command:
 
     ```bash
@@ -90,12 +90,12 @@ To build and run Ebiose using Docker, follow these steps:
     ```yaml
     default_endpoint_id: "gpt-4o-mini"
     endpoints:
-      - endpoint_id: "gpt-4o-mini"
-        provider: "OpenAI"
-        api_key: "YOUR_OPENAI_API_KEY"
+    - endpoint_id: "gpt-4o-mini"
+      provider: "OpenAI"
+      api_key: "YOUR_OPENAI_API_KEY" 
     ```
 
-5.  Run the Docker image, mounting the `model_endpoints.yml` file and passing environment variables from `.env`:
+5.  Run the Docker image using the following command, which mounts the `model_endpoints.yml` file and passes environment variables from `.env`:
 
     ```bash
     make run
@@ -232,6 +232,43 @@ and login with the following:
 from huggingface_hub import login
 login()
 ```
+
+### OpenRouter 
+To use OpenRouter LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "openrouter/quasar-alpha"
+    provider: "OpenRouter"
+    api_key: "YOUR_OPENROUTER_API_KEY"  # Fill in your OpenRouter API key
+    endpoint_url: "https://openrouter.ai/api/v1"  # OpenRouter API endpoint URL
+```
+> 🚨 Don't forget to install Langchain's OpenAI library (compatible with OpenRouter) by executing
+`uv add langchain-openai` or `pip install langchain-openai`.
+
+
+### Google (not tested yet)
+To use Google LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "gemini-2.5-pro-exp-03-25"
+    provider: "Google"
+    api_key: "YOUR_GOOGLE_API_KEY"  # Fill in your Google API key
+```
+> 🚨 Don't forget to install Langchain's Google GenAI library by executing
+`uv add langchain-google-genai` or `pip install langchain-google-genai`.
+
+
+### Ollama (not tested yet)
+To use Ollama LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```yaml
+endpoints:
+  - endpoint_id: "ModelName"  # Replace with the actual model name, e.g., "llama3-8b"
+    provider: "Ollama"
+    endpoint_url: "http://<Ollama host IP>:11434/v1"
+```
+> 🚨 Don't forget to install Langchain's Ollama library by executing
+`uv add langchain-ollama` or `pip install langchain-ollama`
+
 
 ### Others
 Again, we wish to be compatible with every provider you are used to, so feel free to open an issue and contribute to expanding our LLMs' coverage. Check first if LangChain
