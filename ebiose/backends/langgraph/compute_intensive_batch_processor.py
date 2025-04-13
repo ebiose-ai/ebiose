@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
     @staticmethod
-    def _get_llm(model_endpoint_id: str, temperature: float, max_tokens: int) -> AzureChatOpenAI:
+    def _get_llm(model_endpoint_id: str, temperature: float, max_tokens: int) -> AzureChatOpenAI:  # noqa: PLR0911
         """Get the LLM model from the model endpoint id.
 
         Args:
@@ -88,9 +88,8 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             )
 
         if model_endpoint.provider == "Anthropic":
-            from langchain_anthropic import (
-                ChatAnthropic,  # type: ignore  # noqa: PGH003
-            )
+            from langchain_anthropic import ChatAnthropic
+
             return ChatAnthropic(
                 model=model_endpoint_id,
                 temperature=temperature,
@@ -99,9 +98,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             )
 
         if model_endpoint.provider == "HuggingFace":
-            from langchain_huggingface import (  # type: ignore  # noqa: PGH003
-                HuggingFaceEndpoint,
-            )
+            from langchain_huggingface import HuggingFaceEndpoint
 
             return HuggingFaceEndpoint(
                 repo_id=model_endpoint_id,
@@ -110,18 +107,16 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             )
 
         if model_endpoint.provider == "Google":
-            from langchain_google_genai import (  # type: ignore  # noqa: PGH003
-                ChatGoogleGenerativeAI,
-            )
+            from langchain_google_genai import ChatGoogleGenerativeAI
+
             return ChatGoogleGenerativeAI(
                 model=model_endpoint_id,
                 google_api_key=model_endpoint.api_key.get_secret_value(),
             )
 
         if model_endpoint.provider == "Ollama":
-            from langchain_ollama import (  # type: ignore  # noqa: PGH003
-                ChatOllama,
-            )
+            from langchain_ollama import ChatOllama
+
             return ChatOllama(
                 model=model_endpoint_id.replace("ollama/", ""),
                 temperature=temperature,
