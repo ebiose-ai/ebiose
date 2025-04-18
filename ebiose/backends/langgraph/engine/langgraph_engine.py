@@ -64,9 +64,9 @@ class LangGraphEngine(GraphEngine):
         return self
 
     @observe(name="run_agent_engine")
-    async def _run_implementation(self, agent_input: BaseModel, compute_token_id: str) -> BaseModel | dict | None:
+    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str | None = None) -> BaseModel | dict | None:
 
-        final_state = await self.invoke_graph(agent_input, compute_token_id)
+        final_state = await self.invoke_graph(agent_input)
 
         if "output" in final_state and final_state["output"] is not None:
             return  final_state["output"]
@@ -77,13 +77,16 @@ class LangGraphEngine(GraphEngine):
             except ValidationError:
                 pass
 
-            structured_output_agent = GraphUtils.get_structured_output_agent(self.output_model, self.model_endpoint_id)
+            structured_output_agent = GraphUtils.get_structured_output_agent(
+                self.output_model,
+                self.model_endpoint_id,
+            )
             so_agent_input = structured_output_agent.agent_engine.input_model(
                 last_message=final_state["messages"][-1],
             )
 
             try:
-                return await structured_output_agent.run(so_agent_input, compute_token_id)
+                return await structured_output_agent.run(so_agent_input, master_agent_id=master_agent_id)
             except Exception as e:
                 logger.debug(f"Error while running agent {self.id}, when calling structured output agent: {e!s}")
         else:
@@ -111,7 +114,7 @@ class LangGraphEngine(GraphEngine):
         if self._config is not None:
             return self._config
 
-        fields = {}
+        fields = {"agent_id": (str, Field(default=self.agent_id))}
         for node in self.graph.nodes:
             if isinstance(node, LLMNode):
                 fields[node.id] = (dict, {})
@@ -129,13 +132,11 @@ class LangGraphEngine(GraphEngine):
     async def invoke_graph(
             self,
             agent_input: BaseModel,
-            compute_token_id: str,
         ) -> BaseModel:
             """Compile and run the agent.
 
             Args:
                 agent_input: The input that goes in first trough the graph
-                compute_token_id: The compute token id
 
             Returns: the final updated graph state
             """
@@ -163,7 +164,6 @@ class LangGraphEngine(GraphEngine):
             handler = langfuse_context.get_current_langchain_handler()
             config = self._config(
                 shared_context_prompt=self.graph.shared_context_prompt, #.format(**agent_input.model_dump()),
-                compute_token=compute_token_id,
                 model_endpoint_id=self.model_endpoint_id,
                 output_model=self.output_model,
                 callbacks = [handler],

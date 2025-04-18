@@ -22,6 +22,7 @@ class AgentEngineFactory:
     def create_engine(
             engine_type: str,
             configuration: str | dict,
+            agent_id: str,
             input_model: type[BaseModel] | None = None,
             output_model: type[BaseModel] | None = None,
             model_endpoint_id: str | None = None,
@@ -31,6 +32,7 @@ class AgentEngineFactory:
             if model_endpoint_id is None:
                 model_endpoint_id = ModelEndpoints.get_default_model_endpoint_id()
             return LangGraphEngine(
+                agent_id=agent_id,
                 configuration=configuration,
                 input_model=input_model,
                 output_model=output_model,

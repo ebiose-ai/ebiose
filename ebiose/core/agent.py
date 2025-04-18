@@ -40,8 +40,9 @@ class Agent(BaseModel):
     def validate_agent_engine(cls, agent_engine: dict | AgentEngine) -> AgentEngine:
         if isinstance(agent_engine, dict):
             return AgentEngineFactory.create_engine(
-                agent_engine["engine_type"],
-                agent_engine["configuration"],
+                engine_type=agent_engine["engine_type"],
+                configuration=agent_engine["configuration"],
+                agent_id=agent_engine["agent_id"],
             )
         if isinstance(agent_engine, AgentEngine):
             return agent_engine
@@ -56,9 +57,9 @@ class Agent(BaseModel):
         return self
 
     @observe(name="run_agent")
-    async def run(self, input_data: BaseModel, compute_token_id: str) -> any:
+    async def run(self, input_data: BaseModel, master_agent_id: str | None = None) -> any:
         try:
-            return await self.agent_engine.run(input_data, compute_token_id)
+            return await self.agent_engine.run(input_data, master_agent_id)
         except Exception as e:
             logger.debug(f"Error while running agent {self.id}: {e!s}")
             return None

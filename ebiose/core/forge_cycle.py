@@ -13,10 +13,12 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from time import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from IPython import get_ipython
 from pydantic import BaseModel
+
+from ebiose.generated_cloud_sdk.mock_ebiose_endpoints import start_new_forge_cycle
 
 if get_ipython() is not None:
     pass
@@ -46,25 +48,30 @@ def human_readable_duration(start_time: float) -> str:
     elapsed_time = time() - start_time
     return str(datetime.timedelta(seconds=elapsed_time))
 
-class EvoForgingCycleConfig(BaseModel):
-    budget: float
-    n_agents_in_population: int
-    n_selected_agents_from_ecosystem: int
+
+class ForgeCycleConfig(BaseModel):
+    n_agents_in_population: int = 10
+    n_selected_agents_from_ecosystem: int = 5
     n_best_agents_to_return: int = 3
-    architect_agent_budget_ratio: float = 1.0
-    genetic_operator_agent_budget_ratio: float = 1.0
     replacement_ratio: float = 0.5
     tournament_size_ratio: float = 0.1
-    save_path: Path | None = None
+    local_results_path: Path | None = None
+    mode: Literal["local", "cloud"]
+
+
+class CloudForgeCycleConfig(ForgeCycleConfig):
+    budget: float
+    mode: Literal["local", "cloud"] = "cloud"
+
+class LocalForgeCycleConfig(ForgeCycleConfig):
+    n_generations: int
+    mode: Literal["local", "cloud"] = "local"
 
 
 @dataclass
-class EvoForgingCycle:
+class ForgeCycle:
     forge: AgentForge
-    config: EvoForgingCycleConfig
-
-    _master_compute_token: str | None = None
-    _architect_agent_compute_token: str | None = None
+    config: ForgeCycleConfig
 
     agents: dict[str, Agent] = field(default_factory=dict)
     agents_fitness: dict[str, float] = field(default_factory=dict)
@@ -72,11 +79,11 @@ class EvoForgingCycle:
     init_agents_population: dict[Agent] = field(default_factory=list)
 
     def save_current_state(self, generation: int | None = None) -> None:
-        if self.config.save_path is not None:
+        if self.config.local_results_path is not None:
             if generation is not None:
-                full_save_path = Path(self.config.save_path) / f"generation={generation}"
+                full_save_path = Path(self.config.local_results_path) / f"generation={generation}"
             else:
-                full_save_path = Path(self.config.save_path) / "init"
+                full_save_path = Path(self.config.local_results_path) / "init"
             if not Path.exists(full_save_path):
                 Path.mkdir(full_save_path, parents=True)
             logger.debug(f"Saving current state to {full_save_path}")
@@ -132,7 +139,6 @@ class EvoForgingCycle:
                     forge=self.forge,
                     architect_agent=architect_agent,
                     architect_agent_input=architect_agent_input,
-                    architect_agent_compute_token=self._architect_agent_compute_token,
                     genetic_operator_agent=genetic_operator_agent,
                 )
                 tasks.append(task)
@@ -153,7 +159,6 @@ class EvoForgingCycle:
                         forge=self.forge,
                         architect_agent=architect_agent,
                         architect_agent_input=architect_agent_input,
-                        architect_agent_compute_token=self._architect_agent_compute_token,
                         genetic_operator_agent=genetic_operator_agent,
                     )
                     tasks.append(task)
@@ -163,7 +168,7 @@ class EvoForgingCycle:
         for selected_agent in selected_agents if n_selected_agents > 0 else []:
             self.add_agent(selected_agent)
 
-        logger.debug(f"Agent initialization cost: {ComputeIntensiveBatchProcessor.get_master_token_cost()}")
+        logger.debug(f"Agent initialization cost: {sum(ComputeIntensiveBatchProcessor._cost_per_agent.values())}")
         for new_agent in results:
             if new_agent is None:
                 continue
@@ -173,14 +178,17 @@ class EvoForgingCycle:
 
 
     async def execute_a_cycle(self, ecosystem: Ecosystem) -> list[Agent]:
+        lite_llm_key = None
+        if self.config.mode == "cloud":
+            # call cloud start forge cycle
+            # returns: lite llm api key and forge cycle id
+            lite_llm_key, forge_cycle_id = start_new_forge_cycle()
+        else:
+            # if user has its own lite llm key, otherwise None
+            pass
 
         logger.info(f"Starting a new cycle for forge {self.forge.name}")
-        ComputeIntensiveBatchProcessor.initialize()
-        self._master_compute_token = ComputeIntensiveBatchProcessor.acquire_master_token(budget=self.config.budget)
-        self._architect_agent_compute_token = ComputeIntensiveBatchProcessor.generate_token(
-            self.config.architect_agent_budget_ratio * self.config.budget,
-            self._master_compute_token,
-        )
+        ComputeIntensiveBatchProcessor.initialize(mode=self.config.mode)
 
         t0 = time()
         await self.initialize_population(ecosystem=ecosystem)
@@ -188,22 +196,22 @@ class EvoForgingCycle:
         if len(self.agents) == 0:
             logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
             return []
-
-        total_cycle_cost = ComputeIntensiveBatchProcessor.get_master_token_cost()
+        
+        total_cycle_cost = ComputeIntensiveBatchProcessor.get_spent_cost()
         logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
-        logger.info(f"Budget left after initialization: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
+        logger.info(f"Budget left after initialization: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
 
         # running generation 0
         generation = 0
         first_generation_cost = await self.run_generation(generation)
         total_cycle_cost += first_generation_cost
-        logger.info(f"Budget left after first generation: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
+        logger.info(f"Budget left after first generation: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
 
         # running next generations until budget is reached
-        while self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost() > first_generation_cost:
+        while self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost() > first_generation_cost:
             generation += 1
             total_cycle_cost += await self.run_generation(generation)
-            logger.info(f"Budget left after new generation: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
+            logger.info(f"Budget left after new generation: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
 
 
         # Evaluate last offsprings before sorting all population by fitness
@@ -226,10 +234,8 @@ class EvoForgingCycle:
         )
 
         logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
-        logger.info(f"Budget left at final: {self.config.budget - ComputeIntensiveBatchProcessor.get_master_token_cost()} $")
+        logger.info(f"Budget left at final: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
         logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
-
-        ComputeIntensiveBatchProcessor.release_master_token(self._master_compute_token)
 
         selected_agents = {
             agent.id: agent for agent in sorted_agents[:self.config.n_best_agents_to_return]
@@ -260,8 +266,8 @@ class EvoForgingCycle:
         logger.info("Starting crossover and mutation...")
         selected_parent_ids_for_crossover = self.tournament_selection(n_to_select=n_replaced)
         t1 = time()
-        offspring_agents, crossover_cost = await self.crossover_and_mutate(selected_parent_ids_for_crossover)
-        logger.info(f"Crossover and mutation completed in {human_readable_duration(t1)} for a total cost of {crossover_cost} $")
+        offspring_agents = await self.crossover_and_mutate(selected_parent_ids_for_crossover)
+        logger.info(f"Crossover and mutation completed in {human_readable_duration(t1)} for a total cost of TODO $")
 
         # we finally add kept and offspring agents
         self.agents = {agent.id: agent for agent in kept_agents.values()}
@@ -269,22 +275,17 @@ class EvoForgingCycle:
         for offspring in offspring_agents:
             self.add_agent(offspring)
 
-        logger.info(f"Generation {cur_generation} completed in {human_readable_duration(t0)} with a total cost of {generation_cost + crossover_cost} $")
+        logger.info(f"Generation {cur_generation} completed in {human_readable_duration(t0)} with a total cost of TODO $")
 
-        return generation_cost + crossover_cost
+        # TODO(xabier): fix the cost (what about crossover cost?)
+        return generation_cost
 
 
     async def _evaluate_population(self, generation: int) -> float:
         tasks = []
-        agent_tokens = {}
         for agent in self.agents.values():
-            agent_tokens[agent.id] = ComputeIntensiveBatchProcessor.generate_token(
-                self.config.budget / (len(self.agents) * 2),
-                self._master_compute_token,
-            )
-
             task = asyncio.create_task(
-                self.forge.compute_fitness(agent, agent_tokens[agent.id], generation=generation),
+                self.forge.compute_fitness(agent,generation=generation),
             )
             tasks.append(task)
 
@@ -295,7 +296,7 @@ class EvoForgingCycle:
         for index, agent_id in enumerate(self.agents.keys()):
             fitness = results[index]
             self.agents_fitness[agent_id] = fitness
-            current_agent_cost = ComputeIntensiveBatchProcessor.get_token_cost(agent_tokens[agent_id])
+            current_agent_cost = ComputeIntensiveBatchProcessor.get_agent_cost(agent_id)
             total_cost_in_dollars += current_agent_cost
 
             if update_first_generation_costs:
@@ -348,12 +349,6 @@ class EvoForgingCycle:
         return random.choices(winning_agent_ids, k=n_to_select)
 
     async def crossover_and_mutate(self, selected_parent_ids: list[str]) -> tuple[list[Agent], float]:
-
-        genetic_operator_compute_token = ComputeIntensiveBatchProcessor.generate_token(
-            self.config.genetic_operator_agent_budget_ratio * self.config.budget,
-            self._master_compute_token,
-        )
-
         tasks = []
         for i in range(len(selected_parent_ids)):
             parent1_id = selected_parent_ids[i]
@@ -372,7 +367,6 @@ class EvoForgingCycle:
                 forge=self.forge,
                 genetic_operator_agent=genetic_operator_agent,
                 crossover_agent_input=crossover_input,
-                crossover_agent_compute_token=genetic_operator_compute_token,
                 parent1=parent1,
                 parent2=parent2,
             )
@@ -386,7 +380,7 @@ class EvoForgingCycle:
 
         logger.debug(f"Number of offsprings: {len(offsprings)}/{len(selected_parent_ids)}")
 
-        return offsprings, ComputeIntensiveBatchProcessor.get_token_cost(genetic_operator_compute_token)
+        return offsprings
 
 
     def display_current_results(self, n_best: int = 3) -> None:

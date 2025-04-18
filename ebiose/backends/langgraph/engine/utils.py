@@ -66,13 +66,12 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
         else:
             # call the routing agent
             model_endpoint_id = config["configurable"]["model_endpoint_id"]
-            compute_token = config["configurable"]["compute_token"]
             routing_agent = GraphUtils.get_routing_agent(model_endpoint_id)
             routing_agent_input = routing_agent.agent_engine.input_model(
                 last_message=state.messages[-1],
                 possible_output=[edge.condition for edge in conditional_edges],
             )
-            routing_final_state = await routing_agent.run(routing_agent_input, compute_token)
+            routing_final_state = await routing_agent.run(routing_agent_input)
             condition = routing_final_state.output_condition
 
         for edge in conditional_edges:

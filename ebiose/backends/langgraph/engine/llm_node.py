@@ -37,6 +37,7 @@ class LangGraphLLMNode(LLMNode):
         # All nodes have access to the shared context prompt
         shared_context_prompt = config["configurable"]["shared_context_prompt"]
         model_endpoint_id = config["configurable"]["model_endpoint_id"]
+        agent_id = config["configurable"]["agent_id"]
         output_conditions = []
         if self.id in config["configurable"] and "output_conditions" in config["configurable"][self.id]:
             output_conditions = config["configurable"][self.id]["output_conditions"]
@@ -73,8 +74,8 @@ class LangGraphLLMNode(LLMNode):
         # instantiate model
         response = await LangGraphComputeIntensiveBatchProcessor.process_llm_call(
             model_endpoint_id=model_endpoint_id,
+            agent_id=agent_id,
             messages=prompts,
-            token_guid=config["configurable"]["compute_token"],
             tools=self.tools,
             temperature=self.temperature,
         )

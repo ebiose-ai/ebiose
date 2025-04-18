@@ -47,21 +47,18 @@ def main(
 
     # generating the compute token
     ComputeIntensiveBatchProcessor.initialize()
-    master_token_id = ComputeIntensiveBatchProcessor.acquire_master_token(budget)
-    compute_token_id = ComputeIntensiveBatchProcessor.generate_token(budget, master_token_id)
-
+    
     # running evaluation on test set
     t0 = datetime.now(UTC)
     fitness = asyncio.run(
         forge.compute_fitness(
             agent=agent,
-            compute_token_id=compute_token_id,
             mode="test",
         ),
     )
 
     # getting cost
-    cost = ComputeIntensiveBatchProcessor.get_token_cost(compute_token_id)
+    cost = ComputeIntensiveBatchProcessor.get_token_cost()
 
     logger.info(f"Evaluation of agent {agent.id} on test set took {datetime.now(UTC) - t0}")
     logger.info(f"Computed fitness is: {fitness}, for cost: {cost} $")

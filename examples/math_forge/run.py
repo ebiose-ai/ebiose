@@ -9,15 +9,11 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+# set callbacks
 from dotenv import load_dotenv
 from loguru import logger
 
-# set callbacks
-import litellm
-
-
-
-from ebiose.core.evo_forging_cycle import EvoForgingCycleConfig
+from ebiose.core.forge_cycle import CloudForgeCycleConfig
 from examples.math_forge.math_forge import MathLangGraphForge
 
 logger.remove()
@@ -40,13 +36,13 @@ def main(
         default_model_endpoint_id=default_model_endpoint_id,
     )
 
-    cycle_config = EvoForgingCycleConfig(
+    cycle_config = CloudForgeCycleConfig(
         budget=budget,
         n_agents_in_population=2,
         n_selected_agents_from_ecosystem=0,
         n_best_agents_to_return=2,
         replacement_ratio=0.5,
-        save_path=save_path,
+        local_results_path=save_path,
     )
 
     best_agents, best_finess = asyncio.run(

@@ -24,8 +24,7 @@ from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor 
     ComputeIntensiveBatchProcessor,
 )
 from ebiose.core.model_endpoint import ModelEndpoints
-from ebiose.tools.llm_token_cost import LLMTokenCost
-from litellm.cost_calculator import cost_per_token
+from litellm.cost_calculator import cost_per_token, completion_cost
 
 
 if TYPE_CHECKING:
@@ -50,7 +49,11 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
-        if ModelEndpoints.use_lite_llm_proxy():
+        # TODO(xabier):
+        # if the user has an Ebiose api key, we get the current lite llm api key
+
+
+        if LangGraphComputeIntensiveBatchProcessor._mode == "cloud": #ModelEndpoints.use_lite_llm_proxy():
             lite_llm_api_key, lite_llm_api_base = ModelEndpoints.get_lite_llm_config()
             return ChatOpenAI(
                 openai_api_key=lite_llm_api_key,
@@ -59,8 +62,8 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 temperature=temperature if model_endpoint_id != "azure/o3-mini" else 1.0,
                 max_tokens=max_tokens,
             )
-        
-        elif ModelEndpoints.use_lite_llm():
+
+        if ModelEndpoints.use_lite_llm(): # if model is compatible with LiteLLM, otherwise, custom implementation
             return ChatLiteLLM(
                 model=f"azure/{model_endpoint.deployment_name}",
                 azure_api_key=model_endpoint.api_key.get_secret_value(),
@@ -157,6 +160,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         # Call LLM
         try:
+            # TODO(xabier): check if LiteLLM also does retry
             response = await llm.with_retry(
                 retry_if_exception_type=(RateLimitError,),  # APITimeoutError
                 wait_exponential_jitter=True,
@@ -174,16 +178,12 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
         cls,
         model_endpoint_id: str,
         messages: list[AnyMessage],
-        token_guid: str,
+        agent_id: str,
         temperature: float = 0.0,
         max_tokens: int = 4096, # TODO(xabier): 4096 is the maximum number of tokens allowed by OpenAI GPT-4o, should be handled by
         tools: list | None = None,
     ) -> AnyMessage:
 
-        LangGraphComputeIntensiveBatchProcessor.check_initialized()
-        if not LangGraphComputeIntensiveBatchProcessor._token_manager.token_exists(token_guid):
-            msg = f"Token guid {token_guid} not found"
-            raise ValueError(msg)
 
         # TODO(xabier): reactivate when checked
         # while not await cls._can_process(model_endpoint.endpoint_id, estimated_output_tokens):
@@ -191,38 +191,33 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         try:
             # Record the request and tokens
-            now = datetime.now(tz=UTC)
-            cls._request_counts[model_endpoint_id].append(now)
-
             response = await cls._call_llm(model_endpoint_id, messages, temperature, max_tokens, tools)
             if response is None:
                 return None
-            total_tokens = response.response_metadata["token_usage"].get("total_tokens", 0)
-            completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
-            prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
-            cls._token_counts[model_endpoint_id].append((now, total_tokens))
 
-            if ModelEndpoints.use_lite_llm():
-                # TODO(xabier): remove this stupid condition
+            if LangGraphComputeIntensiveBatchProcessor._mode == "cloud":
+                # TODO(xabier): remove this conditional formatting
+                completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
+                prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
+
                 model = (
                     "azure/" + model_endpoint_id[len("azure-"):]
                     if model_endpoint_id.startswith("azure-")
                     else model_endpoint_id
                 )
                 cost = cost_per_token(
-                    model=model, 
-                    prompt_tokens=prompt_tokens, 
-                    completion_tokens=completion_tokens
+                    model=model,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
                 )
-                cost = sum(cost)
 
+                cost = sum(cost)
+                if agent_id not in cls._cost_per_agent:
+                    cls._cost_per_agent[agent_id] = 0.0
+                cls._cost_per_agent[agent_id] += cost
             else:
-                cost = LLMTokenCost.compute_token_cost(
-                    model_endpoint_id, prompt_tokens, completion_tokens
-                )
-                
-            cls._token_costs[model_endpoint_id].append((now, cost))
-            LangGraphComputeIntensiveBatchProcessor._token_manager.add_cost(token_guid, cost)
+                # TODO(xabier): remove compute cost for local mode
+                pass
 
         except Exception as e:
             logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")

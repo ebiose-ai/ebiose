@@ -5,6 +5,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 """
 
 from __future__ import annotations
+import uuid
 
 from langchain_core.messages import AnyMessage  # noqa: TC002
 from pydantic import BaseModel
@@ -70,10 +71,12 @@ def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_i
         )
 
         agent_configuration = {"graph": graph}
+        agent_id = "agent-" + str(uuid.uuid4())
 
         agent_engine = AgentEngineFactory.create_engine(
             "langgraph_engine",
             agent_configuration,
+            agent_id=agent_id,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
@@ -83,6 +86,7 @@ def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_i
 
         return Agent(
             name="structured_output_agent",
+            id=agent_id,
             description="Agent to structure an input message into a given structured output",
             architect_agent=None,
             genetic_operator_agent=None,

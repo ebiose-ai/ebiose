@@ -5,6 +5,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 """
 
 import random
+import uuid
 
 from pydantic import BaseModel, computed_field
 
@@ -196,9 +197,12 @@ def init_architect_agent(
 
         agent_configuration = {"graph": graph}
 
+        agent_id = "agent-" + str(uuid.uuid4())
+
         agent_engine = AgentEngineFactory.create_engine(
             "langgraph_engine",
             agent_configuration,
+            agent_id=agent_id,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
@@ -207,6 +211,7 @@ def init_architect_agent(
         agent_engine.tags = ["architect_agent"]
 
         return Agent(
+            id=agent_id,
             name="architect_agent",
             description="Architect agent that generate agents",
             architect_agent=None,

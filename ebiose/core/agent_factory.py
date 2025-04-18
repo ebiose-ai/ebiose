@@ -7,6 +7,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import uuid
 
 from loguru import logger
 
@@ -30,6 +31,7 @@ class AgentFactory:
         agent_engine = AgentEngineFactory.create_engine(
             engine_type=agent_config["agent_engine"]["engine_type"],
             configuration=agent_config["agent_engine"]["configuration"],
+            agent_id=agent_config["agent_engine"]["agent_id"],
             model_endpoint_id=model_endpoint_id,
             input_model=input_model,
             output_model=output_model,
@@ -39,6 +41,7 @@ class AgentFactory:
         agent_config["agent_engine"] = agent_engine
         agent_config["architect_agent"] = None
         agent_config["genetic_operator_agent"] = None
+        agent_config["id"]=agent_config["agent_engine"]["agent_id"]
 
         return Agent.model_validate(agent_config)
 
@@ -46,7 +49,6 @@ class AgentFactory:
     async def generate_agent(
         architect_agent: Agent,
         agent_input: dict,
-        compute_token_id: str,
         genetic_operator_agent: Agent | None = None,
         generated_agent_engine_type: str | None = None,
         generated_agent_input: type[BaseModel] | None = None,
@@ -54,15 +56,17 @@ class AgentFactory:
         generated_model_endpoint_id: str | None = None,
     ) -> Agent:
 
-        output = await architect_agent.run(agent_input, compute_token_id)
+        output = await architect_agent.run(agent_input, master_agent_id=architect_agent.id)
         try:
             agent_name = "TODO" # TODO(xabier): generate agent name
             agent_description = output.description
             agent_engine_configuration = {"graph": output.model_dump()}
+            agent_id = "agent-" + str(uuid.uuid4())
 
             generated_agent_engine = AgentEngineFactory.create_engine(
                 generated_agent_engine_type,
                 agent_engine_configuration,
+                agent_id=agent_id,
                 input_model=generated_agent_input,
                 output_model=generated_agent_output,
                 model_endpoint_id=generated_model_endpoint_id,
@@ -75,6 +79,7 @@ class AgentFactory:
             new_agent = Agent(
                 name=agent_name,
                 description=agent_description,
+                id=agent_id,
                 architect_agent=architect_agent,
                 genetic_operator_agent=genetic_operator_agent,
                 agent_engine=generated_agent_engine,
@@ -90,7 +95,6 @@ class AgentFactory:
     async def crossover_agents(
         crossover_agent: Agent,
         input_data: BaseModel,
-        compute_token_id: str,
         generated_agent_engine_type: str | None = None,
         generated_agent_input: type[BaseModel] | None = None,
         generated_agent_output: type[BaseModel] | None = None,
@@ -98,14 +102,16 @@ class AgentFactory:
         parent_ids: list[str] | None = None,
     ) -> tuple[Agent, Agent] | Agent :
 
-        output = await crossover_agent.run(input_data, compute_token_id)
+        output = await crossover_agent.run(input_data)
         try:
             agent_name = "TODO" # TODO(xabier): generate agent name
             agent_description = output.description
             agent_engine_configuration = {"graph": output.model_dump()}
+            agent_id = "agent-" + str(uuid.uuid4())
             generated_agent_engine = AgentEngineFactory.create_engine(
                 generated_agent_engine_type,
                 agent_engine_configuration,
+                agent_id=agent_id,
                 input_model=generated_agent_input,
                 output_model=generated_agent_output,
                 model_endpoint_id=generated_model_endpoint_id,
@@ -114,6 +120,7 @@ class AgentFactory:
             new_agent = Agent(
                 name=agent_name,
                 description=agent_description,
+                id=agent_id,
                 architect_agent=None,
                 genetic_operator_agent=crossover_agent,
                 agent_engine=generated_agent_engine,

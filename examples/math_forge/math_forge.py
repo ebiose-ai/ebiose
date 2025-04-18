@@ -69,7 +69,7 @@ class MathLangGraphForge(AgentForge):
         self.unpicked_problems[mode] = self.unpicked_problems[mode][self.n_problems:]
         return selected
 
-    async def compute_fitness(self, agent: Agent, compute_token_id: str, mode: Literal["train", "test"] = "train", **kwargs: dict[str, any]) -> float:  # noqa: C901
+    async def compute_fitness(self, agent: Agent, mode: Literal["train", "test"] = "train", **kwargs: dict[str, any]) -> float:  # noqa: C901
         if agent.agent_engine.engine_type != "langgraph_engine":
             self.fitness[agent.id] = {0 for _ in range(len(self.data))}
             return 0
@@ -89,7 +89,7 @@ class MathLangGraphForge(AgentForge):
                 agent_input = self.agent_input_model(
                     math_problem=self.data[mode][problem_id]["problem"],
                 )
-                tasks.append(agent.run(agent_input, compute_token_id))
+                tasks.append(agent.run(agent_input))
 
 
         # Gather results concurrently

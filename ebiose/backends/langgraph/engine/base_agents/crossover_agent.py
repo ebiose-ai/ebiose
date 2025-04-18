@@ -4,6 +4,7 @@ Pre-release Version - DO NOT DISTRIBUTE
 This software is licensed under the MIT License. See LICENSE for details.
 """
 
+import uuid
 from pydantic import BaseModel, Field
 
 from ebiose.core.engines.graph_engine.edge import Edge
@@ -105,10 +106,13 @@ def init_crossover_agent(model_endpoint_id: str | None) -> None:
         )
 
         agent_configuration = {"graph": graph}
+        agent_id = "agent-" + str(uuid.uuid4())
+
 
         agent_engine = AgentEngineFactory.create_engine(
             "langgraph_engine",
             agent_configuration,
+            agent_id=agent_id,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
@@ -118,6 +122,7 @@ def init_crossover_agent(model_endpoint_id: str | None) -> None:
 
         return Agent(
             name="crossover_agent",
+            id=agent_id,
             description="Crossover agent that crosses two agents",
             architect_agent=None,
             genetic_operator_agent=None,

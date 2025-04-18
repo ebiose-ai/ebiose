@@ -35,9 +35,10 @@ class LangGraphEngineState(LangGraphEngineInputState, LangGraphEngineOutputState
 
 class LangGraphEngineConfig(BaseModel):
     model_endpoint_id: str = Field(..., description="The id of the model endpoint to use")
-    compute_token: str = Field(..., description="The token to use for the compute intensive batch processor")
     output_model: type[BaseModel] | None = Field(default=None, serialization_exclude=True)
     shared_context_prompt: str
     callbacks: list
     recursion_limit: int = Field(default=15)
     tags: list[str] = Field(default_factory=list)
+    agent_id: str
+    master_agent_id: str | None = Field(default=None)

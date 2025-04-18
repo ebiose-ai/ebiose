@@ -25,14 +25,12 @@ async def architect_agent_task(
         forge: AgentForge,
         architect_agent: Agent,
         architect_agent_input: BaseModel,
-        architect_agent_compute_token: str,
         genetic_operator_agent: Agent,
     ) -> Agent | None:
 
     result = await AgentFactory.generate_agent(
         architect_agent,
         architect_agent_input,
-        architect_agent_compute_token,
         genetic_operator_agent,
         generated_agent_engine_type=forge.default_generated_agent_engine_type,
         generated_model_endpoint_id=forge.default_model_endpoint_id,
@@ -45,7 +43,6 @@ async def architect_agent_task(
         return await AgentFactory.generate_agent(
             architect_agent,
             architect_agent_input,
-            architect_agent_compute_token,
             genetic_operator_agent,
             generated_agent_engine_type=forge.default_generated_agent_engine_type,
             generated_model_endpoint_id=forge.default_model_endpoint_id,
@@ -60,7 +57,6 @@ async def crossover_agent_task(
                 forge: AgentForge,
                 genetic_operator_agent: Agent,
                 crossover_agent_input: BaseModel,
-                crossover_agent_compute_token: str,
                 parent1: Agent,
                 parent2: Agent,
             ) -> Agent | None:
@@ -68,7 +64,6 @@ async def crossover_agent_task(
             result = await AgentFactory.crossover_agents(
                 genetic_operator_agent,
                 crossover_agent_input,
-                crossover_agent_compute_token,
                 generated_agent_engine_type=forge.default_generated_agent_engine_type,
                 generated_model_endpoint_id=forge.default_model_endpoint_id,
                 generated_agent_input=forge.agent_input_model,
@@ -81,7 +76,6 @@ async def crossover_agent_task(
                 result = await AgentFactory.generate_agent(
                     parent1.architect_agent,
                     parent1.architect_agent.agent_engine.input_model(forge_description=forge.description),
-                    crossover_agent_compute_token,
                     genetic_operator_agent,
                     generated_agent_engine_type=forge.default_generated_agent_engine_type,
                     generated_model_endpoint_id=forge.default_model_endpoint_id,

@@ -151,14 +151,11 @@ if True:
 
     ComputeIntensiveBatchProcessor.initialize()
     BUDGET = 0.01
-    # generating the compute token
-    master_token_id = ComputeIntensiveBatchProcessor.acquire_master_token(BUDGET)
-    compute_token_id = ComputeIntensiveBatchProcessor.generate_token(BUDGET, master_token_id)
 
     import asyncio
     import nest_asyncio
     nest_asyncio.apply()
-    response = asyncio.run(math_agent.run(agent_input, compute_token_id))
+    response = asyncio.run(math_agent.run(agent_input))
     pprint(response)
 
 if False:
