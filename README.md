@@ -5,7 +5,7 @@
 
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Febiose.com&style=for-the-badge&logo=curl&label=ebiose.com)](https://ebiose.com)
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA?style=for-the-badge&logo=discord)](https://discord.gg/P5pEuG5a4V) 
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA?style=for-the-badge&logo=discord)](https://discord.gg/P5pEuG5a4V)
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/ebiose-ai/ebiose?style=for-the-badge&logo=github&logoColor=EFBF04&color=EFBF04)](https://star-history.com/#ebiose-ai/ebiose)
 [![License](https://img.shields.io/github/license/ebiose-ai/ebiose?style=for-the-badge&logo=gitbook&link=https%3A%2F%2Fgithub.com%2Febiose-ai%2Febiose%2Fblob%2Fmain%2FLICENSE)](/LICENSE)
@@ -13,18 +13,18 @@
 <h4>🚨 Pre-release version - DO NOT PUBLISH 🚨<br />
 <i>Copyright © 2025 Inria</i></h4>
 
-
   </h3>
 </div>
 
 Ebiose is a **distributed artificial intelligence factory**, an open source project from the Inria’s incubator (French lab). Our vision: enabling humans and agents to collaborate in building tomorrow's AI in an open and democratic way.
 
 > "AI can just as easily become the weapon of a surveillance capitalism dystopia as the foundation of a democratic renaissance."
- 
 
 **👀 Must read 👀**
+
 - [Founding blog post](https://bit.ly/ebiose-blog-post) *(10 min)*
 - [Glossary](GLOSSARY.md) *(3 min)*
+
 ## 🧪 Current status: Beta 0.1
 
 This first beta version implements the foundations of our vision.
@@ -63,11 +63,13 @@ make init
 
 This command will perform the following actions:
 
--   Copy the `model_endpoints_template.yml` file to `model_endpoints.yml` if the file doesn't exist, and instruct you to fill it with your API keys.
--   Copy the `.env.example` file to `.env` if the file doesn't exist.
+- Copy the `model_endpoints_template.yml` file to `model_endpoints.yml` if the file doesn't exist, and instruct you to fill it with your API keys.
+- Copy the `.env.example` file to `.env` if the file doesn't exist.
 
-## 🔥 Run your first Ebiose forge cycle 
+## 🔥 Run your first Ebiose forge cycle
+
 There are two ways to start running Ebiose:
+
 - the most straightforward way is to use Docker: go to section
 [🐳 With Docker](#-with-docker);
 - if you are not yet confortable with Ebiose and wish to understand
@@ -78,14 +80,15 @@ and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter note
 
 To build and run Ebiose using Docker, follow these steps:
 
-1.  Ensure you have Docker installed on your system.
-2.  If running Linux, ensure you have followed the post installation steps: https://docs.docker.com/engine/install/linux-postinstall/
-3.  Build the Docker image using the following command:
+1. Ensure you have Docker installed on your system.
+2. If running Linux, ensure you have followed the post installation steps: <https://docs.docker.com/engine/install/linux-postinstall/>
+3. Build the Docker image using the following command:
 
     ```bash
     make build
     ```
-4.  Ensure you have created and filled in the `model_endpoints.yml` file with your OpenAI API key. A basic `model_endpoints.yml` file looks like this:
+
+4. Ensure you have created and filled in the `model_endpoints.yml` file with your OpenAI API key. A basic `model_endpoints.yml` file looks like this:
 
     ```yaml
     default_endpoint_id: "gpt-4o-mini"
@@ -95,7 +98,7 @@ To build and run Ebiose using Docker, follow these steps:
       api_key: "YOUR_OPENAI_API_KEY" 
     ```
 
-5.  Run the Docker image using the following command, which mounts the `model_endpoints.yml` file and passes environment variables from `.env`:
+5. Run the Docker image using the following command, which mounts the `model_endpoints.yml` file and passes environment variables from `.env`:
 
     ```bash
     make run
@@ -105,14 +108,21 @@ To build and run Ebiose using Docker, follow these steps:
 
 ### 💻 Locally
 
-#### 📦 Install Project Dependencies 
+#### 📦 Install Project Dependencies
+
 Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manager. See [Astral's uv documentation](https://docs.astral.sh/uv/getting-started/installation/) to install it.  
 
 Once uv is installed, use it to install your project dependencies. In your project directory, run:
 
+Ebiose depends on libraries to interact with all major vendor: openai, anthropic...
+
+To install all dependencies
+
 ```sh
-uv sync
+uv sync --all-extras
 ```
+
+Say you only want to use openai models you can run `uv sync --extra openai`, you can check on the pyproject.toml optional dependencies section which are available. Furthermore you can remove dev dependencies with `uv sync --no-dev`
 
 For more detailed instructions or troubleshooting tips, refer to the [official uv documentation](https://docs.astral.sh/uv/).
 
@@ -139,11 +149,15 @@ Once agents are written to the save path, evaluate an agent by executing:
 ```sh
 uv run ./examples/math_forge/evaluate.py
 ```
+
 > 🚨 You must change the path to the agent's JSON file by modifying the following variable:
+
 ```
 AGENT_JSON_FILE = Path("data/2025-02-28_17-49-05/generation=2/agents/agent-211c7fe5-d329-470e-bdd9-ae7ee6ce0be3.json")
 ```
+
 > 🚨 Also, if needed, change the following variables:
+
 ```
 N_PROBLEMS = 2 # number of problems to evaluate on
 BUDGET = 0.1 # budget for evaluation in dollars
@@ -153,23 +167,27 @@ Kick off your journey by implementing your own forge with the accompanying `comp
 
 # 🤖 Model APIs support
 
-As of today, Ebiose uses LangChain/LangGraph to implement agents. Using the different providers of LLMs, and ML models, has been made as easy as possible. 
+As of today, Ebiose uses LangChain/LangGraph to implement agents. Using the different providers of LLMs, and ML models, has been made as easy as possible.
 
 ## Model endpoints
-Models, for now LLMs, and in the future any other ML models, must be defined as 
+
+Models, for now LLMs, and in the future any other ML models, must be defined as
 [`ModelEndpoint`](ebiose/core/model_endpoint.py) instances. The most straightforward
-way to define the model endpoints to which you have access to is to create a 
+way to define the model endpoints to which you have access to is to create a
 `model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml]`(model_endpoints_template.yml)
 YAML file at the root of the project, and fill it with your secret credentials.
 
 ## Main model endpoints
-We have implemented the most popular LLM APIs. For others, please refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/) and adapt 
-the [`LangGraphComputeIntensiveBatchProcessor` class](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly. Issues and pull requests are 
+
+We have implemented the most popular LLM APIs. For others, please refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/) and adapt
+the [`LangGraphComputeIntensiveBatchProcessor` class](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly. Issues and pull requests are
 welcomed.
 
 ### OpenAI
-To use OpenAI LLMs, fill the `model_endpoints.yml` file at the root of the project, 
+
+To use OpenAI LLMs, fill the `model_endpoints.yml` file at the root of the project,
 with, for example:
+
 ```yaml
 default_endpoint_id: "gpt-4o-mini"
 endpoints:
@@ -177,11 +195,14 @@ endpoints:
     provider: "OpenAI"
     api_key: "YOUR_OPENAI_API_KEY"
 ```
-> 🚨 Dont'forget to install Langchain's OpenAI library by executing 
+
+> 🚨 Dont'forget to install Langchain's OpenAI library by executing
 `uv add langchain-openai` or `pip install langchain-openai`.
 
 ### Azure OpenAI
+
 To use OpenAI LLMs on Azure, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+
 ```yaml
 endpoints:
   - endpoint_id: "azure-gpt-4o-mini"
@@ -192,12 +213,14 @@ endpoints:
     deployment_name: "DEPLOYMENT_NAME"
 ```
 
-> 🚨 Dont'forget to install Langchain's OpenAI library by executing 
+> 🚨 Dont'forget to install Langchain's OpenAI library by executing
 `uv add langchain-openai` or `pip install langchain-openai`.
 
 ### Azure ML LLMs
+
 To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the root
 of the project, with, for example:
+
 ```yaml
 endpoints:
   - endpoint_id: "llama3-8b"
@@ -207,34 +230,43 @@ endpoints:
 ```
 
 ### Anthropic (not tested yet)
-To use Anthropic LLMs, fill the `model_endpoints.yml` file at the root of the project, 
+
+To use Anthropic LLMs, fill the `model_endpoints.yml` file at the root of the project,
 with, for example:
+
 ```yaml
 endpoints:
   - endpoint_id: "claude-3-sonnet-20240229"
     provider: "Anthropic"
     api_key: "YOUR_OPENAI_API_KEY"
 ```
-> 🚨 Dont'forget to install Langchain's Anthropic library by executing 
+
+> 🚨 Dont'forget to install Langchain's Anthropic library by executing
 `uv add langchain-anthropic` or `pip install -U langchain-anthropic`
 
 ### HuggingFace (not tested yet)
+
 To use HuggingFace LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+
 ```yaml
 endpoints:
   - endpoint_id: "microsoft/Phi-3-mini-4k-instruct"
     provider: "Hugging Face"
 ```
-> 🚨 Dont'forget to install Langchain's Hugging Face library by executing 
+
+> 🚨 Dont'forget to install Langchain's Hugging Face library by executing
 `uv add langchain-huggingface` or `pip install -U langchain-huggingface`
 and login with the following:
+
 ```
 from huggingface_hub import login
 login()
 ```
 
-### OpenRouter 
+### OpenRouter
+
 To use OpenRouter LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+
 ```yaml
 endpoints:
   - endpoint_id: "openrouter/quasar-alpha"
@@ -242,45 +274,51 @@ endpoints:
     api_key: "YOUR_OPENROUTER_API_KEY"  # Fill in your OpenRouter API key
     endpoint_url: "https://openrouter.ai/api/v1"  # OpenRouter API endpoint URL
 ```
+
 > 🚨 Don't forget to install Langchain's OpenAI library (compatible with OpenRouter) by executing
 `uv add langchain-openai` or `pip install langchain-openai`.
 
-
 ### Google (not tested yet)
+
 To use Google LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+
 ```yaml
 endpoints:
   - endpoint_id: "gemini-2.5-pro-exp-03-25"
     provider: "Google"
     api_key: "YOUR_GOOGLE_API_KEY"  # Fill in your Google API key
 ```
+
 > 🚨 Don't forget to install Langchain's Google GenAI library by executing
 `uv add langchain-google-genai` or `pip install langchain-google-genai`.
 
-
 ### Ollama (not tested yet)
+
 To use Ollama LLMs, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+
 ```yaml
 endpoints:
   - endpoint_id: "ModelName"  # Replace with the actual model name, e.g., "llama3-8b"
     provider: "Ollama"
     endpoint_url: "http://<Ollama host IP>:11434/v1"
 ```
+
 > 🚨 Don't forget to install Langchain's Ollama library by executing
 `uv add langchain-ollama` or `pip install langchain-ollama`
 
-
 ### Others
+
 Again, we wish to be compatible with every provider you are used to, so feel free to open an issue and contribute to expanding our LLMs' coverage. Check first if LangChain
 is compatible with your preferred provider [here](https://python.langchain.com/docs/integrations/providers/).
 
-# 🔍 Observability 
+# 🔍 Observability
 
-Ebiose uses Langfuse's `@observe` decorator to be able to observe nested agent's traces. 
-LangFuse can be easily self-hosted. 
+Ebiose uses Langfuse's `@observe` decorator to be able to observe nested agent's traces.
+LangFuse can be easily self-hosted.
 See [Langfuse's documentation](https://langfuse.com/self-hosting) to do so.
 Once Langfuse's server is running, you can set Langfuse credentials in your
 `.env` file by adding:
+
 ```
 # Langfuse credentials
 LANGFUSE_SECRET_KEY="your_langfuse_secret_key"
@@ -293,13 +331,13 @@ LANGFUSE_HOST="your_langfuse_host"
 Ebiose uses [Loguru](https://loguru.readthedocs.io/en/stable/) for logging purpose.
 You have nothing to do to set it up but can adapt logs to your needs easily.
 
-
 # 🆘 Troubleshooting
 
 Here are some common issues users might face and their solutions:
 
 ### Issue 1: uv Command Not Found
-Solution: Ensure `uv` is installed correctly. Follow the 
+
+Solution: Ensure `uv` is installed correctly. Follow the
 [official installation guide](https://docs.astral.sh/uv/getting-started/installation/). Alternatively, use `pip`:
 
 ```bash
@@ -307,6 +345,7 @@ pip install -r requirements.txt
 ```
 
 ### Issue 2: Python Environment Conflicts
+
 Solution: Use a virtual environment to isolate dependencies:
 
 ```bash
@@ -316,6 +355,7 @@ uv sync  # or pip install -r requirements.txt
 ```
 
 ### Issue 3: Missing API Keys
+
 Solution: Ensure your API keys are set in the `model_endpoints.yml` file, for example:
 
 ```yaml
@@ -329,6 +369,7 @@ endpoints:
 ```
 
 ### Issue 4: Jupyter Notebook Not Running
+
 Solution: Ensure Jupyter is installed and the kernel is set correctly:
 
 ```bash
@@ -337,6 +378,7 @@ jupyter notebook
 ```
 
 ### Issue 5: ModuleNotFoundError
+
 Solution: Set the `.env` PYTHONPATH variable as shown in the `.env.example` file. Alternatively, add the project root to your PYTHONPATH:
 
 ```bash
@@ -344,10 +386,13 @@ export PYTHONPATH=$PYTHONPATH:$(pwd)
 ```
 
 # 📜 Code of Conduct
+
 We are committed to fostering a welcoming and inclusive community. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
 
 # 🤝 Contributing
+
 We welcome contributions from the community! Here's how you can help:
+
 - **Report Bugs**: Open an issue on GitHub with detailed steps to reproduce the problem.
 - **Suggest Features**: Share your ideas for new features or improvements.
 - **Submit Pull Requests**: Fork the repository, make your changes, and submit a PR. Please follow our [contribution guidelines](CONTRIBUTING.md).
@@ -355,11 +400,13 @@ We welcome contributions from the community! Here's how you can help:
 For more details, check out our [Contribution Guide](CONTRIBUTING.md).
 
 # 📜 License
+
 Ebiose is licensed under the [MIT License](LICENSE). This means you're free to use, modify, and distribute the code, as long as you include the original license.
 
-
 ## ❓ Questions?
+
 If you have any questions or need help, feel free to:
+
 - Open an issue on GitHub.
 - Join our [Discord server](https://discord.gg/P5pEuG5a4V).
 - Reach out to the maintainers directly.
