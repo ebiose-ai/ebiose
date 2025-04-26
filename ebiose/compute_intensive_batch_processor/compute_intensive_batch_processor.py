@@ -6,7 +6,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import ClassVar, Literal
 
 from pydantic import BaseModel
 
@@ -17,12 +17,22 @@ class LLMAPIConfig(BaseModel):
 
 class ComputeIntensiveBatchProcessor:
     _llm_api_config: LLMAPIConfig = LLMAPIConfig()
-    _mode: Literal["local", "cloud"] = "cloud"
-    _cost_per_agent: dict[str, float] = {}
+    mode: Literal["local", "cloud"] = "cloud"
+    lite_llm_api_key: str | None = None
+    lite_llm_api_base: str | None = None
+    _cost_per_agent: ClassVar[dict[str, float]] = {}
 
     @classmethod
-    def initialize(cls, mode: Literal["local", "cloud"], llm_api_config: LLMAPIConfig = None) -> None:
-        cls._mode = mode
+    def initialize(
+        cls, 
+        mode: Literal["local", "cloud"], 
+        lite_llm_api_key: str | None = None, 
+        llm_api_config: LLMAPIConfig | None = None,
+    ) -> None:
+        cls.mode = mode
+        # TODO(xabier): check where to decleare api key and base
+        cls.lite_llm_api_key = lite_llm_api_key
+        cls.lite_llm_api_base = "https://ebiose-litellm-proxy.greencliff-4ddafd29.francecentral.azurecontainerapps.io/"
 
         if llm_api_config is not None:
             cls._llm_api_config = llm_api_config

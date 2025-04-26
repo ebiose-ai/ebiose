@@ -12,7 +12,6 @@ from uuid import uuid4
 from IPython import get_ipython
 
 from ebiose.core.model_endpoint import ModelEndpoints
-from ebiose.generated_cloud_sdk.mock_ebiose_endpoints import check_ebiose_api_key, get_ecosystem
 
 if get_ipython() is not None:
     from IPython.display import Markdown, display
@@ -62,20 +61,16 @@ class AgentForge(BaseModel):
         cycle = ForgeCycle(forge=self, config=config)
 
         # cloud forge cycle initialization
-        if ecosystem is None and isinstance(config, CloudForgeCycleConfig):
-            if not check_ebiose_api_key():
-                msg = "Ebiose API key is not valid. Check its value"
-                msg += " or use the local forge cycle mode instead."
-                raise ValueError(msg)
+        # if ecosystem is None and isinstance(config, CloudForgeCycleConfig):
+        #     # load ecosystem
+        #     ecosystem = get_ecosystem()
 
-            # load ecosystem
-            ecosystem = get_ecosystem()
+        # if ecosystem is None and isinstance(config, LocalForgeCycleConfig):
+        #     # create ecosystem
+        #     ecosystem = Ecosystem()
 
-        if ecosystem is None and isinstance(config, LocalForgeCycleConfig):
-            # create ecosystem
-            ecosystem = Ecosystem()
+        # ecosystem.add_forge(self)
 
-        ecosystem.add_forge(self)
         # try to select agents from the ecocystem to enter the forge cycle
         # if not, architect agents will handle creating new agents in the forge cycle
         return await cycle.execute_a_cycle(ecosystem)

@@ -73,6 +73,7 @@ class ForgeCycle:
     forge: AgentForge
     config: ForgeCycleConfig
 
+    id: str | None = None
     agents: dict[str, Agent] = field(default_factory=dict)
     agents_fitness: dict[str, float] = field(default_factory=dict)
     agents_first_generation_costs: dict[str, float] = field(default_factory=dict)
@@ -177,18 +178,28 @@ class ForgeCycle:
         logger.info(f"Population initialized with {len(self.agents)} agents")
 
 
-    async def execute_a_cycle(self, ecosystem: Ecosystem) -> list[Agent]:
-        lite_llm_key = None
+    async def execute_a_cycle(self, ecosystem: Ecosystem | None) -> list[Agent]:
+        logger.info(f"Starting a new cycle for forge {self.forge.name}")
+
+        lite_llm_api_key = None
         if self.config.mode == "cloud":
             # call cloud start forge cycle
             # returns: lite llm api key and forge cycle id
-            lite_llm_key, forge_cycle_id = start_new_forge_cycle()
-        else:
-            # if user has its own lite llm key, otherwise None
-            pass
+            lite_llm_api_key, forge_cycle_id, ecosystem = start_new_forge_cycle(
+                forge_name=self.forge.name,
+                forge_description=self.forge.description,
+                forge_cycle_config=self.config,
+            )
+            self.id = forge_cycle_id
 
-        logger.info(f"Starting a new cycle for forge {self.forge.name}")
-        ComputeIntensiveBatchProcessor.initialize(mode=self.config.mode)
+
+        if ecosystem is None and self.config.mode == "local":
+            # if user has its own lite llm key, otherwise None
+            ecosystem = Ecosystem()
+
+        ecosystem.add_forge(self.forge)
+
+        ComputeIntensiveBatchProcessor.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
 
         t0 = time()
         await self.initialize_population(ecosystem=ecosystem)
@@ -196,7 +207,7 @@ class ForgeCycle:
         if len(self.agents) == 0:
             logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
             return []
-        
+
         total_cycle_cost = ComputeIntensiveBatchProcessor.get_spent_cost()
         logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
         logger.info(f"Budget left after initialization: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")

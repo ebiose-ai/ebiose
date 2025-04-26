@@ -49,15 +49,10 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
-        # TODO(xabier):
-        # if the user has an Ebiose api key, we get the current lite llm api key
-
-
-        if LangGraphComputeIntensiveBatchProcessor._mode == "cloud": #ModelEndpoints.use_lite_llm_proxy():
-            lite_llm_api_key, lite_llm_api_base = ModelEndpoints.get_lite_llm_config()
+        if LangGraphComputeIntensiveBatchProcessor.mode == "cloud": #ModelEndpoints.use_lite_llm_proxy():
             return ChatOpenAI(
-                openai_api_key=lite_llm_api_key,
-                openai_api_base=lite_llm_api_base,
+                openai_api_key=LangGraphComputeIntensiveBatchProcessor.lite_llm_api_key,
+                openai_api_base=LangGraphComputeIntensiveBatchProcessor.lite_llm_api_base,
                 model=model_endpoint_id,
                 temperature=temperature if model_endpoint_id != "azure/o3-mini" else 1.0,
                 max_tokens=max_tokens,
@@ -195,7 +190,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             if response is None:
                 return None
 
-            if LangGraphComputeIntensiveBatchProcessor._mode == "cloud":
+            if LangGraphComputeIntensiveBatchProcessor.mode == "cloud":
                 # TODO(xabier): remove this conditional formatting
                 completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
                 prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
