@@ -75,8 +75,8 @@ if __name__ == "__main__":
 
     # evaluation parameters
     AGENT_JSON_FILE = "data/2025-03-10_11-29-05/generation=4/agents/agent-ba8a9d8f-36bc-44b7-aaaf-be10c821f995.json"
-    TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
-    TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
+    TRAIN_CSV_PATH = "../math_forge/gsm8k_train.csv" # the train dataset
+    TEST_CSV_PATH = "../math_forge/gsm8k_train.csv" # the test dataset
     N_PROBLEMS = 2 # number of problems to evaluate on
     BUDGET = 0.05 # budget for evaluation in dollars
     MODEL_ENDPOINT_ID = "gpt-4o-mini" # model endpoint id
