@@ -201,8 +201,7 @@ class ForgeCycle:
             self.id = forge_cycle_id
 
 
-        if ecosystem is None and self.config.mode == "local":
-            # if user has its own lite llm key, otherwise None
+        if ecosystem is None :
             ecosystem = Ecosystem.new()
 
         LLMApi.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
