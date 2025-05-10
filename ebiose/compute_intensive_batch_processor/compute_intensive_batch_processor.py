@@ -20,7 +20,7 @@ class ComputeIntensiveBatchProcessor:
     mode: Literal["local", "cloud"] = "cloud"
     lite_llm_api_key: str | None = None
     lite_llm_api_base: str | None = None
-    _cost_per_agent: ClassVar[dict[str, float]] = {}
+    cost_per_agent: ClassVar[dict[str, float]] = {}
 
     @classmethod
     def initialize(
@@ -30,9 +30,9 @@ class ComputeIntensiveBatchProcessor:
         llm_api_config: LLMAPIConfig | None = None,
     ) -> None:
         cls.mode = mode
-        # TODO(xabier): check where to decleare api key and base
+        # TODO(xabier): check where to declare api key and base
         cls.lite_llm_api_key = lite_llm_api_key
-        cls.lite_llm_api_base = "https://ebiose-litellm-proxy.greencliff-4ddafd29.francecentral.azurecontainerapps.io/"
+        cls.lite_llm_api_base = "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
 
         if llm_api_config is not None:
             cls._llm_api_config = llm_api_config
@@ -40,10 +40,15 @@ class ComputeIntensiveBatchProcessor:
     @classmethod
     def get_spent_cost(cls) -> float:
         """Get the total cost spent on the agents."""
-        return sum(cls._cost_per_agent.values())
+        return sum(cls.cost_per_agent.values())
 
     @classmethod
     def get_agent_cost(cls, agent_id: str) -> float:
         """Get the cost spent on a specific agent."""
-        return cls._cost_per_agent.get(agent_id, 0.0)
+        return cls.cost_per_agent.get(agent_id, 0.0)
+    
+    @classmethod
+    def reset_cost_per_agent(cls) -> None:
+        """Reset the cost per agent."""
+        cls.cost_per_agent = {}
 

@@ -19,6 +19,8 @@ from pydantic import (
     PrivateAttr,
     ValidationError,
     create_model,
+    field_serializer,
+    field_validator,
     model_validator,
 )
 
@@ -27,9 +29,11 @@ from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineConfig,
 )
 from ebiose.backends.langgraph.engine.utils import GraphUtils, get_path
+from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.graph_engine import GraphEngine
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
+from ebiose.tools.json_schema_to_pydantic import create_pydantic_model_from_schema
 
 
 class LangGraphEngine(GraphEngine):
@@ -42,8 +46,22 @@ class LangGraphEngine(GraphEngine):
     _state: type[BaseModel] | None = PrivateAttr(None)
     _config: BaseModel | None = PrivateAttr(None)
 
+
     @model_validator(mode="after")
     def _set_llm_models(self) -> Self:
+        if self.input_model is None:
+            self.input_model = create_pydantic_model_from_schema(
+                self.configuration["input_model"],
+                model_name="InputModel",
+            )
+        if self.output_model is None:
+            self.output_model = create_pydantic_model_from_schema(
+                self.configuration["output_model"],
+                model_name="OutputModel",
+            )
+        if self.graph is None:
+            self.graph = Graph.model_validate(self.configuration["graph"])
+
         for i, node in enumerate(self.graph.nodes):
             if isinstance(node, LLMNode):
                 # TODO(xabier): improve the way temperature and tools are passed to the LLM configuration

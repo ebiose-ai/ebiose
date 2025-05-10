@@ -7,6 +7,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 from __future__ import annotations
 
 from abc import abstractmethod
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from IPython import get_ipython
@@ -19,9 +20,14 @@ from loguru import logger
 from pydantic import BaseModel, Field, field_validator
 
 from ebiose.core.agent import Agent
-from ebiose.core.ecosystem import Ecosystem
-from ebiose.core.forge_cycle import ForgeCycle, ForgeCycleConfig, CloudForgeCycleConfig, LocalForgeCycleConfig
+from ebiose.core.forge_cycle import (
+    ForgeCycle,
+    ForgeCycleConfig,
+)
 from ebiose.tools.embedding_helper import generate_embeddings
+
+if TYPE_CHECKING:
+    from ebiose.core.ecosystem import Ecosystem
 
 
 class AgentForge(BaseModel):
@@ -54,22 +60,11 @@ class AgentForge(BaseModel):
 
     async def run_new_cycle(
             self,
-            config: ForgeCycleConfig | LocalForgeCycleConfig,
+            config: ForgeCycleConfig,
             ecosystem: Ecosystem | None = None,
         ) -> list[Agent]:
 
         cycle = ForgeCycle(forge=self, config=config)
-
-        # cloud forge cycle initialization
-        # if ecosystem is None and isinstance(config, CloudForgeCycleConfig):
-        #     # load ecosystem
-        #     ecosystem = get_ecosystem()
-
-        # if ecosystem is None and isinstance(config, LocalForgeCycleConfig):
-        #     # create ecosystem
-        #     ecosystem = Ecosystem()
-
-        # ecosystem.add_forge(self)
 
         # try to select agents from the ecocystem to enter the forge cycle
         # if not, architect agents will handle creating new agents in the forge cycle

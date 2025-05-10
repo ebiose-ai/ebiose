@@ -11,7 +11,7 @@ from typing import Self
 
 from langfuse.decorators import observe
 from loguru import logger
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_serializer, model_validator
 
 from ebiose.core.agent_engine import AgentEngine
 from ebiose.core.agent_engine_factory import AgentEngineFactory
@@ -22,12 +22,18 @@ class Agent(BaseModel):
     id: str = Field(default_factory=lambda: "agent-" + str(uuid.uuid4()))
     name: str
     description: str = Field(repr=False)
-    architect_agent: Agent | None = None
-    genetic_operator_agent: Agent | None  = None
+    architect_agent: Agent | None = None # TODO(xabier): replace with id
+    genetic_operator_agent: Agent | None  = None # TODO(xabier): replace with id
     parent_ids: list[str] = Field(default_factory=list)
 
     agent_engine: AgentEngine | None = Field(default=None)
     description_embedding: list[float] | None = Field(default=None, exclude=True)
+
+    @field_serializer("agent_engine")
+    def serialize_agent_engine(self, agent_engine: AgentEngine | None) -> dict:
+        if agent_engine is not None:
+            return agent_engine.model_dump()
+        return {}
 
     @model_validator(mode="before")
     @classmethod

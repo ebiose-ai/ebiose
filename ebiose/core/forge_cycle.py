@@ -14,11 +14,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING, Literal
+from uuid import uuid4
 
 from IPython import get_ipython
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from ebiose.generated_cloud_sdk.mock_ebiose_endpoints import start_new_forge_cycle
+from ebiose.generated_cloud_sdk.mock_ebiose_endpoints import select_agents, start_new_forge_cycle
 
 if get_ipython() is not None:
     pass
@@ -30,6 +31,7 @@ from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor 
     ComputeIntensiveBatchProcessor,
 )
 from ebiose.core.agent import Agent
+from ebiose.core.ecosystem import Ecosystem
 from ebiose.tools.agent_generation_task_with_fallback import (
     architect_agent_task,
     crossover_agent_task,
@@ -37,7 +39,7 @@ from ebiose.tools.agent_generation_task_with_fallback import (
 
 if TYPE_CHECKING:
     from ebiose.core.agent_forge import AgentForge
-    from ebiose.core.ecosystem import Ecosystem
+
 import datetime
 
 if get_ipython() is not None:
@@ -72,8 +74,9 @@ class LocalForgeCycleConfig(ForgeCycleConfig):
 class ForgeCycle:
     forge: AgentForge
     config: ForgeCycleConfig
+    id: str = Field(default_factory=lambda: f"forge-cycle-{uuid4()!s}")
 
-    id: str | None = None
+
     agents: dict[str, Agent] = field(default_factory=dict)
     agents_fitness: dict[str, float] = field(default_factory=dict)
     agents_first_generation_costs: dict[str, float] = field(default_factory=dict)
@@ -121,9 +124,9 @@ class ForgeCycle:
         self.agents_first_generation_costs.clear()
 
         n_selected_agents = self.config.n_selected_agents_from_ecosystem
-        if n_selected_agents > 0 :
-            selected_agents = await ecosystem.select_agents_for_forge(self.forge, n_selected_agents)
-            logger.debug(f"{len(selected_agents)} agents selected from ecosystem over {n_selected_agents} requested")
+        selected_agents = select_agents(self.id, n_selected_agents)
+        logger.debug(f"{len(selected_agents)} agents selected from ecosystem over {n_selected_agents} requested")
+
 
         # Initialize population
         tasks = []
@@ -144,7 +147,7 @@ class ForgeCycle:
                 )
                 tasks.append(task)
         else:
-            logger.info(f"{len(selected_agents)} selected agents from ecosystem. Creating {self.config.n_agents_in_population - len(selected_agents)}...")
+            logger.info(f"{len(selected_agents)} selected agents from ecosystem. Creating {self.config.n_agents_in_population - len(selected_agents)} agents...")
 
             while len(tasks) < (self.config.n_agents_in_population - len(selected_agents)):
                 for selected_agent in selected_agents:
@@ -169,7 +172,8 @@ class ForgeCycle:
         for selected_agent in selected_agents if n_selected_agents > 0 else []:
             self.add_agent(selected_agent)
 
-        logger.debug(f"Agent initialization cost: {sum(ComputeIntensiveBatchProcessor._cost_per_agent.values())}")
+        logger.debug(f"Agent initialization cost: {sum(ComputeIntensiveBatchProcessor.cost_per_agent.values())}")
+        ComputeIntensiveBatchProcessor.reset_cost_per_agent()
         for new_agent in results:
             if new_agent is None:
                 continue
@@ -178,14 +182,18 @@ class ForgeCycle:
         logger.info(f"Population initialized with {len(self.agents)} agents")
 
 
-    async def execute_a_cycle(self, ecosystem: Ecosystem | None) -> list[Agent]:
+    async def execute_a_cycle(
+            self,
+            ecosystem: Ecosystem | None,
+            lite_llm_api_key: str | None = None,
+        ) -> list[Agent]:
         logger.info(f"Starting a new cycle for forge {self.forge.name}")
 
         lite_llm_api_key = None
         if self.config.mode == "cloud":
             # call cloud start forge cycle
             # returns: lite llm api key and forge cycle id
-            lite_llm_api_key, forge_cycle_id, ecosystem = start_new_forge_cycle(
+            lite_llm_api_key, forge_cycle_id = start_new_forge_cycle(
                 forge_name=self.forge.name,
                 forge_description=self.forge.description,
                 forge_cycle_config=self.config,
@@ -195,9 +203,7 @@ class ForgeCycle:
 
         if ecosystem is None and self.config.mode == "local":
             # if user has its own lite llm key, otherwise None
-            ecosystem = Ecosystem()
-
-        ecosystem.add_forge(self.forge)
+            ecosystem = Ecosystem.new()
 
         ComputeIntensiveBatchProcessor.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
 
@@ -223,6 +229,7 @@ class ForgeCycle:
             generation += 1
             total_cycle_cost += await self.run_generation(generation)
             logger.info(f"Budget left after new generation: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
+            ComputeIntensiveBatchProcessor.reset_cost_per_agent()
 
 
         # Evaluate last offsprings before sorting all population by fitness

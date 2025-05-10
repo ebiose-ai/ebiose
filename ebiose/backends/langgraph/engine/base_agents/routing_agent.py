@@ -33,7 +33,7 @@ class AgentOutput(BaseModel):
 
 def init_routing_agent(model_endpoint_id: str) -> None:
         from ebiose.core.agent import Agent
-        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
         shared_context_prompt = SHARED_CONTEXT_PROMPT
 
@@ -76,14 +76,15 @@ def init_routing_agent(model_endpoint_id: str) -> None:
         agent_configuration = {"graph": graph}
         agent_id = "agent-" + str(uuid.uuid4())
 
-        agent_engine = AgentEngineFactory.create_engine(
-            "langgraph_engine",
-            agent_configuration,
+        agent_engine = LangGraphEngine(
             agent_id=agent_id,
+            graph=graph,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
+            tags = ["crossover_agent"],
         )
+
 
         agent_engine.recursion_limit = 7
 

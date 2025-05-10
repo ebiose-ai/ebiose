@@ -15,7 +15,7 @@ from pydantic import BaseModel
 class AgentEngine(BaseModel):
     engine_type: str
     agent_id: str
-    configuration: str | dict
+    configuration: dict | None = None
 
     async def run(self, agent_input: BaseModel, master_agent_id: str | None = None) -> any:
         return await self._run_implementation(agent_input, master_agent_id)

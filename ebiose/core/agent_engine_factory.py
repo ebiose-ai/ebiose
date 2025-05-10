@@ -21,10 +21,8 @@ class AgentEngineFactory:
     @staticmethod
     def create_engine(
             engine_type: str,
-            configuration: str | dict,
             agent_id: str,
-            input_model: type[BaseModel] | None = None,
-            output_model: type[BaseModel] | None = None,
+            configuration: dict,
             model_endpoint_id: str | None = None,
         ) -> AgentEngine:
 
@@ -34,8 +32,6 @@ class AgentEngineFactory:
             return LangGraphEngine(
                 agent_id=agent_id,
                 configuration=configuration,
-                input_model=input_model,
-                output_model=output_model,
                 model_endpoint_id=model_endpoint_id,
             )
         msg = f"Unknown engine type: {engine_type}"

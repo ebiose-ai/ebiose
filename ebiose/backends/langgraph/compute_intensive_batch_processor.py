@@ -207,9 +207,9 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
                 )
 
                 cost = sum(cost)
-                if agent_id not in cls._cost_per_agent:
-                    cls._cost_per_agent[agent_id] = 0.0
-                cls._cost_per_agent[agent_id] += cost
+                if agent_id not in cls.cost_per_agent:
+                    cls.cost_per_agent[agent_id] = 0.0
+                cls.cost_per_agent[agent_id] += cost
             else:
                 # TODO(xabier): remove compute cost for local mode
                 pass

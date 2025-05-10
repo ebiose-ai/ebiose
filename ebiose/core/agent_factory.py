@@ -33,8 +33,6 @@ class AgentFactory:
             configuration=agent_config["agent_engine"]["configuration"],
             agent_id=agent_config["agent_engine"]["agent_id"],
             model_endpoint_id=model_endpoint_id,
-            input_model=input_model,
-            output_model=output_model,
         )
 
         agent_config = agent_config.copy()
@@ -60,15 +58,17 @@ class AgentFactory:
         try:
             agent_name = "TODO" # TODO(xabier): generate agent name
             agent_description = output.description
-            agent_engine_configuration = {"graph": output.model_dump()}
+            agent_engine_configuration = {
+                "graph": output.model_dump(),
+                "input_model": generated_agent_input.model_json_schema() if generated_agent_input is not None else {},
+                "output_model": generated_agent_output.model_json_schema() if generated_agent_output is not None else {},
+            }
             agent_id = "agent-" + str(uuid.uuid4())
 
             generated_agent_engine = AgentEngineFactory.create_engine(
                 generated_agent_engine_type,
-                agent_engine_configuration,
                 agent_id=agent_id,
-                input_model=generated_agent_input,
-                output_model=generated_agent_output,
+                configuration=agent_engine_configuration,
                 model_endpoint_id=generated_model_endpoint_id,
             )
         except Exception as e:
@@ -106,14 +106,16 @@ class AgentFactory:
         try:
             agent_name = "TODO" # TODO(xabier): generate agent name
             agent_description = output.description
-            agent_engine_configuration = {"graph": output.model_dump()}
+            agent_engine_configuration = {
+                "graph": output.model_dump(),
+                "input_model": generated_agent_input.model_json_schema() if generated_agent_input is not None else {},
+                "output_model": generated_agent_output.model_json_schema() if generated_agent_output is not None else {},
+            }
             agent_id = "agent-" + str(uuid.uuid4())
             generated_agent_engine = AgentEngineFactory.create_engine(
-                generated_agent_engine_type,
-                agent_engine_configuration,
+                engine_type=generated_agent_engine_type,
                 agent_id=agent_id,
-                input_model=generated_agent_input,
-                output_model=generated_agent_output,
+                configuration=agent_engine_configuration,
                 model_endpoint_id=generated_model_endpoint_id,
             )
 

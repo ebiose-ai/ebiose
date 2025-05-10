@@ -5,7 +5,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 """
 
 import uuid
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
@@ -21,13 +21,13 @@ class AgentInput(BaseModel):
     forge_description: str
     node_types: list = ["StartNode", "LLMNode", "EndNode"]
     max_llm_nodes: int = 10
-    node_types_description: str = Field(
-        default_factory=lambda: get_node_types_docstrings(
-            node_types_names,
-        ),
-    )
     parent_configuration1: dict
     parent_configuration2: dict
+
+    @computed_field
+    @property
+    def node_types_description(self) -> str:
+        return get_node_types_docstrings(self.node_types)
 
 class AgentOutput(Graph):
     pass
@@ -78,7 +78,7 @@ Create the offspring graph now and return it into the same format as its parents
 
 def init_crossover_agent(model_endpoint_id: str | None) -> None:
         from ebiose.core.agent import Agent
-        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
         crossover_node = LLMNode(
             id="crossover",
@@ -108,14 +108,13 @@ def init_crossover_agent(model_endpoint_id: str | None) -> None:
         agent_configuration = {"graph": graph}
         agent_id = "agent-" + str(uuid.uuid4())
 
-
-        agent_engine = AgentEngineFactory.create_engine(
-            "langgraph_engine",
-            agent_configuration,
+        agent_engine = LangGraphEngine(
             agent_id=agent_id,
+            graph=graph,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
+            tags = ["crossover_agent"],
         )
 
         agent_engine.tags = ["crossover_agent"]

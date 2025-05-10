@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, computed_field
 
 class LangGraphEngineInputState(BaseModel):
     messages: Annotated[Sequence[AnyMessage], add_messages] = []
-    input: BaseModel = Field(..., serialization_exclude=True)
+    input: BaseModel
     error_message: str = ""
 
 class LangGraphEngineOutputState(BaseModel):
