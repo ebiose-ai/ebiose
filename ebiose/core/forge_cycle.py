@@ -27,8 +27,8 @@ if get_ipython() is not None:
 from loguru import logger
 from tqdm.asyncio import tqdm
 
-from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor import (
-    ComputeIntensiveBatchProcessor,
+from ebiose.llm_api.llm_api import (
+    LLMApi,
 )
 from ebiose.core.agent import Agent
 from ebiose.core.ecosystem import Ecosystem
@@ -172,8 +172,8 @@ class ForgeCycle:
         for selected_agent in selected_agents if n_selected_agents > 0 else []:
             self.add_agent(selected_agent)
 
-        logger.debug(f"Agent initialization cost: {sum(ComputeIntensiveBatchProcessor.cost_per_agent.values())}")
-        ComputeIntensiveBatchProcessor.reset_cost_per_agent()
+        logger.debug(f"Agent initialization cost: {sum(LLMApi.cost_per_agent.values())}")
+        LLMApi.reset_cost_per_agent()
         for new_agent in results:
             if new_agent is None:
                 continue
@@ -205,7 +205,7 @@ class ForgeCycle:
             # if user has its own lite llm key, otherwise None
             ecosystem = Ecosystem.new()
 
-        ComputeIntensiveBatchProcessor.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
+        LLMApi.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
 
         t0 = time()
         await self.initialize_population(ecosystem=ecosystem)
@@ -214,22 +214,22 @@ class ForgeCycle:
             logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
             return []
 
-        total_cycle_cost = ComputeIntensiveBatchProcessor.get_spent_cost()
+        total_cycle_cost = LLMApi.get_spent_cost()
         logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
-        logger.info(f"Budget left after initialization: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
+        logger.info(f"Budget left after initialization: {self.config.budget - LLMApi.get_spent_cost()} $")
 
         # running generation 0
         generation = 0
         first_generation_cost = await self.run_generation(generation)
         total_cycle_cost += first_generation_cost
-        logger.info(f"Budget left after first generation: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
+        logger.info(f"Budget left after first generation: {self.config.budget - LLMApi.get_spent_cost()} $")
 
         # running next generations until budget is reached
-        while self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost() > first_generation_cost:
+        while self.config.budget - LLMApi.get_spent_cost() > first_generation_cost:
             generation += 1
             total_cycle_cost += await self.run_generation(generation)
-            logger.info(f"Budget left after new generation: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
-            ComputeIntensiveBatchProcessor.reset_cost_per_agent()
+            logger.info(f"Budget left after new generation: {self.config.budget - LLMApi.get_spent_cost()} $")
+            LLMApi.reset_cost_per_agent()
 
 
         # Evaluate last offsprings before sorting all population by fitness
@@ -252,7 +252,7 @@ class ForgeCycle:
         )
 
         logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
-        logger.info(f"Budget left at final: {self.config.budget - ComputeIntensiveBatchProcessor.get_spent_cost()} $")
+        logger.info(f"Budget left at final: {self.config.budget - LLMApi.get_spent_cost()} $")
         logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
         selected_agents = {
@@ -314,7 +314,7 @@ class ForgeCycle:
         for index, agent_id in enumerate(self.agents.keys()):
             fitness = results[index]
             self.agents_fitness[agent_id] = fitness
-            current_agent_cost = ComputeIntensiveBatchProcessor.get_agent_cost(agent_id)
+            current_agent_cost = LLMApi.get_agent_cost(agent_id)
             total_cost_in_dollars += current_agent_cost
 
             if update_first_generation_costs:

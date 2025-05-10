@@ -9,8 +9,8 @@ from __future__ import annotations
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from pydantic import BaseModel, Field
 
-from ebiose.backends.langgraph.compute_intensive_batch_processor import (
-    LangGraphComputeIntensiveBatchProcessor,
+from ebiose.backends.langgraph.llm_api import (
+    LangGraphLLMApi,
 )
 from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineInputState,
@@ -72,7 +72,7 @@ class LangGraphLLMNode(LLMNode):
         prompts.append(HumanMessage(human_prompt))
 
         # instantiate model
-        response = await LangGraphComputeIntensiveBatchProcessor.process_llm_call(
+        response = await LangGraphLLMApi.process_llm_call(
             model_endpoint_id=model_endpoint_id,
             agent_id=agent_id,
             messages=prompts,

@@ -15,7 +15,7 @@ class LLMAPIConfig(BaseModel):
     request_timeout_in_minutes: float = 2.0
     max_retries: int = 1
 
-class ComputeIntensiveBatchProcessor:
+class LLMApi:
     _llm_api_config: LLMAPIConfig = LLMAPIConfig()
     mode: Literal["local", "cloud"] = "cloud"
     lite_llm_api_key: str | None = None
@@ -30,7 +30,7 @@ class ComputeIntensiveBatchProcessor:
         llm_api_config: LLMAPIConfig | None = None,
     ) -> None:
         cls.mode = mode
-        # TODO(xabier): check where to declare api key and base
+        # TODO(xabier): check where to decleare api key and base
         cls.lite_llm_api_key = lite_llm_api_key
         cls.lite_llm_api_base = "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
 

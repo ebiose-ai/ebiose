@@ -112,7 +112,7 @@ YAML file at the root of the project, and fill it with your secret credentials.
 
 ## Main model endpoints
 We have implemented the most popular LLM APIs. For others, please refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/) and adapt 
-the [`LangGraphComputeIntensiveBatchProcessor` class](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly. Issues and pull requests are 
+the [`LangGraphLLMApi` class](ebiose/backends/langgraph/llm_api.py) accordingly. Issues and pull requests are 
 welcomed.
 
 ### OpenAI

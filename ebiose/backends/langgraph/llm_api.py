@@ -20,8 +20,8 @@ from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from loguru import logger
 from openai import RateLimitError
 
-from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor import (
-    ComputeIntensiveBatchProcessor,
+from ebiose.llm_api.llm_api import (
+    LLMApi,
 )
 from ebiose.core.model_endpoint import ModelEndpoints
 from litellm.cost_calculator import cost_per_token, completion_cost
@@ -30,7 +30,7 @@ from litellm.cost_calculator import cost_per_token, completion_cost
 if TYPE_CHECKING:
     from langchain_core.messages import AnyMessage
 
-class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
+class LangGraphLLMApi(LLMApi):
 
     @staticmethod
     def _get_llm(model_endpoint_id: str, temperature: float, max_tokens: int) -> AzureChatOpenAI:
@@ -44,15 +44,15 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
         Returns:
             The LLM model
         """
-        request_timeout = LangGraphComputeIntensiveBatchProcessor._llm_api_config.request_timeout_in_minutes * 60
-        max_retries = LangGraphComputeIntensiveBatchProcessor._llm_api_config.max_retries
+        request_timeout = LangGraphLLMApi._llm_api_config.request_timeout_in_minutes * 60
+        max_retries = LangGraphLLMApi._llm_api_config.max_retries
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
-        if LangGraphComputeIntensiveBatchProcessor.mode == "cloud": #ModelEndpoints.use_lite_llm_proxy():
+        if LangGraphLLMApi.mode == "cloud": #ModelEndpoints.use_lite_llm_proxy():
             return ChatOpenAI(
-                openai_api_key=LangGraphComputeIntensiveBatchProcessor.lite_llm_api_key,
-                openai_api_base=LangGraphComputeIntensiveBatchProcessor.lite_llm_api_base,
+                openai_api_key=LangGraphLLMApi.lite_llm_api_key,
+                openai_api_base=LangGraphLLMApi.lite_llm_api_base,
                 model=model_endpoint_id,
                 temperature=temperature if model_endpoint_id != "azure/o3-mini" else 1.0,
                 max_tokens=max_tokens,
@@ -147,7 +147,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
         """
         if tools is None:
             tools = []
-        llm = LangGraphComputeIntensiveBatchProcessor._get_llm(model_endpoint_id, temperature, max_tokens)
+        llm = LangGraphLLMApi._get_llm(model_endpoint_id, temperature, max_tokens)
 
         # Add tools
         if tools:
@@ -190,7 +190,7 @@ class LangGraphComputeIntensiveBatchProcessor(ComputeIntensiveBatchProcessor):
             if response is None:
                 return None
 
-            if LangGraphComputeIntensiveBatchProcessor.mode == "cloud":
+            if LangGraphLLMApi.mode == "cloud":
                 # TODO(xabier): remove this conditional formatting
                 completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
                 prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)

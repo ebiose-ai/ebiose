@@ -11,8 +11,8 @@ from pathlib import Path
 
 from loguru import logger
 
-from ebiose.compute_intensive_batch_processor.compute_intensive_batch_processor import (
-    ComputeIntensiveBatchProcessor,
+from ebiose.llm_api.llm_api import (
+    LLMApi,
 )
 from ebiose.core.agent_factory import AgentFactory
 from examples.math_forge.math_forge import MathLangGraphForge
@@ -46,7 +46,7 @@ def main(
     )
 
     # generating the compute token
-    ComputeIntensiveBatchProcessor.initialize()
+    LLMApi.initialize()
     
     # running evaluation on test set
     t0 = datetime.now(UTC)
@@ -58,7 +58,7 @@ def main(
     )
 
     # getting cost
-    cost = ComputeIntensiveBatchProcessor.get_token_cost()
+    cost = LLMApi.get_token_cost()
 
     logger.info(f"Evaluation of agent {agent.id} on test set took {datetime.now(UTC) - t0}")
     logger.info(f"Computed fitness is: {fitness}, for cost: {cost} $")
