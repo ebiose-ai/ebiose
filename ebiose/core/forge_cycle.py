@@ -216,19 +216,22 @@ class ForgeCycle:
 
         total_cycle_cost = LLMApi.get_spent_cost()
         logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
-        logger.info(f"Budget left after initialization: {self.config.budget - LLMApi.get_spent_cost()} $")
+        if self.config.mode == "cloud":
+            logger.info(f"Budget left after initialization: {self.config.budget - LLMApi.get_spent_cost()} $")
 
         # running generation 0
         generation = 0
         first_generation_cost = await self.run_generation(generation)
         total_cycle_cost += first_generation_cost
-        logger.info(f"Budget left after first generation: {self.config.budget - LLMApi.get_spent_cost()} $")
+        if self.config.mode == "cloud":
+            logger.info(f"Budget left after first generation: {self.config.budget - LLMApi.get_spent_cost()} $")
 
         # running next generations until budget is reached
-        while self.config.budget - LLMApi.get_spent_cost() > first_generation_cost:
+        while self.config.budget - LLMApi.get_spent_cost() > first_generation_cost if self.config.mode == "cloud" else generation < self.config.n_generations:
             generation += 1
             total_cycle_cost += await self.run_generation(generation)
-            logger.info(f"Budget left after new generation: {self.config.budget - LLMApi.get_spent_cost()} $")
+            if self.config.mode == "cloud":
+                logger.info(f"Budget left after new generation: {self.config.budget - LLMApi.get_spent_cost()} $")
             LLMApi.reset_cost_per_agent()
 
 
@@ -252,7 +255,8 @@ class ForgeCycle:
         )
 
         logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
-        logger.info(f"Budget left at final: {self.config.budget - LLMApi.get_spent_cost()} $")
+        if self.config.mode == "cloud":
+            logger.info(f"Budget left at final: {self.config.budget - LLMApi.get_spent_cost()} $")
         logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
         selected_agents = {
