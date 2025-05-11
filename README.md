@@ -119,10 +119,8 @@ Ebiose depends on libraries to interact with all major vendor: openai, anthropic
 To install all dependencies
 
 ```sh
-uv sync --all-extras
+uv sync
 ```
-
-Say you only want to use openai models you can run `uv sync --extra openai`, you can check on the pyproject.toml optional dependencies section which are available. Furthermore you can remove dev dependencies with `uv sync --no-dev`
 
 For more detailed instructions or troubleshooting tips, refer to the [official uv documentation](https://docs.astral.sh/uv/).
 
@@ -196,9 +194,6 @@ endpoints:
     api_key: "YOUR_OPENAI_API_KEY"
 ```
 
-> 🚨 Dont'forget to install Langchain's OpenAI library by executing
-`uv add langchain-openai` or `pip install langchain-openai`.
-
 ### Azure OpenAI
 
 To use OpenAI LLMs on Azure, fill the `model_endpoints.yml` file at the root of the project, with, for example:
@@ -212,9 +207,6 @@ endpoints:
     api_version: "API_VERSION"
     deployment_name: "DEPLOYMENT_NAME"
 ```
-
-> 🚨 Dont'forget to install Langchain's OpenAI library by executing
-`uv add langchain-openai` or `pip install langchain-openai`.
 
 ### Azure ML LLMs
 
@@ -242,7 +234,7 @@ endpoints:
 ```
 
 > 🚨 Dont'forget to install Langchain's Anthropic library by executing
-`uv add langchain-anthropic` or `pip install -U langchain-anthropic`
+`uv sync --extra anthropic` or `pip install -U langchain-anthropic`
 
 ### HuggingFace (not tested yet)
 
@@ -255,7 +247,7 @@ endpoints:
 ```
 
 > 🚨 Dont'forget to install Langchain's Hugging Face library by executing
-`uv add langchain-huggingface` or `pip install -U langchain-huggingface`
+`uv sync --extra huggingface` or `pip install -U langchain-huggingface`
 and login with the following:
 
 ```
@@ -275,8 +267,7 @@ endpoints:
     endpoint_url: "https://openrouter.ai/api/v1"  # OpenRouter API endpoint URL
 ```
 
-> 🚨 Don't forget to install Langchain's OpenAI library (compatible with OpenRouter) by executing
-`uv add langchain-openai` or `pip install langchain-openai`.
+It needs openai library which is installed by default.
 
 ### Google (not tested yet)
 
@@ -290,7 +281,7 @@ endpoints:
 ```
 
 > 🚨 Don't forget to install Langchain's Google GenAI library by executing
-`uv add langchain-google-genai` or `pip install langchain-google-genai`.
+`uv sync --extra google` or `pip install langchain-google-genai`.
 
 ### Ollama (not tested yet)
 
@@ -304,7 +295,7 @@ endpoints:
 ```
 
 > 🚨 Don't forget to install Langchain's Ollama library by executing
-`uv add langchain-ollama` or `pip install langchain-ollama`
+`uv sync --extra ollama` or `pip install langchain-ollama`
 
 ### Others
 
