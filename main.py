@@ -8,10 +8,18 @@ llm = AzureChatOpenAI(
     azure_endpoint=model_endpoint.endpoint_url.get_secret_value(),
     openai_api_key=model_endpoint.api_key.get_secret_value(),
     openai_api_version=model_endpoint.api_version,
-    max_tokens=1,
-    temperature=0,
-    request_timeout=5
+    max_tokens=512,
+    temperature=0.3,
+    request_timeout=10
 )
 
-response = llm.invoke("Hi")
-print(response)
+prompt = (
+    "If Sarah has 3 apples and buys 4 more, then gives 2 to her friend, "
+    "how many apples does she have left?"
+)
+
+response = llm.invoke(prompt)
+
+print("\n=== Model Response ===\n")
+print(response.content)
+print("\n======================\n")
