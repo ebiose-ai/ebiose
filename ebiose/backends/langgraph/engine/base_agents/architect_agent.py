@@ -141,15 +141,15 @@ def init_architect_agent(
 
         prompt_generation_prompt = PROMPT_GENERATION_PROMPT
         if add_format_node:
-            prompt_generation_prompt + "Generate the prompts now for each LLM node."
+            prompt_generation_prompt += "Generate the prompts now for each LLM node."
         else:
-            prompt_generation_prompt + "Generate the prompts and return the whole graph with prompts under the following format: \n {output_schema}"
+            prompt_generation_prompt += "Generate the prompts and return the whole graph with prompts under the following format: \n {output_schema}"
 
         prompt_generation_node = LLMNode(
             id="prompt_generation",
             name="Prompt Generation",
             purpose="Step 2: Generate the prompts for each LLM node",
-            prompt=PROMPT_GENERATION_PROMPT,
+            prompt=prompt_generation_prompt,
             temperature=0.7,
         )
 
@@ -194,8 +194,6 @@ def init_architect_agent(
             graph.add_edge(
                 Edge(start_node_id=format_node.id, end_node_id=end_node.id),
             )
-
-        agent_configuration = {"graph": graph}
 
         agent_id = "agent-" + str(uuid.uuid4())
 
