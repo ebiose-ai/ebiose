@@ -8,6 +8,7 @@ import asyncio
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 
 from loguru import logger
 
@@ -23,8 +24,8 @@ def main(
     test_csv_path: str,
     agent_json_file: str,
     n_problems: int,
-    budget: float,
     model_endpoint_id: str,
+    mode: Literal["local", "cloud"] = "cloud",
 ) -> None:
 
     # instantiating the forge
@@ -41,12 +42,10 @@ def main(
     agent = AgentFactory.load_agent(
         agent_config=agent_configuration,
         model_endpoint_id=model_endpoint_id,
-        input_model=forge.agent_input_model,
-        output_model=forge.agent_output_model,
     )
 
     # generating the compute token
-    LLMApi.initialize()
+    LLMApi.initialize(mode=mode)
     
     # running evaluation on test set
     t0 = datetime.now(UTC)
@@ -71,12 +70,11 @@ if __name__ == "__main__":
     load_dotenv()
 
     # evaluation parameters
-    AGENT_JSON_FILE = "data/2025-03-10_11-29-05/generation=4/agents/agent-ba8a9d8f-36bc-44b7-aaaf-be10c821f995.json"
+    AGENT_JSON_FILE = "data/2025-05-10_23-03-32/generation=1/agents/agent-cfd14b99-0c6e-4837-9332-b04880cc790f.json"
     TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
     TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
     N_PROBLEMS = 2 # number of problems to evaluate on
-    BUDGET = 0.05 # budget for evaluation in dollars
-    MODEL_ENDPOINT_ID = "gpt-4o-mini" # model endpoint id
+    MODEL_ENDPOINT_ID = "azure/gpt-4o-mini" # model endpoint id
 
     # running the evaluation
     main(
@@ -84,6 +82,5 @@ if __name__ == "__main__":
         test_csv_path=TEST_CSV_PATH,
         agent_json_file=AGENT_JSON_FILE,
         n_problems=N_PROBLEMS,
-        budget=BUDGET,
         model_endpoint_id=MODEL_ENDPOINT_ID,
     )

@@ -31,7 +31,10 @@ class Ecosystem(BaseModel):
     @classmethod
     def new(cls, initial_agents: list[Agent] | None = None) -> Ecosystem:
         initial_architect_agents = [GraphUtils.get_architect_agent(ModelEndpoints.get_default_model_endpoint_id())]
-        initial_genetic_operator_agents = [GraphUtils.get_crossover_agent(ModelEndpoints.get_default_model_endpoint_id())]
+        initial_genetic_operator_agents = [
+            GraphUtils.get_crossover_agent(ModelEndpoints.get_default_model_endpoint_id()),
+            GraphUtils.get_mutation_agent(ModelEndpoints.get_default_model_endpoint_id()),
+        ]
         return cls(
             initial_architect_agents=initial_architect_agents,
             initial_genetic_operator_agents=initial_genetic_operator_agents,

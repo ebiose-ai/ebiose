@@ -22,8 +22,6 @@ class AgentFactory:
     @staticmethod
     def load_agent(
         agent_config: dict,
-        input_model: BaseModel,
-        output_model: BaseModel,
         model_endpoint_id: str | None = None,
     ) -> Agent:
 
@@ -39,7 +37,7 @@ class AgentFactory:
         agent_config["agent_engine"] = agent_engine
         agent_config["architect_agent"] = None
         agent_config["genetic_operator_agent"] = None
-        agent_config["id"]=agent_config["agent_engine"]["agent_id"]
+        agent_config["id"]=agent_engine.agent_id
 
         return Agent.model_validate(agent_config)
 

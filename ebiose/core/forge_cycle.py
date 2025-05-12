@@ -378,11 +378,18 @@ class ForgeCycle:
             parent2_id = random.choice(potential_parent_ids) if len(potential_parent_ids) > 0 else parent1_id
             parent2 = self.agents[parent2_id]
             genetic_operator_agent = random.choice([parent1.genetic_operator_agent, parent2.genetic_operator_agent])
-            crossover_input = genetic_operator_agent.agent_engine.input_model(
-                forge_description=self.forge.description,
-                parent_configuration1=parent1.agent_engine.graph.model_dump(),
-                parent_configuration2=parent2.agent_engine.graph.model_dump(),
-            )
+            if genetic_operator_agent.name == "crossover_agent":
+                crossover_input = genetic_operator_agent.agent_engine.input_model(
+                    forge_description=self.forge.description,
+                    parent_configuration1=parent1.agent_engine.graph.model_dump(),
+                    parent_configuration2=parent2.agent_engine.graph.model_dump(),
+                )
+            elif genetic_operator_agent.name == "mutation_agent":
+                crossover_input = genetic_operator_agent.agent_engine.input_model(
+                    forge_description=self.forge.description,
+                    parent_configuration=parent1.agent_engine.graph.model_dump(),
+                )
+                parent2 = None
 
             task = crossover_agent_task(
                 forge=self.forge,

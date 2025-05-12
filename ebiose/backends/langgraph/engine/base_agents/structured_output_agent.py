@@ -70,7 +70,6 @@ def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_i
             Edge(start_node_id=pydantic_validator_node.id, end_node_id=llm_formatter_node.id, condition="failure"),
         )
 
-        agent_configuration = {"graph": graph}
         agent_id = "agent-" + str(uuid.uuid4())
 
         agent_engine = LangGraphEngine(
@@ -79,7 +78,7 @@ def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_i
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
-            tags = ["crossover_agent"],
+            tags = ["structured_output_agent"],
         )
 
         agent_engine.recursion_limit = 7

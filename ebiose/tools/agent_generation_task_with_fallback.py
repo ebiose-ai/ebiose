@@ -28,19 +28,9 @@ async def architect_agent_task(
         genetic_operator_agent: Agent,
     ) -> Agent | None:
 
-    result = await AgentFactory.generate_agent(
-        architect_agent,
-        architect_agent_input,
-        genetic_operator_agent,
-        generated_agent_engine_type=forge.default_generated_agent_engine_type,
-        generated_model_endpoint_id=forge.default_model_endpoint_id,
-        generated_agent_input=forge.agent_input_model,
-        generated_agent_output=forge.agent_output_model,
-    )
-
-    if result is None:
-        logger.debug(f"Architect agent {architect_agent.id} failed creating a valid agent for {forge.name}. Retrying once.")
-        return await AgentFactory.generate_agent(
+    response = None
+    try:
+        response = await AgentFactory.generate_agent(
             architect_agent,
             architect_agent_input,
             genetic_operator_agent,
@@ -49,8 +39,18 @@ async def architect_agent_task(
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
         )
-
-    return result
+    except Exception as e:
+        logger.debug(f"Architect agent {architect_agent.id} failed creating a valid agent for {forge.name}. Retrying once.")
+        response = await AgentFactory.generate_agent(
+            architect_agent,
+            architect_agent_input,
+            genetic_operator_agent,
+            generated_agent_engine_type=forge.default_generated_agent_engine_type,
+            generated_model_endpoint_id=forge.default_model_endpoint_id,
+            generated_agent_input=forge.agent_input_model,
+            generated_agent_output=forge.agent_output_model,
+        )
+    return response
 
 # crossovoer and mutate
 async def crossover_agent_task(
@@ -58,29 +58,30 @@ async def crossover_agent_task(
                 genetic_operator_agent: Agent,
                 crossover_agent_input: BaseModel,
                 parent1: Agent,
-                parent2: Agent,
+                parent2: Agent | None,
             ) -> Agent | None:
 
-            result = await AgentFactory.crossover_agents(
-                genetic_operator_agent,
-                crossover_agent_input,
-                generated_agent_engine_type=forge.default_generated_agent_engine_type,
-                generated_model_endpoint_id=forge.default_model_endpoint_id,
-                generated_agent_input=forge.agent_input_model,
-                generated_agent_output=forge.agent_output_model,
-                parent_ids = [parent1.id, parent2.id],
-            )
+    result = None
+    try:
+        result = await AgentFactory.crossover_agents(
+            genetic_operator_agent,
+            crossover_agent_input,
+            generated_agent_engine_type=forge.default_generated_agent_engine_type,
+            generated_model_endpoint_id=forge.default_model_endpoint_id,
+            generated_agent_input=forge.agent_input_model,
+            generated_agent_output=forge.agent_output_model,
+            parent_ids = [parent1.id, parent2.id] if parent2 is not None else [parent1.id],
+        )
+    except Exception as e:
+        logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
+        result = await AgentFactory.generate_agent(
+            parent1.architect_agent,
+            parent1.architect_agent.agent_engine.input_model(forge_description=forge.description),
+            genetic_operator_agent,
+            generated_agent_engine_type=forge.default_generated_agent_engine_type,
+            generated_model_endpoint_id=forge.default_model_endpoint_id,
+            generated_agent_input=forge.agent_input_model,
+            generated_agent_output=forge.agent_output_model,
+        )
 
-            if result is None:
-                logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
-                result = await AgentFactory.generate_agent(
-                    parent1.architect_agent,
-                    parent1.architect_agent.agent_engine.input_model(forge_description=forge.description),
-                    genetic_operator_agent,
-                    generated_agent_engine_type=forge.default_generated_agent_engine_type,
-                    generated_model_endpoint_id=forge.default_model_endpoint_id,
-                    generated_agent_input=forge.agent_input_model,
-                    generated_agent_output=forge.agent_output_model,
-                )
-
-            return result
+    return result

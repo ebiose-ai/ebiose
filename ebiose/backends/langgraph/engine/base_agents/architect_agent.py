@@ -208,8 +208,6 @@ def init_architect_agent(
             tags = ["architect_agent"],
         )
 
-        agent_engine.tags = ["architect_agent"]
-
         return Agent(
             id=agent_id,
             name="architect_agent",

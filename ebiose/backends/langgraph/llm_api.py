@@ -7,6 +7,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import traceback
 from typing import TYPE_CHECKING
 
 from langchain_community.chat_models.azureml_endpoint import (
@@ -30,6 +31,28 @@ from litellm.cost_calculator import cost_per_token, completion_cost
 if TYPE_CHECKING:
     from langchain_core.messages import AnyMessage
 
+
+class LangGraphLLMApiError(Exception):
+    """Custom exception for errors during LLM calls."""
+    def __init__(self, message:str, original_exception: Exception | None=None, llm_identifier:str | None=None) -> None:
+        super().__init__(message)
+        self.original_exception = original_exception
+        self.llm_identifier = llm_identifier
+
+    def __str__(self) -> str:
+        error_msg = f"LangGraphLLMApiError"
+        if self.llm_identifier:
+            error_msg += f" (LLM: {self.llm_identifier})"
+        error_msg += f": {super().__str__()}"
+        if self.original_exception:
+            orig_traceback = traceback.format_exception(
+                type(self.original_exception),
+                self.original_exception,
+                self.original_exception.__traceback__
+            )
+            error_msg += f"\n--- Caused by ---\n{''.join(orig_traceback)}"
+        return error_msg
+
 class LangGraphLLMApi(LLMApi):
 
     @staticmethod
@@ -49,7 +72,7 @@ class LangGraphLLMApi(LLMApi):
 
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
-        if LangGraphLLMApi.mode == "cloud": #ModelEndpoints.use_lite_llm_proxy():
+        if LangGraphLLMApi.mode == "cloud":
             return ChatOpenAI(
                 openai_api_key=LangGraphLLMApi.lite_llm_api_key,
                 openai_api_base=LangGraphLLMApi.lite_llm_api_base,
@@ -59,6 +82,7 @@ class LangGraphLLMApi(LLMApi):
             )
 
         if ModelEndpoints.use_lite_llm(): # if model is compatible with LiteLLM, otherwise, custom implementation
+            # TODO(xabier): check/test
             return ChatLiteLLM(
                 model=f"azure/{model_endpoint.deployment_name}",
                 azure_api_key=model_endpoint.api_key.get_secret_value(),
@@ -127,7 +151,6 @@ class LangGraphLLMApi(LLMApi):
             return ChatHuggingFace(llm=llm, verbose=True)
 
 
-
         msg = f"Model endpoint {model_endpoint_id} not found"
         raise ValueError(msg)
 
@@ -154,19 +177,12 @@ class LangGraphLLMApi(LLMApi):
             llm = llm.bind_tools(tools=tools)
 
         # Call LLM
-        try:
-            # TODO(xabier): check if LiteLLM also does retry
-            response = await llm.with_retry(
-                retry_if_exception_type=(RateLimitError,),  # APITimeoutError
-                wait_exponential_jitter=True,
-                stop_after_attempt=10,
-            ).ainvoke(messages)
-        except Exception as e:
-            logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
-            return None
-
-        # Return the response content
-        return response
+        # TODO(xabier): check if LiteLLM also does retry
+        return await llm.with_retry(
+            retry_if_exception_type=(RateLimitError,),  # APITimeoutError
+            wait_exponential_jitter=True,
+            stop_after_attempt=10,
+        ).ainvoke(messages)
 
     @classmethod
     async def process_llm_call(
@@ -178,11 +194,6 @@ class LangGraphLLMApi(LLMApi):
         max_tokens: int = 4096, # TODO(xabier): 4096 is the maximum number of tokens allowed by OpenAI GPT-4o, should be handled by
         tools: list | None = None,
     ) -> AnyMessage:
-
-
-        # TODO(xabier): reactivate when checked
-        # while not await cls._can_process(model_endpoint.endpoint_id, estimated_output_tokens):
-        #     await asyncio.sleep(1)  # noqa: ERA001
 
         try:
             # Record the request and tokens
@@ -216,6 +227,7 @@ class LangGraphLLMApi(LLMApi):
 
         except Exception as e:
             logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
-            return None
+            msg = "Failed during call to an LLM API"
+            raise LangGraphLLMApiError(msg, e, model_endpoint_id) from e
         else:
             return response

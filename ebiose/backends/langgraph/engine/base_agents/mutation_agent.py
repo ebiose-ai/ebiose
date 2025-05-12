@@ -21,8 +21,7 @@ class AgentInput(BaseModel):
     forge_description: str
     node_types: list = ["StartNode", "LLMNode", "EndNode"]
     max_llm_nodes: int = 10
-    parent_configuration1: dict
-    parent_configuration2: dict
+    parent_configuration: dict
 
     @computed_field
     @property
@@ -35,13 +34,12 @@ class AgentOutput(Graph):
 SHARED_CONTEXT_PROMPT = """As an expert in Machine Learning, deeply immersed in the most
 recent advancements in prompt engineering and the innovative application of LLMs, your
 task is to architect an AI model that harnesses the power of multiple LLMs in a synergetic
-communication network. You must act as a genetic crossover operator to cross two AI models
-that were originally designed to\nsolve the following problem description. The resulting
+communication network. You must act as a genetic mutation operator to mutate an AI model
+that was originally designed to\nsolve the following problem description. The resulting
 new AI model should also be capable to solve\nthe same kind of problems, which is:\n
 '{forge_description}'.
-The goal of the crossover is to create an offspring made of the best of its parents
-to improve the model's performance.\nYou can cross both the structure and the individual nodes of the graphs\n
-Graphs are formed by a serie of nodes, each representing a distinct stage in the problem-solving
+The goal of the mutation is to create an offspring that improves the performance of its parent.
+Recall that graphs are formed by a serie of nodes, each representing a distinct stage in the problem-solving
 process. The nodes are connected by edges, which signify the flow of information and decision-making
 within the graph.\n
 NODES:\nThe nodes can be categorized into the following types: {node_types}.
@@ -67,24 +65,27 @@ Conditional edges must obey the following rules:\n- There can only be one condit
 """
 
 
-CROSSOVER_PROMPT = """The configuration graph of parent 1 is the following:
-{parent_configuration1}
-The configuration graph of parent 2 is the following:
-{parent_configuration2}\n
+MUTATION_PROMPT = """The graph to be mutated is the following:
+{parent_configuration}
+You can modify the graph structure by removing or adding one or more LLM nodes. 
+The goal of this mutation is to improve the model's performance by exploring new avenues. 
+If necessary, you can also modify any field of 
+other existing nodes and edges.
+You may also only improve the prompts of the existing nodes, or the conditions of the edges.
 Be creative in your approach, leveraging the unique capabilities of each parent graph to enhance the overall
 problem-solving capacity of the offspring graph.\n
 Create the offspring graph now and return it into the same format as its parents.",
 """
 
-def init_crossover_agent(model_endpoint_id: str | None) -> None:
+def init_mutation_agent(model_endpoint_id: str | None) -> None:
     from ebiose.core.agent import Agent
     from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
-    crossover_node = LLMNode(
-        id="crossover",
-        name="Crossover",
-        purpose="Step 1: Generate the outline of the graph",
-        prompt=CROSSOVER_PROMPT,
+    mutation_node = LLMNode(
+        id="mutation",
+        name="Mutation",
+        purpose="Mutate an existing agent",
+        prompt=MUTATION_PROMPT,
         temperature=0.7,
     )
 
@@ -94,15 +95,15 @@ def init_crossover_agent(model_endpoint_id: str | None) -> None:
     graph = Graph(shared_context_prompt=SHARED_CONTEXT_PROMPT)
 
     graph.add_node(start_node)
-    graph.add_node(crossover_node)
+    graph.add_node(mutation_node)
     graph.add_node(end_node)
 
     graph.add_edge(
-        Edge(start_node_id=start_node.id, end_node_id=crossover_node.id),
+        Edge(start_node_id=start_node.id, end_node_id=mutation_node.id),
     )
 
     graph.add_edge(
-        Edge(start_node_id=crossover_node.id, end_node_id=end_node.id, condition="not_found"),
+        Edge(start_node_id=mutation_node.id, end_node_id=end_node.id, condition="not_found"),
     )
 
     agent_id = "agent-" + str(uuid.uuid4())
@@ -113,13 +114,13 @@ def init_crossover_agent(model_endpoint_id: str | None) -> None:
         model_endpoint_id=model_endpoint_id,
         input_model=AgentInput,
         output_model=AgentOutput,
-        tags = ["crossover_agent"],
+        tags = ["mutation_agent"],
     )
 
     return Agent(
-        name="crossover_agent",
+        name="mutation_agent",
         id=agent_id,
-        description="Crossover agent that crosses two agents",
+        description="Mutation agent that mutates an existingagent",
         architect_agent=None,
         genetic_operator_agent=None,
         agent_engine=agent_engine,

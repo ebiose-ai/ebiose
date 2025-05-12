@@ -6,6 +6,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 
 from __future__ import annotations
 
+import traceback
 import uuid
 from typing import Self
 
@@ -17,6 +18,26 @@ from ebiose.core.agent_engine import AgentEngine
 from ebiose.core.agent_engine_factory import AgentEngineFactory
 from ebiose.tools.embedding_helper import generate_embeddings
 
+class AgentRunError(Exception):
+    """Custom exception for errors during agent run."""
+    def __init__(self, message:str, original_exception: Exception | None=None, agent_identifier:str | None=None) -> None:
+        super().__init__(message)
+        self.original_exception = original_exception
+        self.agent_identifier = agent_identifier
+
+    def __str__(self) -> str:
+        error_msg = "AgentRunError"
+        if self.agent_identifier:
+            error_msg += f" (Agent: {self.agent_identifier})"
+        error_msg += f": {super().__str__()}"
+        if self.original_exception:
+            orig_traceback = traceback.format_exception(
+                type(self.original_exception),
+                self.original_exception,
+                self.original_exception.__traceback__,
+            )
+            error_msg += f"\n--- Caused by ---\n{''.join(orig_traceback)}"
+        return error_msg
 
 class Agent(BaseModel):
     id: str = Field(default_factory=lambda: "agent-" + str(uuid.uuid4()))
@@ -68,4 +89,5 @@ class Agent(BaseModel):
             return await self.agent_engine.run(input_data, master_agent_id)
         except Exception as e:
             logger.debug(f"Error while running agent {self.id}: {e!s}")
-            return None
+            msg = "Failed during running an agent."
+            raise AgentRunError(msg, e, f"{self.name}({self.id})") from e

@@ -19,6 +19,9 @@ from ebiose.backends.langgraph.engine.base_agents.architect_agent import (
 from ebiose.backends.langgraph.engine.base_agents.crossover_agent import (
     init_crossover_agent,
 )
+from ebiose.backends.langgraph.engine.base_agents.mutation_agent import (
+    init_mutation_agent,
+)
 from ebiose.backends.langgraph.engine.base_agents.routing_agent import (
     init_routing_agent,
 )
@@ -33,6 +36,7 @@ if TYPE_CHECKING:
 class GraphUtils:
     _architect_agent: BaseModel | None = None
     _crossover_agent: BaseModel | None = None
+    _mutation_agent: BaseModel | None = None
     _routing_agent: BaseModel | None = None
     _structured_output_agent_registry: ClassVar[dict[str, BaseModel]] = {}
 
@@ -62,6 +66,12 @@ class GraphUtils:
         if cls._crossover_agent is None:
             cls._crossover_agent = init_crossover_agent(model_endpoint_id)
         return cls._crossover_agent
+
+    @classmethod
+    def get_mutation_agent(cls, model_endpoint_id: str | None = None) -> BaseModel:
+        if cls._mutation_agent is None:
+            cls._mutation_agent = init_mutation_agent(model_endpoint_id)
+        return cls._mutation_agent
 
 
 

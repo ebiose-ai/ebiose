@@ -73,7 +73,6 @@ def init_routing_agent(model_endpoint_id: str) -> None:
             Edge(start_node_id=llm_router_node.id, end_node_id=routing_node.id),
         )
 
-        agent_configuration = {"graph": graph}
         agent_id = "agent-" + str(uuid.uuid4())
 
         agent_engine = LangGraphEngine(
@@ -82,9 +81,8 @@ def init_routing_agent(model_endpoint_id: str) -> None:
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
-            tags = ["crossover_agent"],
+            tags = ["routing_agent"],
         )
-
 
         agent_engine.recursion_limit = 7
 
