@@ -73,7 +73,7 @@ def init_routing_agent(model_endpoint_id: str) -> None:
             Edge(start_node_id=llm_router_node.id, end_node_id=routing_node.id),
         )
 
-        agent_id = "agent-" + str(uuid.uuid4())
+        agent_id = "agent-cb88834e-cb03-4cf9-b983-2b18fdbbcdc9"
 
         agent_engine = LangGraphEngine(
             agent_id=agent_id,

@@ -105,7 +105,7 @@ def init_crossover_agent(model_endpoint_id: str | None) -> None:
         Edge(start_node_id=crossover_node.id, end_node_id=end_node.id, condition="not_found"),
     )
 
-    agent_id = "agent-" + str(uuid.uuid4())
+    agent_id = "agent-e2b8c849-5709-436d-b7eb-0e0d7e580724"
 
     agent_engine = LangGraphEngine(
         agent_id=agent_id,

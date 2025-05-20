@@ -55,7 +55,6 @@ class LangGraphLLMNode(LLMNode):
     input_state_model: type[BaseModel] = InputState
     output_state_model: type[BaseModel] = OutputState
 
-
     async def call_node(self, state: InputState, config: dict) -> OutputState:
         try:
             # All nodes have access to the shared context prompt

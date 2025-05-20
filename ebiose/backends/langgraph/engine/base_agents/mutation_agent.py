@@ -106,7 +106,7 @@ def init_mutation_agent(model_endpoint_id: str | None) -> None:
         Edge(start_node_id=mutation_node.id, end_node_id=end_node.id, condition="not_found"),
     )
 
-    agent_id = "agent-" + str(uuid.uuid4())
+    agent_id = "agent-b0d53155-4525-4d4a-92c8-145426f4a4bf"
 
     agent_engine = LangGraphEngine(
         agent_id=agent_id,

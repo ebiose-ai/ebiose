@@ -64,6 +64,14 @@ class ModelEndpoints:
         if ModelEndpoints._ebiose_api_config is not None:
             return ModelEndpoints._ebiose_api_config.api_key.get_secret_value()
         return None
+    
+    @staticmethod
+    def get_ebiose_api_base() -> str | None:
+        if ModelEndpoints._ebiose_api_config is None:
+            ModelEndpoints.load_model_endpoints()
+        if ModelEndpoints._ebiose_api_config is not None:
+            return ModelEndpoints._ebiose_api_config.api_base
+        return None
 
     @staticmethod
     def use_lite_llm() -> bool:

@@ -70,7 +70,7 @@ def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_i
             Edge(start_node_id=pydantic_validator_node.id, end_node_id=llm_formatter_node.id, condition="failure"),
         )
 
-        agent_id = "agent-" + str(uuid.uuid4())
+        agent_id = "agent-20419b21-ba04-4673-b72f-c798dba9e313"
 
         agent_engine = LangGraphEngine(
             agent_id=agent_id,

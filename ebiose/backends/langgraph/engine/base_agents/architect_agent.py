@@ -126,7 +126,6 @@ entire graph with the prompts under the following format:\n
 def init_architect_agent(
         model_endpoint_id: str | None,
         add_format_node: bool = True,  # noqa: FBT001, FBT002
-
     ) -> None:
         from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
         from ebiose.core.agent import Agent
@@ -195,7 +194,8 @@ def init_architect_agent(
                 Edge(start_node_id=format_node.id, end_node_id=end_node.id),
             )
 
-        agent_id = "agent-" + str(uuid.uuid4())
+        # TODO(xabier): the agent id should be deterministic considering the input of init_architect_agent
+        agent_id = "agent-54c2124d-a473-43e6-ae1c-24a217ff7607"
 
         agent_engine = LangGraphEngine(
             agent_id=agent_id,
