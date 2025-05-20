@@ -211,64 +211,75 @@ class ForgeCycle:
             ecosystem = Ecosystem.new()
 
         LLMApi.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
+        try:
+            t0 = time()
+            await self.initialize_population(ecosystem=ecosystem)
+            # cancel run if no agent was initialized
+            if len(self.agents) == 0:
+                logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
+                return []
 
-        t0 = time()
-        await self.initialize_population(ecosystem=ecosystem)
-        # cancel run if no agent was initialized
-        if len(self.agents) == 0:
-            logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
-            return []
-
-        total_cycle_cost = LLMApi.get_spent_cost()
-        logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
-        if self.config.mode == "cloud":
-            logger.info(f"Budget left after initialization: {self.config.budget - LLMApi.get_spent_cost()} $")
-
-        # running generation 0
-        generation = 0
-        first_generation_cost = await self.run_generation(generation)
-        total_cycle_cost += first_generation_cost
-        if self.config.mode == "cloud":
-            logger.info(f"Budget left after first generation: {self.config.budget - LLMApi.get_spent_cost()} $")
-
-        # running next generations until budget is reached
-        while self.config.budget - LLMApi.get_spent_cost() > first_generation_cost if self.config.mode == "cloud" else generation < self.config.n_generations:
-            generation += 1
-            total_cycle_cost += await self.run_generation(generation)
+            total_cycle_cost = LLMApi.get_spent_cost()
+            logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
             if self.config.mode == "cloud":
-                logger.info(f"Budget left after new generation: {self.config.budget - LLMApi.get_spent_cost()} $")
-            LLMApi.reset_cost_per_agent()
+                logger.info(f"Budget left after initialization: {self.config.budget - LLMApi.get_spent_cost()} $")
+
+            # running generation 0
+            generation = 0
+            first_generation_cost = await self.run_generation(generation)
+            total_cycle_cost += first_generation_cost
+            if self.config.mode == "cloud":
+                logger.info(f"Budget left after first generation: {self.config.budget - LLMApi.get_spent_cost()} $")
+
+            # running next generations until budget is reached
+            while self.config.budget - LLMApi.get_spent_cost() > first_generation_cost if self.config.mode == "cloud" else generation < self.config.n_generations:
+                generation += 1
+                total_cycle_cost += await self.run_generation(generation)
+                if self.config.mode == "cloud":
+                    logger.info(f"Budget left after new generation: {self.config.budget - LLMApi.get_spent_cost()} $")
+                LLMApi.reset_cost_per_agent()
 
 
-        # Evaluate last offsprings before sorting all population by fitness
-        total_cycle_cost += await self._evaluate_population(generation+1)
-        # TODO(xabier): this is a hack to save last evaluation
-        self.save_current_state(generation+1)
+            # Evaluate last offsprings before sorting all population by fitness
+            total_cycle_cost += await self._evaluate_population(generation+1)
+            # TODO(xabier): this is a hack to save last evaluation
+            self.save_current_state(generation+1)
 
-        # Distribute total cycle cost among agents based on their initialization costs
-        total_init_cost = sum(self.agents_first_generation_costs.values())
-        for agent_id, init_cost in self.agents_first_generation_costs.items():
-            cost_ratio = init_cost / total_init_cost if total_init_cost > 0 else 0
-            agent_cycle_cost = cost_ratio * total_cycle_cost
-            self.agents_first_generation_costs[agent_id] = agent_cycle_cost
+            # Distribute total cycle cost among agents based on their initialization costs
+            total_init_cost = sum(self.agents_first_generation_costs.values())
+            for agent_id, init_cost in self.agents_first_generation_costs.items():
+                cost_ratio = init_cost / total_init_cost if total_init_cost > 0 else 0
+                agent_cycle_cost = cost_ratio * total_cycle_cost
+                self.agents_first_generation_costs[agent_id] = agent_cycle_cost
 
 
-        sorted_agents = sorted(
-            self.agents.values(),
-            key=lambda agent: self.agents_fitness[agent.id],
-            reverse=True,
-        )
+            sorted_agents = sorted(
+                self.agents.values(),
+                key=lambda agent: self.agents_fitness[agent.id],
+                reverse=True,
+            )
 
-        logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
-        if self.config.mode == "cloud":
-            logger.info(f"Budget left at final: {self.config.budget - LLMApi.get_spent_cost()} $")
-        logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
+            logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
+            if self.config.mode == "cloud":
+                logger.info(f"Budget left at final: {self.config.budget - LLMApi.get_spent_cost()} $")
+            logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
-        selected_agents = {
-            agent.id: agent for agent in sorted_agents[:self.config.n_best_agents_to_return]
-        }
-        selected_fitness = {agent_id: self.agents_fitness[agent_id] for agent_id in selected_agents}
-        return selected_agents, selected_fitness
+            selected_agents = {
+                agent.id: agent for agent in sorted_agents[:self.config.n_best_agents_to_return]
+            }
+            selected_fitness = {agent_id: self.agents_fitness[agent_id] for agent_id in selected_agents}
+            return selected_agents, selected_fitness
+        except Exception as e:
+            logger.error(f"Error during cycle execution: {e!s}")
+            logger.info("Cycle execution failed. Cleaning up...")
+        finally:
+            # Clean up
+            if self.config.mode == "cloud":
+                EbioseAPIClient.end_forge_cyle(
+                    forge_cycle_id=forge_cycle_id,
+                    winning_agents=selected_agents if selected_agents else [],
+                    agent_metabolism_updates={},
+                )
 
     async def run_generation(self, cur_generation: int) -> float:
 

@@ -66,9 +66,9 @@ class AgentForge(BaseModel):
 
         cycle = ForgeCycle(forge=self, config=config)
 
-        # try to select agents from the ecocystem to enter the forge cycle
-        # if not, architect agents will handle creating new agents in the forge cycle
         return await cycle.execute_a_cycle(ecosystem)
+
+
 
     def display_results(self, agents: dict[str, Agent], agents_fitness: dict[str, float]) -> None:
         sorted_fitness = dict(sorted(agents_fitness.items(), key=lambda item: item[1], reverse=True))
