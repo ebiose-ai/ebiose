@@ -275,7 +275,7 @@ class ForgeCycle:
         finally:
             # Clean up
             if self.config.mode == "cloud":
-                EbioseAPIClient.end_forge_cyle(
+                EbioseAPIClient.end_forge_cycle(
                     forge_cycle_id=forge_cycle_id,
                     winning_agents=selected_agents if selected_agents else [],
                     agent_metabolism_updates={},
