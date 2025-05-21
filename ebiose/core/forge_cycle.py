@@ -124,7 +124,9 @@ class ForgeCycle:
         self.agents_first_generation_costs.clear()
 
         n_selected_agents = self.config.n_selected_agents_from_ecosystem
-        selected_agents = EbioseAPIClient.select_agents(self.forge.description, n_selected_agents=n_selected_agents)
+        selected_agents = []
+        if self.config.mode == "cloud":
+            selected_agents = EbioseAPIClient.select_agents(self.forge.description, n_selected_agents=n_selected_agents)
         # selected_agents = select_agents(self.id, n_selected_agents)
         logger.debug(f"{len(selected_agents)} agents selected from ecosystem over {n_selected_agents} requested")
 
