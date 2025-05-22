@@ -114,13 +114,13 @@ Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manag
 
 Once uv is installed, use it to install your project dependencies. In your project directory, run:
 
-Ebiose depends on libraries to interact with all major vendor: openai, anthropic...
-
-To install all dependencies
+To install all required dependencies
 
 ```sh
 uv sync
 ```
+
+By default, Ebiose supports OpenAI models but other major providers can also be used. Refer to [🤖 Model APIs support](#-model-apis-support)
 
 For more detailed instructions or troubleshooting tips, refer to the [official uv documentation](https://docs.astral.sh/uv/).
 
