@@ -83,10 +83,13 @@ class LangGraphLLMApi(LLMApi):
 
         if ModelEndpoints.use_lite_llm(): # if model is compatible with LiteLLM, otherwise, custom implementation
             # TODO(xabier): check/test
+            lite_llm_api_key, lite_llm_api_base = ModelEndpoints.get_lite_llm_config()
+            default_model_id = ModelEndpoints.get_default_model_endpoint_id()
+
             return ChatLiteLLM(
-                model=f"azure/{model_endpoint.deployment_name}",
-                azure_api_key=model_endpoint.api_key.get_secret_value(),
-                api_base=model_endpoint.endpoint_url.get_secret_value(),
+                model=f"azure/{default_model_id}",
+                azure_api_key=lite_llm_api_key,
+                api_base=lite_llm_api_base,
                 temperature=temperature,
                 request_timeout=request_timeout,
                 max_retries=max_retries,
