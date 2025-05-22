@@ -16,16 +16,18 @@ dependencies = [
     "litellm>=1.63.12",
     "loguru>=0.7.3",
     "nest-asyncio>=1.6.0",
+    "openapi-client",
     "pydantic>=2.10.6",
     "python-dotenv>=1.0.1",
     "ruff>=0.9.6",
     "seaborn>=0.13.2",
     "sortedcontainers>=2.4.0",
 ]
-
+# generated ebiose cloud sdk
+# "openapi_client @ file://./ebiose/generated_cloud_sdk"
 [tool.ruff]
 line-length = 88
-exclude = ["./notebooks/"]
+exclude = ["./notebooks/", "./ebiose/generated_cloud_sdk/"]
 
 
 [tool.ruff.lint]
@@ -66,8 +68,14 @@ convention = "google"
 # Disallow all relative imports.
 ban-relative-imports = "all"
 
-# [tool.hatch.build.targets.wheel]
+[tool.hatch.build.targets.wheel]
 packages = ["ebiose"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.uv.sources]
+openapi-client = { path = "ebiose/generated_cloud_client/" }
 
 [build-system]
 requires = ["hatchling"]
