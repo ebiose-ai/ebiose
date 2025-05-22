@@ -374,57 +374,69 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "asyncio" },
-    { name = "ipykernel" },
     { name = "langchain" },
-    { name = "langchain-anthropic" },
     { name = "langchain-community" },
     { name = "langchain-core" },
-    { name = "langchain-google-genai" },
-    { name = "langchain-huggingface" },
-    { name = "langchain-ollama" },
     { name = "langchain-openai" },
-    { name = "langfuse" },
     { name = "langgraph" },
     { name = "loguru" },
     { name = "nest-asyncio" },
     { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "ruff" },
     { name = "seaborn" },
     { name = "sortedcontainers" },
+    { name = "tqdm" },
+]
+
+[package.optional-dependencies]
+anthropic = [
+    { name = "langchain-anthropic" },
+]
+google = [
+    { name = "langchain-google-genai" },
+]
+huggingface = [
+    { name = "langchain-huggingface" },
+]
+ollama = [
+    { name = "langchain-ollama" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
+    { name = "langfuse" },
+    { name = "python-dotenv" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "asyncio", specifier = ">=3.4.3" },
-    { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "langchain", specifier = ">=0.3.17" },
-    { name = "langchain-anthropic" },
+    { name = "langchain-anthropic", marker = "extra == 'anthropic'" },
     { name = "langchain-community", specifier = ">=0.3.16" },
     { name = "langchain-core", specifier = ">=0.3.33" },
-    { name = "langchain-google-genai" },
-    { name = "langchain-huggingface" },
-    { name = "langchain-ollama" },
-    { name = "langchain-openai" },
+    { name = "langchain-google-genai", marker = "extra == 'google'" },
+    { name = "langchain-huggingface", marker = "extra == 'huggingface'" },
+    { name = "langchain-ollama", marker = "extra == 'ollama'" },
     { name = "langchain-openai", specifier = ">=0.3.3" },
-    { name = "langfuse", specifier = "==2.60.2" },
     { name = "langgraph", specifier = ">=0.2.69" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "pydantic", specifier = ">=2.10.6" },
-    { name = "python-dotenv", specifier = ">=1.0.1" },
-    { name = "ruff", specifier = ">=0.9.6" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "sortedcontainers", specifier = ">=2.4.0" },
+    { name = "tqdm", specifier = ">=4.67.1" },
 ]
+provides-extras = ["google", "ollama", "anthropic", "huggingface"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "ipykernel", specifier = ">=6.29.5" }]
+dev = [
+    { name = "ipykernel", specifier = ">=6.29.5" },
+    { name = "langfuse", specifier = "==2.60.2" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "ruff", specifier = ">=0.9.6" },
+]
 
 [[package]]
 name = "executing"
