@@ -5,58 +5,39 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.forge_cycle_input_model import ForgeCycleInputModel
-from ...models.new_cycle_output_model import NewCycleOutputModel
-from ...types import UNSET, Response, Unset
+from ...types import UNSET, Response
 
 
 def _get_kwargs(
     *,
-    body: ForgeCycleInputModel,
-    override_key: Union[Unset, bool] = UNSET,
+    token: str,
 ) -> dict[str, Any]:
-    headers: dict[str, Any] = {}
-
     params: dict[str, Any] = {}
 
-    params["overrideKey"] = override_key
+    params["token"] = token
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": "/forges/cycles/start",
+        "method": "get",
+        "url": "/auth/refresh-token",
         "params": params,
     }
 
-    _body = body.to_dict()
-
-    _kwargs["json"] = _body
-    headers["Content-Type"] = "application/json"
-
-    _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Any, NewCycleOutputModel]]:
+def _parse_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Optional[str]:
     if response.status_code == 200:
-        response_200 = NewCycleOutputModel.from_dict(response.json())
-
+        response_200 = cast(str, response.json())
         return response_200
-    if response.status_code == 400:
-        response_400 = cast(Any, None)
-        return response_400
     if client.raise_on_unexpected_status:
         raise errors.UnexpectedStatus(response.status_code, response.content)
     else:
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Any, NewCycleOutputModel]]:
+def _build_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Response[str]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -68,25 +49,22 @@ def _build_response(
 def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
-    body: ForgeCycleInputModel,
-    override_key: Union[Unset, bool] = UNSET,
-) -> Response[Union[Any, NewCycleOutputModel]]:
+    token: str,
+) -> Response[str]:
     """
     Args:
-        override_key (Union[Unset, bool]):
-        body (ForgeCycleInputModel):
+        token (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, NewCycleOutputModel]]
+        Response[str]
     """
 
     kwargs = _get_kwargs(
-        body=body,
-        override_key=override_key,
+        token=token,
     )
 
     response = client.get_httpx_client().request(
@@ -99,51 +77,45 @@ def sync_detailed(
 def sync(
     *,
     client: Union[AuthenticatedClient, Client],
-    body: ForgeCycleInputModel,
-    override_key: Union[Unset, bool] = UNSET,
-) -> Optional[Union[Any, NewCycleOutputModel]]:
+    token: str,
+) -> Optional[str]:
     """
     Args:
-        override_key (Union[Unset, bool]):
-        body (ForgeCycleInputModel):
+        token (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, NewCycleOutputModel]
+        str
     """
 
     return sync_detailed(
         client=client,
-        body=body,
-        override_key=override_key,
+        token=token,
     ).parsed
 
 
 async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
-    body: ForgeCycleInputModel,
-    override_key: Union[Unset, bool] = UNSET,
-) -> Response[Union[Any, NewCycleOutputModel]]:
+    token: str,
+) -> Response[str]:
     """
     Args:
-        override_key (Union[Unset, bool]):
-        body (ForgeCycleInputModel):
+        token (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, NewCycleOutputModel]]
+        Response[str]
     """
 
     kwargs = _get_kwargs(
-        body=body,
-        override_key=override_key,
+        token=token,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -154,26 +126,23 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
-    body: ForgeCycleInputModel,
-    override_key: Union[Unset, bool] = UNSET,
-) -> Optional[Union[Any, NewCycleOutputModel]]:
+    token: str,
+) -> Optional[str]:
     """
     Args:
-        override_key (Union[Unset, bool]):
-        body (ForgeCycleInputModel):
+        token (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, NewCycleOutputModel]
+        str
     """
 
     return (
         await asyncio_detailed(
             client=client,
-            body=body,
-            override_key=override_key,
+            token=token,
         )
     ).parsed

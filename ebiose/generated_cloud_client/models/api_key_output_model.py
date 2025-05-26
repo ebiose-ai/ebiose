@@ -18,23 +18,31 @@ T = TypeVar("T", bound="ApiKeyOutputModel")
 class ApiKeyOutputModel:
     """
     Attributes:
-        api_key_uuid (Union[None, Unset, str]):
+        uuid (Union[None, Unset, str]):
+        key (Union[None, Unset, str]):
         created_at (Union[Unset, datetime.datetime]):
         expiration_date (Union[Unset, datetime.datetime]):
         user (Union[Unset, UserOutputModel]):
     """
 
-    api_key_uuid: Union[None, Unset, str] = UNSET
+    uuid: Union[None, Unset, str] = UNSET
+    key: Union[None, Unset, str] = UNSET
     created_at: Union[Unset, datetime.datetime] = UNSET
     expiration_date: Union[Unset, datetime.datetime] = UNSET
     user: Union[Unset, "UserOutputModel"] = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        api_key_uuid: Union[None, Unset, str]
-        if isinstance(self.api_key_uuid, Unset):
-            api_key_uuid = UNSET
+        uuid: Union[None, Unset, str]
+        if isinstance(self.uuid, Unset):
+            uuid = UNSET
         else:
-            api_key_uuid = self.api_key_uuid
+            uuid = self.uuid
+
+        key: Union[None, Unset, str]
+        if isinstance(self.key, Unset):
+            key = UNSET
+        else:
+            key = self.key
 
         created_at: Union[Unset, str] = UNSET
         if not isinstance(self.created_at, Unset):
@@ -50,8 +58,10 @@ class ApiKeyOutputModel:
 
         field_dict: dict[str, Any] = {}
         field_dict.update({})
-        if api_key_uuid is not UNSET:
-            field_dict["apiKeyUuid"] = api_key_uuid
+        if uuid is not UNSET:
+            field_dict["uuid"] = uuid
+        if key is not UNSET:
+            field_dict["key"] = key
         if created_at is not UNSET:
             field_dict["createdAt"] = created_at
         if expiration_date is not UNSET:
@@ -67,14 +77,23 @@ class ApiKeyOutputModel:
 
         d = dict(src_dict)
 
-        def _parse_api_key_uuid(data: object) -> Union[None, Unset, str]:
+        def _parse_uuid(data: object) -> Union[None, Unset, str]:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
             return cast(Union[None, Unset, str], data)
 
-        api_key_uuid = _parse_api_key_uuid(d.pop("apiKeyUuid", UNSET))
+        uuid = _parse_uuid(d.pop("uuid", UNSET))
+
+        def _parse_key(data: object) -> Union[None, Unset, str]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(Union[None, Unset, str], data)
+
+        key = _parse_key(d.pop("key", UNSET))
 
         _created_at = d.pop("createdAt", UNSET)
         created_at: Union[Unset, datetime.datetime]
@@ -98,7 +117,8 @@ class ApiKeyOutputModel:
             user = UserOutputModel.from_dict(_user)
 
         api_key_output_model = cls(
-            api_key_uuid=api_key_uuid,
+            uuid=uuid,
+            key=key,
             created_at=created_at,
             expiration_date=expiration_date,
             user=user,

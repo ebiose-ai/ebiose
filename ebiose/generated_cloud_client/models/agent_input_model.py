@@ -16,22 +16,30 @@ T = TypeVar("T", bound="AgentInputModel")
 class AgentInputModel:
     """
     Attributes:
+        uuid (Union[None, Unset, str]):
         name (Union[None, Unset, str]):
         description (Union[None, Unset, str]):
         architect_agent_uuid (Union[None, Unset, str]):
         genetic_operator_agent_uuid (Union[None, Unset, str]):
         agent_engine (Union[Unset, AgentEngineInputModel]):
-        description_embedding (Union[None, Unset, str]):
+        description_embedding (Union[None, Unset, list[float]]):
     """
 
+    uuid: Union[None, Unset, str] = UNSET
     name: Union[None, Unset, str] = UNSET
     description: Union[None, Unset, str] = UNSET
     architect_agent_uuid: Union[None, Unset, str] = UNSET
     genetic_operator_agent_uuid: Union[None, Unset, str] = UNSET
     agent_engine: Union[Unset, "AgentEngineInputModel"] = UNSET
-    description_embedding: Union[None, Unset, str] = UNSET
+    description_embedding: Union[None, Unset, list[float]] = UNSET
 
     def to_dict(self) -> dict[str, Any]:
+        uuid: Union[None, Unset, str]
+        if isinstance(self.uuid, Unset):
+            uuid = UNSET
+        else:
+            uuid = self.uuid
+
         name: Union[None, Unset, str]
         if isinstance(self.name, Unset):
             name = UNSET
@@ -60,14 +68,19 @@ class AgentInputModel:
         if not isinstance(self.agent_engine, Unset):
             agent_engine = self.agent_engine.to_dict()
 
-        description_embedding: Union[None, Unset, str]
+        description_embedding: Union[None, Unset, list[float]]
         if isinstance(self.description_embedding, Unset):
             description_embedding = UNSET
+        elif isinstance(self.description_embedding, list):
+            description_embedding = self.description_embedding
+
         else:
             description_embedding = self.description_embedding
 
         field_dict: dict[str, Any] = {}
         field_dict.update({})
+        if uuid is not UNSET:
+            field_dict["uuid"] = uuid
         if name is not UNSET:
             field_dict["name"] = name
         if description is not UNSET:
@@ -88,6 +101,15 @@ class AgentInputModel:
         from ..models.agent_engine_input_model import AgentEngineInputModel
 
         d = dict(src_dict)
+
+        def _parse_uuid(data: object) -> Union[None, Unset, str]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(Union[None, Unset, str], data)
+
+        uuid = _parse_uuid(d.pop("uuid", UNSET))
 
         def _parse_name(data: object) -> Union[None, Unset, str]:
             if data is None:
@@ -132,16 +154,25 @@ class AgentInputModel:
         else:
             agent_engine = AgentEngineInputModel.from_dict(_agent_engine)
 
-        def _parse_description_embedding(data: object) -> Union[None, Unset, str]:
+        def _parse_description_embedding(data: object) -> Union[None, Unset, list[float]]:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, str], data)
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                description_embedding_type_0 = cast(list[float], data)
+
+                return description_embedding_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union[None, Unset, list[float]], data)
 
         description_embedding = _parse_description_embedding(d.pop("descriptionEmbedding", UNSET))
 
         agent_input_model = cls(
+            uuid=uuid,
             name=name,
             description=description,
             architect_agent_uuid=architect_agent_uuid,

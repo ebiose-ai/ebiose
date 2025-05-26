@@ -24,7 +24,7 @@ class AgentOutputModel:
         architect_agent (Union[Unset, AgentOutputModel]):
         genetic_operator_agent (Union[Unset, AgentOutputModel]):
         agent_engine (Union[Unset, AgentEngineOutputModel]):
-        description_embedding (Union[None, Unset, str]):
+        description_embedding (Union[None, Unset, list[float]]):
         compute_bank_in_dollars (Union[Unset, float]):
     """
 
@@ -35,7 +35,7 @@ class AgentOutputModel:
     architect_agent: Union[Unset, "AgentOutputModel"] = UNSET
     genetic_operator_agent: Union[Unset, "AgentOutputModel"] = UNSET
     agent_engine: Union[Unset, "AgentEngineOutputModel"] = UNSET
-    description_embedding: Union[None, Unset, str] = UNSET
+    description_embedding: Union[None, Unset, list[float]] = UNSET
     compute_bank_in_dollars: Union[Unset, float] = UNSET
 
     def to_dict(self) -> dict[str, Any]:
@@ -73,9 +73,12 @@ class AgentOutputModel:
         if not isinstance(self.agent_engine, Unset):
             agent_engine = self.agent_engine.to_dict()
 
-        description_embedding: Union[None, Unset, str]
+        description_embedding: Union[None, Unset, list[float]]
         if isinstance(self.description_embedding, Unset):
             description_embedding = UNSET
+        elif isinstance(self.description_embedding, list):
+            description_embedding = self.description_embedding
+
         else:
             description_embedding = self.description_embedding
 
@@ -166,12 +169,20 @@ class AgentOutputModel:
         else:
             agent_engine = AgentEngineOutputModel.from_dict(_agent_engine)
 
-        def _parse_description_embedding(data: object) -> Union[None, Unset, str]:
+        def _parse_description_embedding(data: object) -> Union[None, Unset, list[float]]:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, str], data)
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                description_embedding_type_0 = cast(list[float], data)
+
+                return description_embedding_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union[None, Unset, list[float]], data)
 
         description_embedding = _parse_description_embedding(d.pop("descriptionEmbedding", UNSET))
 

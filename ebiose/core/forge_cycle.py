@@ -260,7 +260,12 @@ class ForgeCycle:
                 key=lambda agent: self.agents_fitness[agent.id],
                 reverse=True,
             )
-
+            
+        except Exception as e:
+            logger.error(f"Error during cycle execution: {e!s}")
+            logger.info("Cycle execution failed. Cleaning up...")
+            selected_agents, selected_fitness = {}, {}
+        else:
             logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
             if self.config.mode == "cloud":
                 logger.info(f"Budget left at final: {self.config.budget - LLMApi.get_spent_cost()} $")
@@ -271,15 +276,15 @@ class ForgeCycle:
             }
             selected_fitness = {agent_id: self.agents_fitness[agent_id] for agent_id in selected_agents}
             return selected_agents, selected_fitness
-        except Exception as e:
-            logger.error(f"Error during cycle execution: {e!s}")
-            logger.info("Cycle execution failed. Cleaning up...")
+
+        
         finally:
+            
             # Clean up
             if self.config.mode == "cloud":
                 EbioseAPIClient.end_forge_cycle(
                     forge_cycle_id=forge_cycle_id,
-                    winning_agents=selected_agents if selected_agents else [],
+                    winning_agents=list(selected_agents.values()),
                     agent_metabolism_updates={},
                 )
 

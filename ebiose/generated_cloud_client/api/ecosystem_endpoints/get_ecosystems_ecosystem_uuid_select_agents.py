@@ -13,13 +13,13 @@ def _get_kwargs(
     ecosystem_uuid: str,
     *,
     nb_agents: int,
-    forge_description: str,
+    forge_cycle_uuid: str,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
     params["nbAgents"] = nb_agents
 
-    params["forgeDescription"] = forge_description
+    params["forgeCycleUuid"] = forge_cycle_uuid
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -69,13 +69,13 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     nb_agents: int,
-    forge_description: str,
+    forge_cycle_uuid: str,
 ) -> Response[Union[Any, list["AgentOutputModel"]]]:
     """
     Args:
         ecosystem_uuid (str):
         nb_agents (int):
-        forge_description (str):
+        forge_cycle_uuid (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -88,7 +88,7 @@ def sync_detailed(
     kwargs = _get_kwargs(
         ecosystem_uuid=ecosystem_uuid,
         nb_agents=nb_agents,
-        forge_description=forge_description,
+        forge_cycle_uuid=forge_cycle_uuid,
     )
 
     response = client.get_httpx_client().request(
@@ -103,13 +103,13 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
     nb_agents: int,
-    forge_description: str,
+    forge_cycle_uuid: str,
 ) -> Optional[Union[Any, list["AgentOutputModel"]]]:
     """
     Args:
         ecosystem_uuid (str):
         nb_agents (int):
-        forge_description (str):
+        forge_cycle_uuid (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -123,7 +123,7 @@ def sync(
         ecosystem_uuid=ecosystem_uuid,
         client=client,
         nb_agents=nb_agents,
-        forge_description=forge_description,
+        forge_cycle_uuid=forge_cycle_uuid,
     ).parsed
 
 
@@ -132,13 +132,13 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     nb_agents: int,
-    forge_description: str,
+    forge_cycle_uuid: str,
 ) -> Response[Union[Any, list["AgentOutputModel"]]]:
     """
     Args:
         ecosystem_uuid (str):
         nb_agents (int):
-        forge_description (str):
+        forge_cycle_uuid (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -151,7 +151,7 @@ async def asyncio_detailed(
     kwargs = _get_kwargs(
         ecosystem_uuid=ecosystem_uuid,
         nb_agents=nb_agents,
-        forge_description=forge_description,
+        forge_cycle_uuid=forge_cycle_uuid,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -164,13 +164,13 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
     nb_agents: int,
-    forge_description: str,
+    forge_cycle_uuid: str,
 ) -> Optional[Union[Any, list["AgentOutputModel"]]]:
     """
     Args:
         ecosystem_uuid (str):
         nb_agents (int):
-        forge_description (str):
+        forge_cycle_uuid (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -185,6 +185,6 @@ async def asyncio(
             ecosystem_uuid=ecosystem_uuid,
             client=client,
             nb_agents=nb_agents,
-            forge_description=forge_description,
+            forge_cycle_uuid=forge_cycle_uuid,
         )
     ).parsed

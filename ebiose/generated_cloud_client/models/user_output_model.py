@@ -26,6 +26,7 @@ class UserOutputModel:
         api_keys (Union[None, Unset, list['ApiKeyOutputModel']]):
         credits_limit (Union[Unset, float]):
         credits_used (Union[Unset, float]):
+        available_credits (Union[Unset, float]):
     """
 
     uuid: Union[None, Unset, str] = UNSET
@@ -37,6 +38,7 @@ class UserOutputModel:
     api_keys: Union[None, Unset, list["ApiKeyOutputModel"]] = UNSET
     credits_limit: Union[Unset, float] = UNSET
     credits_used: Union[Unset, float] = UNSET
+    available_credits: Union[Unset, float] = UNSET
 
     def to_dict(self) -> dict[str, Any]:
         uuid: Union[None, Unset, str]
@@ -89,6 +91,8 @@ class UserOutputModel:
 
         credits_used = self.credits_used
 
+        available_credits = self.available_credits
+
         field_dict: dict[str, Any] = {}
         field_dict.update({})
         if uuid is not UNSET:
@@ -109,6 +113,8 @@ class UserOutputModel:
             field_dict["creditsLimit"] = credits_limit
         if credits_used is not UNSET:
             field_dict["creditsUsed"] = credits_used
+        if available_credits is not UNSET:
+            field_dict["availableCredits"] = available_credits
 
         return field_dict
 
@@ -196,6 +202,8 @@ class UserOutputModel:
 
         credits_used = d.pop("creditsUsed", UNSET)
 
+        available_credits = d.pop("availableCredits", UNSET)
+
         user_output_model = cls(
             uuid=uuid,
             role=role,
@@ -206,6 +214,7 @@ class UserOutputModel:
             api_keys=api_keys,
             credits_limit=credits_limit,
             credits_used=credits_used,
+            available_credits=available_credits,
         )
 
         return user_output_model

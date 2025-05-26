@@ -5,38 +5,34 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.agent_input_model import AgentInputModel
-from ...types import Response
+from ...types import UNSET, Response
 
 
 def _get_kwargs(
-    forge_cycle_uuid: str,
     *,
-    body: list["AgentInputModel"],
+    new_password: str,
 ) -> dict[str, Any]:
-    headers: dict[str, Any] = {}
+    params: dict[str, Any] = {}
+
+    params["newPassword"] = new_password
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": f"/forges/cycles/end/{forge_cycle_uuid}",
+        "method": "put",
+        "url": "/auth/update-password",
+        "params": params,
     }
 
-    _body = []
-    for body_item_data in body:
-        body_item = body_item_data.to_dict()
-        _body.append(body_item)
-
-    _kwargs["json"] = _body
-    headers["Content-Type"] = "application/json"
-
-    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Optional[Any]:
     if response.status_code == 200:
         return None
-    if response.status_code == 400:
+    if response.status_code == 500:
+        return None
+    if response.status_code == 404:
         return None
     if client.raise_on_unexpected_status:
         raise errors.UnexpectedStatus(response.status_code, response.content)
@@ -54,15 +50,13 @@ def _build_response(*, client: Union[AuthenticatedClient, Client], response: htt
 
 
 def sync_detailed(
-    forge_cycle_uuid: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: list["AgentInputModel"],
+    new_password: str,
 ) -> Response[Any]:
     """
     Args:
-        forge_cycle_uuid (str):
-        body (list['AgentInputModel']):
+        new_password (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -73,8 +67,7 @@ def sync_detailed(
     """
 
     kwargs = _get_kwargs(
-        forge_cycle_uuid=forge_cycle_uuid,
-        body=body,
+        new_password=new_password,
     )
 
     response = client.get_httpx_client().request(
@@ -85,15 +78,13 @@ def sync_detailed(
 
 
 async def asyncio_detailed(
-    forge_cycle_uuid: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: list["AgentInputModel"],
+    new_password: str,
 ) -> Response[Any]:
     """
     Args:
-        forge_cycle_uuid (str):
-        body (list['AgentInputModel']):
+        new_password (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -104,8 +95,7 @@ async def asyncio_detailed(
     """
 
     kwargs = _get_kwargs(
-        forge_cycle_uuid=forge_cycle_uuid,
-        body=body,
+        new_password=new_password,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)

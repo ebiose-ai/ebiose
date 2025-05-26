@@ -9,6 +9,10 @@ ebiose_client = EbioseAPIClient()
 ecosystem_uuid = ebiose_client.get_ecosystem_uuid()
 print(f"ecosystem_uuid: {ecosystem_uuid}")
 
+# getting all agents in the ecosystem
+response = ebiose_client.get_agents(ecosystem_id=ecosystem_uuid)
+print(f"response: {response}")
+
 # adding architect agent to the ecosystem
 architect_agent = init_architect_agent(
     model_endpoint_id=ModelEndpoints.get_default_model_endpoint_id(),
@@ -31,4 +35,4 @@ print(f"response: {response}")
 #     ecosystem_id=ecosystem_uuid,
 # )
 
-print(f"response: {response}")
+# print(f"response: {response}")

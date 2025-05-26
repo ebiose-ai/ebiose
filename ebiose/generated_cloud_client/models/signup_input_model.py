@@ -3,38 +3,29 @@ from typing import Any, TypeVar, Union, cast
 
 from attrs import define as _attrs_define
 
-from ..models.role import Role
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="UserInputModel")
+T = TypeVar("T", bound="SignupInputModel")
 
 
 @_attrs_define
-class UserInputModel:
+class SignupInputModel:
     """
     Attributes:
-        role (Union[Unset, Role]):
         firstname (Union[None, Unset, str]):
         lastname (Union[None, Unset, str]):
         email (Union[None, Unset, str]):
         github_id (Union[None, Unset, str]):
-        credits_limit (Union[Unset, float]):
         password (Union[None, Unset, str]):
     """
 
-    role: Union[Unset, Role] = UNSET
     firstname: Union[None, Unset, str] = UNSET
     lastname: Union[None, Unset, str] = UNSET
     email: Union[None, Unset, str] = UNSET
     github_id: Union[None, Unset, str] = UNSET
-    credits_limit: Union[Unset, float] = UNSET
     password: Union[None, Unset, str] = UNSET
 
     def to_dict(self) -> dict[str, Any]:
-        role: Union[Unset, int] = UNSET
-        if not isinstance(self.role, Unset):
-            role = self.role.value
-
         firstname: Union[None, Unset, str]
         if isinstance(self.firstname, Unset):
             firstname = UNSET
@@ -59,8 +50,6 @@ class UserInputModel:
         else:
             github_id = self.github_id
 
-        credits_limit = self.credits_limit
-
         password: Union[None, Unset, str]
         if isinstance(self.password, Unset):
             password = UNSET
@@ -69,8 +58,6 @@ class UserInputModel:
 
         field_dict: dict[str, Any] = {}
         field_dict.update({})
-        if role is not UNSET:
-            field_dict["role"] = role
         if firstname is not UNSET:
             field_dict["firstname"] = firstname
         if lastname is not UNSET:
@@ -79,8 +66,6 @@ class UserInputModel:
             field_dict["email"] = email
         if github_id is not UNSET:
             field_dict["githubId"] = github_id
-        if credits_limit is not UNSET:
-            field_dict["creditsLimit"] = credits_limit
         if password is not UNSET:
             field_dict["password"] = password
 
@@ -89,12 +74,6 @@ class UserInputModel:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        _role = d.pop("role", UNSET)
-        role: Union[Unset, Role]
-        if isinstance(_role, Unset):
-            role = UNSET
-        else:
-            role = Role(_role)
 
         def _parse_firstname(data: object) -> Union[None, Unset, str]:
             if data is None:
@@ -132,8 +111,6 @@ class UserInputModel:
 
         github_id = _parse_github_id(d.pop("githubId", UNSET))
 
-        credits_limit = d.pop("creditsLimit", UNSET)
-
         def _parse_password(data: object) -> Union[None, Unset, str]:
             if data is None:
                 return data
@@ -143,14 +120,12 @@ class UserInputModel:
 
         password = _parse_password(d.pop("password", UNSET))
 
-        user_input_model = cls(
-            role=role,
+        signup_input_model = cls(
             firstname=firstname,
             lastname=lastname,
             email=email,
             github_id=github_id,
-            credits_limit=credits_limit,
             password=password,
         )
 
-        return user_input_model
+        return signup_input_model
