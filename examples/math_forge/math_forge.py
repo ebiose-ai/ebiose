@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from ebiose.core.agent import Agent
 from ebiose.core.agent_forge import AgentForge
-from ebiose.core.model_endpoint import ModelEndpoints  # ✅ ADDED
+
 
 class AgentInput(BaseModel):
     math_problem: str
@@ -25,11 +25,10 @@ class AgentOutput(BaseModel):
 
 class MathLangGraphForge(AgentForge):
     name: str = "MathLangGraphForge"
-    description: str = "Solving word math problems"
+    description: str ="Solving word math problems"
     train_csv_path: str
     test_csv_path: str
     n_problems: int | None = None
-    default_model_endpoint_id: str | None = None  # ✅ Ensures agent uses Azure model
 
     agent_input_model: type[BaseModel] = AgentInput
     agent_output_model: type[BaseModel] = AgentOutput
@@ -56,18 +55,21 @@ class MathLangGraphForge(AgentForge):
         return self
 
     def pick_problems(self, mode: Literal["train", "test"] = "test") -> list[str]:
+        # When no specific number is set, return all problems
         if self.n_problems is None:
             return list(self.data[mode].keys())
 
         if mode not in self.unpicked_problems or len(self.unpicked_problems[mode]) < self.n_problems:
+            # Reset the pool when there aren't enough problems left
             self.unpicked_problems[mode] = list(self.data[mode].keys())
             random.shuffle(self.unpicked_problems[mode])
 
+        # Select and remove n_problems from the pool
         selected = self.unpicked_problems[mode][:self.n_problems]
         self.unpicked_problems[mode] = self.unpicked_problems[mode][self.n_problems:]
         return selected
 
-    async def compute_fitness(self, agent: Agent, compute_token_id: str, mode: Literal["train", "test"] = "train", **kwargs: dict[str, any]) -> float:
+    async def compute_fitness(self, agent: Agent, compute_token_id: str, mode: Literal["train", "test"] = "train", **kwargs: dict[str, any]) -> float:  # noqa: C901
         if agent.agent_engine.engine_type != "langgraph_engine":
             self.fitness[agent.id] = {0 for _ in range(len(self.data))}
             return 0
@@ -78,8 +80,10 @@ class MathLangGraphForge(AgentForge):
             self.current_problem_ids = self.pick_problems(mode=mode)
 
         tasks = []
+        # pick n_problems problems randomly
         for problem_id in self.current_problem_ids:
             if agent.id in self.fitness and problem_id in self.fitness[agent.id]:
+                # Use cached fitness value
                 tasks.append(asyncio.sleep(0, result=self.fitness[agent.id][problem_id]))
             else:
                 agent_input = self.agent_input_model(
@@ -87,13 +91,16 @@ class MathLangGraphForge(AgentForge):
                 )
                 tasks.append(agent.run(agent_input, compute_token_id))
 
+
+        # Gather results concurrently
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
+        # Compare solutions and calculate fitness
         fitness = 0
         for idx, problem_id in enumerate(self.current_problem_ids):
             if agent.id not in self.fitness:
                 self.fitness[agent.id] = {}
-            if isinstance(results[idx], int):
+            if isinstance(results[idx], int): # Cached result
                 fitness += results[idx]
             elif results[idx] is None:
                 self.fitness[agent.id][problem_id] = 0
@@ -103,4 +110,7 @@ class MathLangGraphForge(AgentForge):
             else:
                 self.fitness[agent.id][problem_id] = 0
 
-        return fitness / self.n_problems if self.n_problems else fitness / len(self.data[mode])
+        if self.n_problems is not None:
+            return fitness/self.n_problems
+
+        return fitness/len(self.data[mode])

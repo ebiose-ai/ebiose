@@ -8,6 +8,7 @@ import asyncio
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -25,12 +26,11 @@ def main(
         save_path: Path,
         default_model_endpoint_id: str | None = None,
     ) -> None:
-
     forge = MathLangGraphForge(
         train_csv_path=train_csv_path,
         test_csv_path=test_csv_path,
         n_problems=n_problems,
-        default_model_endpoint_id=default_model_endpoint_id,  
+        default_model_endpoint_id=default_model_endpoint_id,
     )
 
     cycle_config = EvoForgingCycleConfig(
@@ -42,44 +42,40 @@ def main(
         save_path=save_path,
     )
 
-    logger.debug("Running new cycle...")
-    result = asyncio.run(forge.run_new_cycle(config=cycle_config))
+    best_agents, best_finess = asyncio.run(
+        forge.run_new_cycle(config=cycle_config),
+    )
 
-    if result:
-        best_agents, best_finess = result
-        if isinstance(best_agents, list):
-            logger.warning("best_agents is a list, converting to dictionary format.")
-            best_agents = {f"agent_{i}": agent for i, agent in enumerate(best_agents)}
-
-        if isinstance(best_finess, list):
-            logger.warning("best_finess is a list, converting to dictionary format.")
-            best_finess = {f"agent_{i}": fitness for i, fitness in enumerate(best_finess)}
-        
-        logger.info(f"Best agents and their fitness: {best_agents}, {best_finess}")
-    else:
-        logger.error("No results returned from the cycle. Check the agent initialization and fitness evaluation.")
-        best_agents, best_finess = {}, {}
-
+    logger.info("Best agents and their fitness:")
     forge.display_results(best_agents, best_finess)
 
 if __name__ == "__main__":
+
+    # loading dotenv
+    from dotenv import load_dotenv
     load_dotenv()
 
+
+    # the path where results will be saved
     timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d_%H-%M-%S")
     SAVE_PATH = Path(f"./data/{timestamp}/")
     if not SAVE_PATH.exists():
         SAVE_PATH.mkdir(parents=True)
 
+    # logging config
     logger.remove()
     logger.add(sys.stderr, level="DEBUG")
     logger.add(SAVE_PATH / "all_logs.log", rotation="10 MB", level="DEBUG")
 
-    BUDGET = 0.05  
-    N_PROBLEMS = 2
-    TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv"
-    TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv"
-    DEFAULT_MODEL_ENDPOINT_ID = "azure-gpt-4o-mini" 
 
+    # run parameters
+    BUDGET = 0.05 # budget in dollars
+    N_PROBLEMS = 2 # number of problems to evaluate on, per generation
+    TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
+    TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
+    DEFAULT_MODEL_ENDPOINT_ID = None # set if you want to use a specific model endpoint for generated agents
+
+    # running the forge cycle
     main(
         train_csv_path=TRAIN_CSV_PATH,
         test_csv_path=TEST_CSV_PATH,
