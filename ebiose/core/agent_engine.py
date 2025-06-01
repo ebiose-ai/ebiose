@@ -10,7 +10,9 @@ from abc import abstractmethod
 import traceback
 
 from langfuse.decorators import observe
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
+
 
 class AgentEngineRunError(Exception):
     """Custom exception for errors during agent run."""
@@ -38,9 +40,14 @@ class AgentEngine(BaseModel):
     agent_id: str
     configuration: dict | None = None
 
-    async def run(self, agent_input: BaseModel, master_agent_id: str | None = None) -> any:
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True, # Allows initializing with snake_case names
+    )
+
+    async def run(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None) -> any:
         try:
-            return await self._run_implementation(agent_input, master_agent_id)
+            return await self._run_implementation(agent_input, master_agent_id, forge_cycle_id)
         except Exception as e:
             raise AgentEngineRunError(
                 message="Error during agent engine run",
@@ -52,5 +59,5 @@ class AgentEngine(BaseModel):
 
     @observe(name="run_agent")
     @abstractmethod
-    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str | None = None) -> any:
+    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None) -> any:
         pass

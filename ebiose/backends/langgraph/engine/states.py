@@ -41,4 +41,4 @@ class LangGraphEngineConfig(BaseModel):
     recursion_limit: int = Field(default=15)
     tags: list[str] = Field(default_factory=list)
     agent_id: str
-    master_agent_id: str | None = Field(default=None)
+    forge_cycle_id: str | None = None

@@ -21,6 +21,7 @@ from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from loguru import logger
 from openai import RateLimitError
 
+from ebiose.generated_cloud_client.mock_ebiose_endpoints import EbioseAPIClient
 from ebiose.llm_api.llm_api import (
     LLMApi,
 )
@@ -204,6 +205,7 @@ class LangGraphLLMApi(LLMApi):
         temperature: float = 0.0,
         max_tokens: int = 4096, # TODO(xabier): 4096 is the maximum number of tokens allowed by OpenAI GPT-4o, should be handled by
         tools: list | None = None,
+        forge_cycle_id: str | None = None,
     ) -> AnyMessage:
 
         try:
@@ -212,7 +214,28 @@ class LangGraphLLMApi(LLMApi):
             if response is None:
                 return None
 
+            cost = 0.0
             if LangGraphLLMApi.mode == "cloud":
+                #TODO(xabier): call endpoint api
+                cost = EbioseAPIClient.get_cost(forge_cycle_uuid=forge_cycle_id)
+                #TODO(xabier): remove this check
+                completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
+                prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
+
+                model = (
+                    "azure/" + model_endpoint_id[len("azure-"):]
+                    if model_endpoint_id.startswith("azure-")
+                    else model_endpoint_id
+                )
+                cost2 = cost_per_token(
+                    model=model,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                )
+
+                cost2 = sum(cost2)
+                print(f"Cost for {model_endpoint_id} (forge_cycle_id={forge_cycle_id}): {cost:.4f} USD vs {cost2} USD")
+            else:
                 # TODO(xabier): remove this conditional formatting
                 completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
                 prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
@@ -229,12 +252,10 @@ class LangGraphLLMApi(LLMApi):
                 )
 
                 cost = sum(cost)
-                if agent_id not in cls.cost_per_agent:
-                    cls.cost_per_agent[agent_id] = 0.0
-                cls.cost_per_agent[agent_id] += cost
-            else:
-                # TODO(xabier): remove compute cost for local mode
-                pass
+            if agent_id not in cls.cost_per_agent:
+                cls.cost_per_agent[agent_id] = 0.0
+            cls.cost_per_agent[agent_id] += cost
+
 
         except Exception as e:
             logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")

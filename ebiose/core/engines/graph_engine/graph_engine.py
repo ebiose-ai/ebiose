@@ -6,6 +6,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 
 from __future__ import annotations
 
+import json
 from typing import Self
 
 from pydantic import (
@@ -35,17 +36,17 @@ class GraphEngine(AgentEngine):
     def _serialize_graph_engine(self) -> dict:
         return {
             "engine_type": self.engine_type,
-            "model_endpoint_id": self.model_endpoint_id,
-            "agent_id": self.agent_id,
-            "configuration": self._serialize_configuration(),
+            "configuration": self.serialize_configuration(),
         }
 
-    def _serialize_configuration(self) -> dict:
-        return {
+    def serialize_configuration(self) -> str:
+        return json.dumps({
             "input_model": self.input_model.model_json_schema() if self.input_model is not None else {},
             "output_model": self.output_model.model_json_schema() if self.output_model is not None else {},
             "graph": self.graph.model_dump() if self.graph is not None else {},
-        }
+            "model_endpoint_id": self.model_endpoint_id,
+            "agent_id": self.agent_id,
+        })
 
     def _validate_input_output_models(self, model_name: str, io_model: dict | type[BaseModel]) -> type[BaseModel]:
         # validate input_model and output_model

@@ -1,25 +1,21 @@
 
+import functools
+import json
+import re
 from typing import TYPE_CHECKING
 import uuid
 
+from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel
+from ebiose.core.agent_factory import AgentFactory
+from ebiose.core.ecosystem import Ecosystem
 from ebiose.core.engines.graph_engine.utils import GraphUtils
 from ebiose.core.model_endpoint import ModelEndpoints
-from ebiose.generated_cloud_client.models.agent_engine_input_model import AgentEngineInputModel
 if TYPE_CHECKING:
-    from ebiose.core.forge_cycle import ForgeCycleConfig
+    from ebiose.core.forge_cycle import CloudForgeCycleConfig
+    from ebiose.core.agent import Agent
 
-from ebiose.core.agent import Agent
 from uuid import uuid4
 
-from ebiose.generated_cloud_client.client import Client
-from ebiose.generated_cloud_client.api.forge_cycle_endpoints import start_new_forge_cycle
-from ebiose.generated_cloud_client.models.forge_cycle_input_model import ForgeCycleInputModel
-from ebiose.generated_cloud_client.api.ecosystem_endpoints import get_ecosystems_ecosystem_uuid_agents, get_ecosystems_ecosystem_uuid_select_agents 
-from ebiose.generated_cloud_client.api.ecosystem_endpoints import get_ecosystems
-from ebiose.generated_cloud_client.api.ecosystem_endpoints import post_ecosystems_ecosystem_uuid_agents
-from ebiose.generated_cloud_client.models.agent_input_model import AgentInputModel
-from ebiose.generated_cloud_client.api.forge_cycle_endpoints import end_forge_cycle
-# from ebiose.core.model_endpoint import ModelEndpoints
 
 STATUS_OK = 200
 
@@ -39,7 +35,7 @@ STATUS_OK = 200
 #     return 
 
 
-def build_agent_input_model(agent: Agent) -> AgentInputModel:
+def build_agent_input_model(agent: "Agent") -> AgentInputModel:
     """Build the AgentInputModel from the Agent."""
     agent_engine_input_model = AgentEngineInputModel(
         engine_type=agent.agent_engine.engine_type,
@@ -58,166 +54,381 @@ def build_agent_input_model(agent: Agent) -> AgentInputModel:
 
 
 class EbioseAPIClient:
-    _client: Client | None = None
+    _client: EbioseCloudClient | None = None
 
     @classmethod
     def set_client(cls) -> None:
         """Set the API client with the provided API key."""
         if cls._client is None:
-            cls._client = Client(
+            cls._client = EbioseCloudClient(
                 base_url=ModelEndpoints.get_ebiose_api_base(),
-                headers={"ApiKey": ModelEndpoints.get_ebiose_api_key()},
+                api_key=ModelEndpoints.get_ebiose_api_key(),
             )
 
+    import re
+
+    @staticmethod
+    def _to_snake_case(name: str) -> str:
+        """Converts a PascalCase or camelCase string to snake_case."""
+        # Example: "EcosystemUuid" -> "ecosystem_uuid"
+        # Example: "Region" -> "region"
+        # This regex finds a lowercase letter or digit followed by an uppercase letter
+        # and inserts an underscore between them.
+        s1 = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)
+        # This handles cases like "UUID" -> "_UUID", then we handle the rest.
+        s2 = re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', s1)
+        return s2.lower()
 
     @classmethod
-    def post_agents(cls, agents: list[Agent], ecosystem_id: str) -> None:
-        """Add agents to an ecosystem."""
-        if cls._client is None:
-            cls.set_client()
-        body = [build_agent_input_model(agent) for agent in agents]        
+    def _convert_data_keys(cls, data: any) -> any:
+        """
+        Recursively traverses a data structure (dict or list) and converts
+        all dictionary keys from PascalCase to snake_case.
+        """
+        if isinstance(data, list):
+            # If it's a list, apply the conversion to each item in the list.
+            return [cls._convert_data_keys(item) for item in data]
+        
+        if isinstance(data, dict):
+            # If it's a dictionary, create a new dict with converted keys.
+            # Recursively call the function on values to handle nested structures.
+            return {
+                cls._to_snake_case(key): cls._convert_data_keys(value)
+                for key, value in data.items()
+            }
+        
+        # If it's not a list or dict, return the data as is.
+        return data
 
-        response = post_ecosystems_ecosystem_uuid_agents.sync_detailed(
-            ecosystem_uuid=ecosystem_id, client=cls._client, body=body,
-        )
-        if response.status_code == STATUS_OK:
-            return response.parsed
+    # This is the updated decorator within YourClass
+    def _handle_api_errors(func):
+        """
+        Decorator to handle client initialization, API errors, AND
+        to convert response keys from PascalCase to snake_case.
+        """
+        @functools.wraps(func)
+        def wrapper(cls, *args, **kwargs):
+            try:
+                if cls._client is None:
+                    cls.set_client()
+
+                print(f"\nAttempting to {func.__name__.replace('_', ' ')}...")
+                
+                # 1. Call the original method to get the raw API response
+                pascal_case_result = func(cls, *args, **kwargs)
+
+                # 2. If the call was successful, convert the keys before returning
+                if pascal_case_result is not None:
+                    return cls._convert_data_keys(pascal_case_result)
+                
+                # Return None if the original result was None
+                return None
+
+            except EbioseCloudError as e:
+                print(f"An API error occurred: {e}")
+                if e.response_text:
+                    print(f"Raw error response from server: {e.response_text}")
+                return None
+
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+                return None
+        return wrapper
+
+    @classmethod
+    @_handle_api_errors
+    def get_ecosystems(cls) -> list | None:
+        """Get all ecosystem UUIDs."""
+        list_of_ecosystems = cls._client.list_ecosystems()
+
+        if list_of_ecosystems:
+            return list_of_ecosystems
         else:
-            raise Exception(f"Error adding agents: {response.status_code} - {response.content}")
-
+            print("No ecosystems were found.")
+            return []
 
     @classmethod
-    def get_agents(cls, ecosystem_id: str) -> list[Agent]:
-        """Get all agents in an ecosystem."""
-        if cls._client is None:
-            cls.set_client()
+    @_handle_api_errors
+    def get_first_ecosystem_uuid(cls) -> str:
+        """Get the first ecosystem UUID."""
+        ecosystems = cls.get_ecosystems()
+        return ecosystems[0].uuid if ecosystems else None
+    
+    @classmethod
+    @_handle_api_errors
+    def add_agents(cls, ecosystem_id: str, agents:list["Agent"]) -> None:
+        """Post agents in an ecosystem."""
+        def format_agent(agent: Agent) -> AgentInputModel:
+            """Format the agent for the API."""
+            agent_engine = AgentEngineInputModel(
+                engineType=agent.agent_engine.engine_type,
+                configuration=agent.agent_engine.serialize_configuration(),
+            )
+            return AgentInputModel(
+                uuid=agent.id,
+                name=agent.name,
+                description=agent.description,
+                architectAgentUuid=agent.architect_agent.id if agent.architect_agent is not None else None,
+                geneticOperatorAgentUuid=agent.genetic_operator_agent.id if agent.genetic_operator_agent is not None else None,
+                agentEngine=agent_engine,
+                descriptionEmbedding=agent.description_embedding,
+            )
 
-        response = get_ecosystems_ecosystem_uuid_agents.sync_detailed(
-            client=cls._client,
-            ecosystem_uuid=ecosystem_id,
+        agents_data = [format_agent(agent) for agent in agents]
+        return cls._client.add_agents_to_ecosystem(
+            ecosystem_uuid=ecosystem_id, agents_data=agents_data,
         )
-        if response.status_code == STATUS_OK:
-            return response.parsed
-        else:
-            raise Exception(f"Error getting agents: {response.status_code} - {response.content}")
+
     @classmethod
+    @_handle_api_errors
+    def get_ecosystem(cls, ecosystem_id: str) -> Ecosystem | None:
+        """Get an ecosystem by its UUID."""
+        response = cls._client.get_ecosystem(uuid=ecosystem_id)
+        if response:
+            agents = [
+                AgentFactory.load_agent_from_api(agent_data)
+                for agent_data in response.agents or []
+            ]
+            # TODO(xabier): understand why this import is needed here
+            from ebiose.core.agent import Agent
+            Ecosystem.model_rebuild()
+            return Ecosystem(
+                id=response.uuid,
+                agents={agent.id: agent for agent in agents},
+            )
+        else:
+            print(f"No ecosystem found with UUID: {ecosystem_id}")
+            return None
+
+
+    @classmethod
+    @_handle_api_errors
+    def get_agents(cls, ecosystem_id: str) -> list["Agent"] | None:
+        response = cls._client.list_agents_in_ecosystem(ecosystem_uuid=ecosystem_id)
+        print(f"response: {response}")
+        agents = []
+        for r in response:
+            agent = AgentFactory.load_agent_from_api(r)
+            agents.append(agent)
+        return agents
+
+    @classmethod
+    @_handle_api_errors
     def start_new_forge_cycle(
         cls,
-        forge_name: str,
-        forge_description: str,
-        forge_cycle_config: "ForgeCycleConfig",
-    ) -> tuple[str, str]:
-        """Start a new forge cycle and return the lite_llm_api_key and forge_cycle_id."""
-        if cls._client is None:
-            cls.set_client()
+        forge_name: str, 
+        forge_description: str, 
+        forge_cycle_config: "CloudForgeCycleConfig",
+        override_key: bool | None = None,
+    )-> tuple[str, str]:
 
-        forge_cycle_input_model = ForgeCycleInputModel(
-            forge_name=forge_name,
-            forge_description=forge_description,
-            n_agents_in_population=forge_cycle_config.n_agents_in_population,
-            n_selected_agents_from_ecosystem=forge_cycle_config.n_selected_agents_from_ecosystem,
-            n_best_agents_to_return=forge_cycle_config.n_best_agents_to_return,
-            replacement_ratio=forge_cycle_config.replacement_ratio,
-            tournament_size_ratio=forge_cycle_config.tournament_size_ratio,
-            local_results_path=forge_cycle_config.local_results_path,
+        forge_cycle_input = ForgeCycleInputModel(
+            forgeDescription=forge_description,
+            forgeName=forge_name,
+            nAgentsInPopulation=forge_cycle_config.n_agents_in_population,
+            nSelectedAgentsFromEcosystem=forge_cycle_config.n_selected_agents_from_ecosystem,
+            nBestAgentsToReturn=forge_cycle_config.n_best_agents_to_return,
+            replacementRatio=forge_cycle_config.replacement_ratio,
+            tournamentSizeRatio=forge_cycle_config.tournament_size_ratio,
+            localResultsPath=None, # forge_cycle_config.local_results_path, no use to send this
             budget=forge_cycle_config.budget,
         )
 
-        response = start_new_forge_cycle.sync_detailed(client=cls._client, body=forge_cycle_input_model)
-        if response.status_code == STATUS_OK:
-            lite_llm_api_key = response.parsed.lite_llm_key
-            forge_cycle_id = response.parsed.forge_cycle_uuid
-            return lite_llm_api_key, forge_cycle_id
-        else:
-            raise Exception(f"Error starting new forge cycle: {response.status_code} - {response.content}")
-
-
-    @classmethod
-    def get_ecosystem_uuid(cls) -> str:
-        """Get the ecosystem UUID."""
-        if cls._client is None:
-            cls.set_client()
-
-        response = get_ecosystems.sync_detailed(client=cls._client)
-        if response.status_code == STATUS_OK:
-            # TODO(xabier): fix for multiple existing ecosystems
-            return response.parsed[0].uuid
-        else:
-            raise Exception(f"Error getting ecosystem UUID: {response.status_code} - {response.content}")
-
-    @classmethod
-    def select_agents(
-        cls,
-        forge_description: str,
-        n_selected_agents: int = 1, # should be capped to some number on the server side
-    ) -> list[Agent]:
-        ecosystem_uuid = cls.get_ecosystem_uuid()
-        response = get_ecosystems_ecosystem_uuid_select_agents.sync_detailed(
-            client=cls._client,
-            ecosystem_uuid=ecosystem_uuid,
-            nb_agents=n_selected_agents,
-            forge_description=forge_description,
+        new_cycle_output = cls._client.start_new_forge_cycle(
+            data=forge_cycle_input, 
+            override_key=override_key,
         )
-        if response.status_code == STATUS_OK:
-            selected_agents = response.parsed
-            # TODO(xabier): fix for multiple existing ecosystems
-            # TODO(xabier): check if the agent is already in the ecosystem.
-            # if so, it should be copied with a new id and full metabolism
-            return selected_agents
-        else:
-            raise Exception(f"Error selecting agents: {response.status_code} - {response.content}")
+        return new_cycle_output.liteLLMKey, new_cycle_output.forgeCycleUuid
 
     @classmethod
+    @_handle_api_errors
+    def select_agents(cls, ecosystem_id:str, nb_agents:int, forge_cycle_uuid: str) -> list["Agent"]:
+        """Select agents from an ecosystem."""
+        response = cls._client.select_agents_from_ecosystem(
+            ecosystem_uuid=ecosystem_id,
+            nb_agents= nb_agents +7, # TODO(xabier): fix when server side is ready
+            forge_cycle_uuid=forge_cycle_uuid,
+        )
+        agents = []
+        for r in response:
+            agent = AgentFactory.load_agent_from_api(r)
+            agents.append(agent)
+        # TODO(xabier): remove when server side is ready
+        test_agent = next((agent for agent in agents if getattr(agent, "id", None) == "test-agent-4"), None)
+        agents =  [test_agent]  # Limit to the requested number of agents
+        return agents
+    
+    @classmethod
+    @_handle_api_errors
+    def get_cost(cls, forge_cycle_uuid: str) -> float:
+        return cls._client.get_spend(forge_cycle_uuid=forge_cycle_uuid)
+    
+    @classmethod
+    @_handle_api_errors
     def end_forge_cycle(
         cls,
-        forge_cycle_id: str,
-        winning_agents: list[Agent], # should create new agents server side with full metabolism
-        # (must double check if the agent is already in the ecosystem.
-        # if so, it should be copied with a new id and full metabolism)
-        # agent_metabolism_updates: dict[str, float], # {"agent-...": 0.5, ...}
-        # selected_agents: list[Agent], # should update their metabolism server side         
-        agent_metabolism_updates: dict[str, float], # {"agent-...": 0.5, ...}
-    ):
-        # called at the end of a forge cycle (or whenever an error is raised )
-        # deletes the lite_llm_api_key but keep the forge cycle id
-        response = end_forge_cycle.sync_detailed(
-            client=cls._client,
-            forge_cycle_uuid=forge_cycle_id,
+        forge_cycle_uuid: str,
+        winning_agents: list["Agent"],
+    ) -> None:
+        """End a forge cycle."""
+        agents_data = [build_agent_input_model(agent) for agent in winning_agents]
+        cls._client.end_forge_cycle(
+            forge_cycle_uuid=forge_cycle_uuid,
+            agents_data=agents_data,
         )
-        if response.status_code == STATUS_OK:
-            return response.parsed
-        else:
-            raise Exception(f"Error ending forge cycle: {response.status_code} - {response.content}")
-        
+
+    # @classmethod
+    # @_handle_api_errors
+    # def post_agents(cls, agents: list[Agent], ecosystem_id: str) -> None:
+    #     """Add agents to an ecosystem."""
+
+    #     response = cls._client.
+    #     body = [build_agent_input_model(agent) for agent in agents]        
+
+    #     response = post_ecosystems_ecosystem_uuid_agents.sync_detailed(
+    #         ecosystem_uuid=ecosystem_id, client=cls._client, body=body,
+    #     )
+    #     if response.status_code == STATUS_OK:
+    #         return response.parsed
+    #     else:
+    #         raise Exception(f"Error adding agents: {response.status_code} - {response.content}")
 
 
-def select_agents(
-        forge_cycle_id: str,
-        n_selected_agents: int = 1, # should be capped to some number on the server side
-    ) -> list[Agent]:
     
-    # agent.forge_history = ["math forge", "physic forge"]
-    selected_agents = [get_sample_agent() for _ in range(n_selected_agents)]
-    return selected_agents
+
+#     @classmethod
+#     def self_get_api_keys(cls) -> list[str]:
+#         """Get the API key."""
+#         if cls._client is None:
+#             cls.set_client()
+
+#         # This is a placeholder for the actual API call to get the API key.
+#         # The actual implementation would depend on the API's capabilities.
+#         response = self_get_api_keys.sync_detailed(client=cls._client)
+#         if response.status_code == STATUS_OK:
+#             return response.parsed.api_key
+#         else:
+#             raise Exception(f"Error getting API key: {response.status_code} - {response.content}")
+#     @classmethod
+#     def self_delete_api_key(cls, api_key: str) -> None:
+#         """Delete the API key."""
+#         if cls._client is None:
+#             cls.set_client()
+
+#         # This is a placeholder for the actual API call to delete the API key.
+#         # The actual implementation would depend on the API's capabilities.
+#         response = self_delete_api_key.sync_detailed(uuid=api_key, client=cls._client)
+#         if response.status_code == STATUS_OK:
+#             return response.parsed
+#         else:
+#             raise Exception(f"Error deleting API key: {response.status_code} - {response.content}")
+
+#     @classmethod
+#     def start_new_forge_cycle(
+#         cls,
+#         forge_name: str,
+#         forge_description: str,
+#         forge_cycle_config: "ForgeCycleConfig",
+#     ) -> tuple[str, str]:
+#         """Start a new forge cycle and return the lite_llm_api_key and forge_cycle_id."""
+#         if cls._client is None:
+#             cls.set_client()
+
+#         forge_cycle_input_model = ForgeCycleInputModel(
+#             forge_name=forge_name,
+#             forge_description=forge_description,
+#             n_agents_in_population=forge_cycle_config.n_agents_in_population,
+#             n_selected_agents_from_ecosystem=forge_cycle_config.n_selected_agents_from_ecosystem,
+#             n_best_agents_to_return=forge_cycle_config.n_best_agents_to_return,
+#             replacement_ratio=forge_cycle_config.replacement_ratio,
+#             tournament_size_ratio=forge_cycle_config.tournament_size_ratio,
+#             local_results_path=forge_cycle_config.local_results_path,
+#             budget=forge_cycle_config.budget,
+#         )
+
+#         response = start_new_forge_cycle.sync_detailed(client=cls._client, body=forge_cycle_input_model)
+#         if response.status_code == STATUS_OK:
+#             lite_llm_api_key = response.parsed.lite_llm_key
+#             forge_cycle_id = response.parsed.forge_cycle_uuid
+#             return lite_llm_api_key, forge_cycle_id
+#         else:
+#             raise Exception(f"Error starting new forge cycle: {response.status_code} - {response.content}")
 
 
-def end_forge_cycle(
-        forge_cycle_id: str,
-        winning_agents: list[Agent], # should create new agents server side with full metabolism
-        # (must double check if the agent is already in the ecosystem.
-        # if so, it should be copied with a new id and full metabolism)
-        agent_metabolism_updates: dict[str, float], # {"agent-...": 0.5, ...}
-        # selected_agents: list[Agent], # should update their metabolism server side         
-    ):
-    # called at the end of a forge cycle (or whenever an error is raised )
-    # deletes the lite_llm_api_key but keep the forge cycle id
-    pass
+ 
 
-def get_spent_budget(forge_cycle_id: str) -> float:
-    # returns the spent budget so far
-    pass
+#     @classmethod
+#     def select_agents(
+#         cls,
+#         forge_description: str,
+#         n_selected_agents: int = 1, # should be capped to some number on the server side
+#     ) -> list[Agent]:
+#         ecosystem_uuid = cls.get_ecosystem_uuid()
+#         response = get_ecosystems_ecosystem_uuid_select_agents.sync_detailed(
+#             client=cls._client,
+#             ecosystem_uuid=ecosystem_uuid,
+#             nb_agents=n_selected_agents,
+#             forge_description=forge_description,
+#         )
+#         if response.status_code == STATUS_OK:
+#             selected_agents = response.parsed
+#             # TODO(xabier): fix for multiple existing ecosystems
+#             # TODO(xabier): check if the agent is already in the ecosystem.
+#             # if so, it should be copied with a new id and full metabolism
+#             return selected_agents
+#         else:
+#             raise Exception(f"Error selecting agents: {response.status_code} - {response.content}")
 
-def get_sample_agent() -> Agent:
+#     @classmethod
+#     def end_forge_cycle(
+#         cls,
+#         forge_cycle_id: str,
+#         winning_agents: list[Agent], # should create new agents server side with full metabolism
+#         # (must double check if the agent is already in the ecosystem.
+#         # if so, it should be copied with a new id and full metabolism)
+#         # agent_metabolism_updates: dict[str, float], # {"agent-...": 0.5, ...}
+#         # selected_agents: list[Agent], # should update their metabolism server side         
+#         agent_metabolism_updates: dict[str, float], # {"agent-...": 0.5, ...}
+#     ):
+#         # called at the end of a forge cycle (or whenever an error is raised )
+#         # deletes the lite_llm_api_key but keep the forge cycle id
+#         response = end_forge_cycle.sync_detailed(
+#             client=cls._client,
+#             forge_cycle_uuid=forge_cycle_id,
+#         )
+#         if response.status_code == STATUS_OK:
+#             return response.parsed
+#         else:
+#             raise Exception(f"Error ending forge cycle: {response.status_code} - {response.content}")
+
+
+# def select_agents(
+#         forge_cycle_id: str,
+#         n_selected_agents: int = 1, # should be capped to some number on the server side
+#     ) -> list[Agent]:
+    
+#     # agent.forge_history = ["math forge", "physic forge"]
+#     selected_agents = [get_sample_agent() for _ in range(n_selected_agents)]
+#     return selected_agents
+
+
+# # def end_forge_cycle(
+# #         forge_cycle_id: str,
+# #         winning_agents: list[Agent], # should create new agents server side with full metabolism
+# #         # (must double check if the agent is already in the ecosystem.
+# #         # if so, it should be copied with a new id and full metabolism)
+# #         agent_metabolism_updates: dict[str, float], # {"agent-...": 0.5, ...}
+# #         # selected_agents: list[Agent], # should update their metabolism server side         
+# #     ):
+# #     # called at the end of a forge cycle (or whenever an error is raised )
+# #     # deletes the lite_llm_api_key but keep the forge cycle id
+# #     pass
+
+# def get_spent_budget(forge_cycle_id: str) -> float:
+#     # returns the spent budget so far
+#     pass
+
+def get_sample_agent() -> "Agent":
     from pydantic import BaseModel, Field, ConfigDict
 
     class AgentInput(BaseModel):

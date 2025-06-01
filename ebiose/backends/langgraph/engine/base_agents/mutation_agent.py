@@ -22,11 +22,13 @@ class AgentInput(BaseModel):
     node_types: list = ["StartNode", "LLMNode", "EndNode"]
     max_llm_nodes: int = 10
     parent_configuration: dict
+    node_types_description: str | None = None
+    n_llm_nodes_constraint_string: str | None = None
 
-    @computed_field
-    @property
-    def node_types_description(self) -> str:
-        return get_node_types_docstrings(self.node_types)
+    # @computed_field
+    # @property
+    # def node_types_description(self) -> str:
+    #     return get_node_types_docstrings(self.node_types)
 
 class AgentOutput(Graph):
     pass
@@ -119,6 +121,7 @@ def init_mutation_agent(model_endpoint_id: str | None) -> None:
 
     return Agent(
         name="mutation_agent",
+        agent_type="genetic_operator",
         id=agent_id,
         description="Mutation agent that mutates an existingagent",
         architect_agent=None,

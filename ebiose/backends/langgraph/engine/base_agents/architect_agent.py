@@ -7,7 +7,7 @@ This software is licensed under the MIT License. See LICENSE for details.
 import random
 import uuid
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
@@ -23,19 +23,32 @@ class AgentInput(BaseModel):
     node_types: list = ["StartNode", "LLMNode", "EndNode"]
     max_llm_nodes: int = 10
     random_n_llm_nodes: bool = True
+    node_types_description: str | None = None
+    n_llm_nodes_constraint_string: str | None = None
 
-    @computed_field
-    @property
-    def node_types_description(self) -> str:
-        return get_node_types_docstrings(self.node_types)
+    # @computed_field
+    # @property
+    # def _node_types_description(self) -> str:
+    #     return get_node_types_docstrings(self.node_types)
 
-    @computed_field
-    @property
-    def n_llm_nodes_constraint_string(self) -> str:
-        if self.random_n_llm_nodes:
-                return f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, self.max_llm_nodes)} exactly."
-        return f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
+    # @computed_field
+    # @property
+    # def n_llm_nodes_constraint_string(self) -> str:
+    #     if self.random_n_llm_nodes:
+    #             return f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, self.max_llm_nodes)} exactly."
+    #     return f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
 
+    # def __init__(self, **data):
+    #     super().__init__(**data)
+    #     self._compute_derived_fields()
+
+    # def _compute_derived_fields(self):
+    #     """Helper method to compute the fields."""
+    #     self.node_types_description = get_node_types_docstrings(self.node_types)
+    #     if self.random_n_llm_nodes:
+    #         self.n_llm_nodes_constraint_string = f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, self.max_llm_nodes)} exactly."
+    #     else:
+    #         self.n_llm_nodes_constraint_string = f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
 
 
 class AgentOutput(Graph):
@@ -209,6 +222,7 @@ def init_architect_agent(
         return Agent(
             id=agent_id,
             name="architect_agent",
+            agent_type="architect",
             description="Architect agent that generate agents",
             architect_agent=None,
             genetic_operator_agent=None,

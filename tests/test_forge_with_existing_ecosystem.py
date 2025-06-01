@@ -74,11 +74,11 @@ if MODE == "cloud":
     cycle_config = CloudForgeCycleConfig(
         budget=BUDGET,
         n_agents_in_population=2,
-        n_selected_agents_from_ecosystem=0,
+        n_selected_agents_from_ecosystem=1,
         n_best_agents_to_return=2,
         replacement_ratio=0.5,
         save_path=SAVE_PATH,
-        node_types=["StartNode", "EndNode", "LLMNode" ],
+        node_types=["StartNode", "EndNode", "LLMNode"],
     )
 elif MODE == "local":
     cycle_config = LocalForgeCycleConfig(

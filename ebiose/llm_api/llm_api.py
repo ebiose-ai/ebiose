@@ -32,6 +32,7 @@ class LLMApi:
         cls.mode = mode
         # TODO(xabier): check where to decleare api key and base
         cls.lite_llm_api_key = lite_llm_api_key
+        #TODO(xabier): remove this hardcoded value
         cls.lite_llm_api_base = "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
 
         if llm_api_config is not None:

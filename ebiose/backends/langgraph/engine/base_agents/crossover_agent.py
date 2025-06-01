@@ -23,11 +23,12 @@ class AgentInput(BaseModel):
     max_llm_nodes: int = 10
     parent_configuration1: dict
     parent_configuration2: dict
+    node_types_description: str | None = None
 
-    @computed_field
-    @property
-    def node_types_description(self) -> str:
-        return get_node_types_docstrings(self.node_types)
+    # @computed_field
+    # @property
+    # def node_types_description(self) -> str:
+    #     return get_node_types_docstrings(self.node_types)
 
 class AgentOutput(Graph):
     pass
@@ -118,6 +119,7 @@ def init_crossover_agent(model_endpoint_id: str | None) -> None:
 
     return Agent(
         name="crossover_agent",
+        agent_type="genetic_operator",
         id=agent_id,
         description="Crossover agent that crosses two agents",
         architect_agent=None,

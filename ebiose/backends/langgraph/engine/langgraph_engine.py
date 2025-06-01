@@ -82,9 +82,9 @@ class LangGraphEngine(GraphEngine):
         return self
 
     @observe(name="run_agent_engine")
-    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str | None = None) -> BaseModel | dict | None:
+    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None) -> BaseModel | dict | None:
 
-        final_state = await self.invoke_graph(agent_input)
+        final_state = await self.invoke_graph(agent_input, forge_cycle_id=forge_cycle_id)
 
         if "output" in final_state and final_state["output"] is not None:
             return  final_state["output"]
@@ -104,9 +104,9 @@ class LangGraphEngine(GraphEngine):
             )
 
             try:
-                return await structured_output_agent.run(so_agent_input, master_agent_id=master_agent_id)
+                return await structured_output_agent.run(so_agent_input, forge_cycle_id=forge_cycle_id)
             except Exception as e:
-                logger.debug(f"Error while running agent {self.id}, when calling structured output agent: {e!s}")
+                logger.debug(f"Error while running agent {self.agent_id}, when calling structured output agent: {e!s}")
         else:
             return final_state
 
@@ -127,12 +127,15 @@ class LangGraphEngine(GraphEngine):
 
         self._state = type("State", tuple(base_classes), {})
 
-    def _build_config(self) -> BaseModel:
+    def _build_config(self, forge_cycle_id: str|None = None) -> BaseModel:
         """Build dynamically the config of the agent with the nodes of the graph."""
         if self._config is not None:
             return self._config
 
-        fields = {"agent_id": (str, Field(default=self.agent_id))}
+        fields = {
+            "agent_id": (str, Field(default=self.agent_id)),
+            "forge_cycle_id": (str, Field(default=forge_cycle_id)),
+        }
         for node in self.graph.nodes:
             if isinstance(node, LLMNode):
                 fields[node.id] = (dict, {})
@@ -150,6 +153,7 @@ class LangGraphEngine(GraphEngine):
     async def invoke_graph(
             self,
             agent_input: BaseModel,
+            forge_cycle_id: str | None = None,
         ) -> BaseModel:
             """Compile and run the agent.
 
@@ -158,7 +162,7 @@ class LangGraphEngine(GraphEngine):
 
             Returns: the final updated graph state
             """
-            compiled_graph = await self._compile_graph()
+            compiled_graph = await self._compile_graph(forge_cycle_id=forge_cycle_id)
             initial_state = self._state(
                 input=agent_input,
                 **agent_input.model_dump(),
@@ -186,6 +190,7 @@ class LangGraphEngine(GraphEngine):
                 output_model=self.output_model,
                 callbacks = [handler],
                 recursion_limit = self.recursion_limit,
+                forge_cycle_id=forge_cycle_id,
                 **node_config,
             )
 
@@ -194,11 +199,11 @@ class LangGraphEngine(GraphEngine):
                 config=config.model_dump(),
             )
 
-    async def _compile_graph(self) -> CompiledGraph:
+    async def _compile_graph(self, forge_cycle_id: str | None=None) -> CompiledGraph:
             """Compile the agent into a runnable graph."""
             if self._compiled_graph is None:
                 self._build_state()
-                self._build_config()
+                self._build_config(forge_cycle_id=forge_cycle_id)
                 self._compiled_graph = await self.__to_compiled_graph()
             return self._compiled_graph
 

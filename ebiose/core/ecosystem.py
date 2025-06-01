@@ -7,29 +7,33 @@ This software is licensed under the MIT License. See LICENSE for details.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
+from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sortedcontainers import SortedList
 
-from ebiose.core.agent import Agent
 from ebiose.core.engines.graph_engine.utils import GraphUtils
 from ebiose.core.model_endpoint import ModelEndpoints
 from ebiose.tools.embedding_helper import embedding_distance
 
+
 if TYPE_CHECKING:
     from ebiose.core.agent_forge import AgentForge
+    from ebiose.core.agent import Agent
 
 
 class Ecosystem(BaseModel):
-    initial_architect_agents: list[Agent] | None = None
-    initial_genetic_operator_agents: list[Agent] | None = None
-    agents: list[Agent] = []
+    id: str = Field(default_factory=lambda: f"forge-cycle-{uuid4()!s}")
+    initial_architect_agents: list["Agent"] | None = None
+    initial_genetic_operator_agents: list["Agent"] | None = None
+    agents: dict[str, "Agent"] = {}
     forge_list: ClassVar[list[AgentForge]] = []
     agent_forge_distances: ClassVar[dict[AgentForge, SortedList]] = {}
     model_endpoint_ids: ClassVar[list[str]] = []
 
     @classmethod
-    def new(cls, initial_agents: list[Agent] | None = None) -> Ecosystem:
+    def new(cls, initial_agents: list["Agent"] | None = None) -> Ecosystem:
+
         initial_architect_agents = [GraphUtils.get_architect_agent(ModelEndpoints.get_default_model_endpoint_id())]
         initial_genetic_operator_agents = [
             GraphUtils.get_crossover_agent(ModelEndpoints.get_default_model_endpoint_id()),
@@ -41,7 +45,13 @@ class Ecosystem(BaseModel):
             agents = initial_agents if initial_agents is not None else [],
         )
 
-    async def select_agents_for_forge(self, forge: AgentForge, n_agents: int) -> list[Agent]:
+    def get_agent(self, agent_id: str) -> "Agent" | None:
+        for agent in self.agents.values():
+            if agent.id == agent_id:
+                return agent
+        return None
+
+    async def select_agents_for_forge(self, forge: AgentForge, n_agents: int) -> list["Agent"]:
         self.add_forge(forge)
         if n_agents <= 0:
             return []
@@ -59,13 +69,13 @@ class Ecosystem(BaseModel):
         # Initialize SortedList with existing agents and their distances
         self.agent_forge_distances[forge.id] = SortedList(
             [(agent, embedding_distance(agent.description_embedding, forge.description_embedding))
-             for agent in self.agents],
+             for agent in self.agents.values()],
             key=lambda x: x[1],
         )
 
-    def _add_new_born_agent(self, new_agent: Agent) -> None:
+    def _add_new_born_agent(self, new_agent: "Agent") -> None:
         for forge in self.forge_list:
             distance = embedding_distance(new_agent.description_embedding, forge.description_embedding)
             self.agent_forge_distances[forge.id].add((new_agent, distance))
 
-        self.agents.append(new_agent)
+        self.agents[new_agent.id] = new_agent

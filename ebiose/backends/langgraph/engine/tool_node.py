@@ -22,7 +22,7 @@ from ebiose.backends.langgraph.engine.states import (
 )
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import BaseNode
-from ebiose.core.engines.graph_engine.utils import find_placeholders
+from ebiose.core.engines.graph_engine.utils import get_placeholders
 
 
 class InputState(LangGraphEngineInputState):

@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import traceback
 import uuid
-from typing import Self
+from typing import Literal, Self
 
 from langfuse.decorators import observe
 from loguru import logger
-from pydantic import BaseModel, Field, field_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
+from pydantic.alias_generators import to_camel
 
 from ebiose.core.agent_engine import AgentEngine
 from ebiose.core.agent_engine_factory import AgentEngineFactory
@@ -22,18 +23,26 @@ from ebiose.tools.embedding_helper import generate_embeddings
 class Agent(BaseModel):
     id: str = Field(default_factory=lambda: "agent-" + str(uuid.uuid4()))
     name: str
+    agent_type: Literal["architect", "genetic_operator"] | None = None
     description: str = Field(repr=False)
+    architect_agent_id: str | None = None  #
     architect_agent: Agent | None = None # TODO(xabier): replace with id
+    genetic_operator_agent_id: str | None = None  #
     genetic_operator_agent: Agent | None  = None # TODO(xabier): replace with id
     parent_ids: list[str] = Field(default_factory=list)
 
     agent_engine: AgentEngine | None = Field(default=None)
     description_embedding: list[float] | None = Field(default=None, exclude=True)
 
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True, # Allows initializing with snake_case names
+    )
+
     @field_serializer("agent_engine")
     def serialize_agent_engine(self, agent_engine: AgentEngine | None) -> dict:
         if agent_engine is not None:
-            return agent_engine.model_dump()
+            return agent_engine.model_dump(by_alias=True) # TODO(xabier): remove by_alias ?
         return {}
 
     @model_validator(mode="before")
@@ -64,5 +73,5 @@ class Agent(BaseModel):
         return self
 
     @observe(name="run_agent")
-    async def run(self, input_data: BaseModel, master_agent_id: str | None = None) -> any:
-        return await self.agent_engine.run(input_data, master_agent_id)
+    async def run(self, input_data: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None) -> any:
+        return await self.agent_engine.run(input_data, master_agent_id, forge_cycle_id)

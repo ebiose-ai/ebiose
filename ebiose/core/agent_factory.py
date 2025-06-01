@@ -6,16 +6,18 @@ This software is licensed under the MIT License. See LICENSE for details.
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 import uuid
 
 from loguru import logger
 
-from ebiose.core.agent import Agent
-from ebiose.core.agent_engine_factory import AgentEngineFactory
+from ebiose.cloud_client.client import AgentOutputModel
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
+    from ebiose.core.agent import Agent
+    from ebiose.core.agent_engine_factory import AgentEngineFactory
 
 
 class AgentFactory:
@@ -23,7 +25,9 @@ class AgentFactory:
     def load_agent(
         agent_config: dict,
         model_endpoint_id: str | None = None,
-    ) -> Agent:
+    ) -> "Agent":
+        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
+        from ebiose.core.agent import Agent # Local import
 
         # creating engine
         agent_engine = AgentEngineFactory.create_engine(
@@ -41,6 +45,43 @@ class AgentFactory:
 
         return Agent.model_validate(agent_config)
 
+
+    @staticmethod
+    def load_agent_from_api(
+        response_dict: AgentOutputModel,
+        model_endpoint_id: str | None = None,
+    ) -> "Agent":
+        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
+        from ebiose.core.agent import Agent # Local import
+
+
+        engine_configuration = json.loads(response_dict.agentEngine.configuration)
+        # creating engine
+        agent_engine = AgentEngineFactory.create_engine(
+            engine_type=response_dict.agentEngine.engineType,
+            configuration=engine_configuration,
+            model_endpoint_id=model_endpoint_id,
+            agent_id=engine_configuration["agent_id"],
+        )
+        architect_agent = AgentFactory.load_agent_from_api(
+            response_dict.architectAgent,
+        ) if response_dict.architectAgent is not None else None
+        genetic_operator_agent = AgentFactory.load_agent_from_api(
+            response_dict.geneticOperatorAgent,
+        ) if response_dict.geneticOperatorAgent is not None else None
+
+        return Agent(
+            id=response_dict.uuid,
+            name=response_dict.name,
+            description=response_dict.description,
+            # architect_agent_id=response_dict.architectAgentId if,
+            architect_agent=architect_agent,  # TODO(xabier): replace with id
+            # genetic_operator_agent_id=response_dict.geneticOperatorAgentId,
+            genetic_operator_agent=genetic_operator_agent,  # TODO(xabier): replace with id
+            agent_engine=agent_engine,
+            parent_ids=[]#TODO(xabier): response_dict.parentIds or [],
+        )
+
     @staticmethod
     async def generate_agent(
         architect_agent: Agent,
@@ -50,9 +91,12 @@ class AgentFactory:
         generated_agent_input: type[BaseModel] | None = None,
         generated_agent_output: type[BaseModel] | None = None,
         generated_model_endpoint_id: str | None = None,
-    ) -> Agent:
+        forge_cycle_id: str | None = None,
+    ) -> "Agent":
+        from ebiose.core.agent import Agent # Local import
+        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
 
-        output = await architect_agent.run(agent_input, master_agent_id=architect_agent.id)
+        output = await architect_agent.run(agent_input, master_agent_id=architect_agent.id, forge_cycle_id=forge_cycle_id)
         try:
             agent_name = "TODO" # TODO(xabier): generate agent name
             agent_description = output.description
@@ -98,9 +142,12 @@ class AgentFactory:
         generated_agent_output: type[BaseModel] | None = None,
         generated_model_endpoint_id: str | None = None,
         parent_ids: list[str] | None = None,
-    ) -> tuple[Agent, Agent] | Agent :
-
-        output = await crossover_agent.run(input_data)
+        forge_cycle_id: str | None = None,
+    ) -> tuple["Agent", "Agent"] | "Agent" :
+        from ebiose.core.agent import Agent # Local import
+        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
+        
+        output = await crossover_agent.run(input_data, forge_cycle_id=forge_cycle_id)
         try:
             agent_name = "TODO" # TODO(xabier): generate agent name
             agent_description = output.description

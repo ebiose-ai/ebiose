@@ -26,6 +26,7 @@ async def architect_agent_task(
         architect_agent: Agent,
         architect_agent_input: BaseModel,
         genetic_operator_agent: Agent,
+        forge_cycle_id: str | None = None,
     ) -> Agent | None:
 
     response = None
@@ -38,6 +39,7 @@ async def architect_agent_task(
             generated_model_endpoint_id=forge.default_model_endpoint_id,
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
+            forge_cycle_id= forge_cycle_id,
         )
     except Exception as e:
         logger.debug(f"Architect agent {architect_agent.id} failed creating a valid agent for {forge.name}. Retrying once.")
@@ -49,6 +51,7 @@ async def architect_agent_task(
             generated_model_endpoint_id=forge.default_model_endpoint_id,
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
+            forge_cycle_id=forge_cycle_id,
         )
     return response
 
@@ -59,6 +62,7 @@ async def crossover_agent_task(
                 crossover_agent_input: BaseModel,
                 parent1: Agent,
                 parent2: Agent | None,
+                forge_cycle_id: str | None = None,
             ) -> Agent | None:
 
     result = None
@@ -71,6 +75,7 @@ async def crossover_agent_task(
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
             parent_ids = [parent1.id, parent2.id] if parent2 is not None else [parent1.id],
+            forge_cycle_id=forge_cycle_id,
         )
     except Exception as e:
         logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
@@ -82,6 +87,7 @@ async def crossover_agent_task(
             generated_model_endpoint_id=forge.default_model_endpoint_id,
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
+            forge_cycle_id=forge_cycle_id,
         )
 
     return result

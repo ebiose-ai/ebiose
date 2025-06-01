@@ -19,7 +19,7 @@ from uuid import uuid4
 from IPython import get_ipython
 from pydantic import BaseModel, Field
 
-from ebiose.generated_cloud_client.mock_ebiose_endpoints import EbioseAPIClient, select_agents, start_new_forge_cycle
+from ebiose.generated_cloud_client.mock_ebiose_endpoints import EbioseAPIClient
 
 if get_ipython() is not None:
     pass
@@ -31,7 +31,6 @@ from ebiose.llm_api.llm_api import (
     LLMApi,
 )
 from ebiose.core.agent import Agent
-from ebiose.core.ecosystem import Ecosystem
 from ebiose.tools.agent_generation_task_with_fallback import (
     architect_agent_task,
     crossover_agent_task,
@@ -39,6 +38,8 @@ from ebiose.tools.agent_generation_task_with_fallback import (
 
 if TYPE_CHECKING:
     from ebiose.core.agent_forge import AgentForge
+    from ebiose.core.ecosystem import Ecosystem
+
 
 import datetime
 
@@ -75,7 +76,6 @@ class ForgeCycle:
     forge: AgentForge
     config: ForgeCycleConfig
     id: str = Field(default_factory=lambda: f"forge-cycle-{uuid4()!s}")
-
 
     agents: dict[str, Agent] = field(default_factory=dict)
     agents_fitness: dict[str, float] = field(default_factory=dict)
@@ -118,7 +118,7 @@ class ForgeCycle:
             logger.debug(f"Error while adding an agent: {e!s}, {agent}")
 
 
-    async def initialize_population(self, ecosystem: Ecosystem) -> None:
+    async def initialize_population(self, ecosystem: "Ecosystem") -> None:
         logger.info("****** Initializing agents population ******")
         self.agents.clear()
         self.agents_first_generation_costs.clear()
@@ -126,7 +126,11 @@ class ForgeCycle:
         n_selected_agents = self.config.n_selected_agents_from_ecosystem
         selected_agents = []
         if self.config.mode == "cloud":
-            selected_agents = EbioseAPIClient.select_agents(self.forge.description, n_selected_agents=n_selected_agents)
+            selected_agents = EbioseAPIClient.select_agents(
+                ecosystem_id=ecosystem.id, 
+                nb_agents=n_selected_agents,
+                forge_cycle_uuid=self.id,
+            )
         # selected_agents = select_agents(self.id, n_selected_agents)
         logger.debug(f"{len(selected_agents)} agents selected from ecosystem over {n_selected_agents} requested")
 
@@ -147,6 +151,7 @@ class ForgeCycle:
                     architect_agent=architect_agent,
                     architect_agent_input=architect_agent_input,
                     genetic_operator_agent=genetic_operator_agent,
+                    forge_cycle_id=self.id,
                 )
                 tasks.append(task)
         else:
@@ -156,17 +161,27 @@ class ForgeCycle:
                 for selected_agent in selected_agents:
                     if len(tasks) >= self.config.n_agents_in_population:
                         break
-                    architect_agent = selected_agent.architect_agent
+                    
+                    # TODO(xabier): if selected agent is an architect agent
+                    # it does not have an architect agent...
+                    architect_agent = ecosystem.get_agent(
+                        selected_agent.architect_agent.id # TODO(xabier): replace by _id
+                    )        
+                    # architect_agent = selected_agent.architect_agent
                     architect_agent_input = architect_agent.agent_engine.input_model(
                         forge_description=self.forge.description,
                     )
-                    genetic_operator_agent = selected_agent.genetic_operator_agent
+                    genetic_operator_agent = ecosystem.get_agent(
+                        selected_agent.genetic_operator_agent.id # TODO(xabier): replace by _id
+                    ) if selected_agent.genetic_operator_agent is not None else None
+                    # genetic_operator_agent = selected_agent.genetic_operator_agent
 
                     task = architect_agent_task(
                         forge=self.forge,
                         architect_agent=architect_agent,
                         architect_agent_input=architect_agent_input,
                         genetic_operator_agent=genetic_operator_agent,
+                        forge_cycle_id=self.id,
                     )
                     tasks.append(task)
 
@@ -187,29 +202,28 @@ class ForgeCycle:
 
     async def execute_a_cycle(
             self,
-            ecosystem: Ecosystem | None,
+            ecosystem: "Ecosystem" | None,
             lite_llm_api_key: str | None = None,
         ) -> list[Agent]:
         logger.info(f"Starting a new cycle for forge {self.forge.name}")
 
         lite_llm_api_key = None
         if self.config.mode == "cloud":
+            ecosystem_uuid = EbioseAPIClient.get_first_ecosystem_uuid()
+            ecosystem = EbioseAPIClient.get_ecosystem(ecosystem_uuid)
             # call cloud start forge cycle
             # returns: lite llm api key and forge cycle id
             lite_llm_api_key, forge_cycle_id = EbioseAPIClient.start_new_forge_cycle(
                 forge_name=self.forge.name,
                 forge_description=self.forge.description,
                 forge_cycle_config=self.config,
+                override_key=True, #TODO(xabier): voir comment faire 
             )
-            # lite_llm_api_key, forge_cycle_id = start_new_forge_cycle(
-            #     forge_name=self.forge.name,
-            #     forge_description=self.forge.description,
-            #     forge_cycle_config=self.config,
-            # )
-            # self.id = forge_cycle_id
-
+            self.id = forge_cycle_id
 
         if ecosystem is None :
+            # TODO(xabier): this does not work 
+            from ebiose.core.ecosystem import Ecosystem
             ecosystem = Ecosystem.new()
 
         LLMApi.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
@@ -285,7 +299,6 @@ class ForgeCycle:
                 EbioseAPIClient.end_forge_cycle(
                     forge_cycle_id=forge_cycle_id,
                     winning_agents=list(selected_agents.values()),
-                    agent_metabolism_updates={},
                 )
 
     async def run_generation(self, cur_generation: int) -> float:
@@ -392,7 +405,7 @@ class ForgeCycle:
 
         # WARNING: we should not select the same agent twice
         return random.choices(winning_agent_ids, k=n_to_select)
-
+ 
     async def crossover_and_mutate(self, selected_parent_ids: list[str]) -> tuple[list[Agent], float]:
         tasks = []
         for i in range(len(selected_parent_ids)):

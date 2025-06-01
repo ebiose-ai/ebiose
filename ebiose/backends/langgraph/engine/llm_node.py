@@ -18,8 +18,9 @@ from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineInputState,
     LangGraphEngineOutputState,
 )
+from ebiose.core.engines.graph_engine.nodes import get_n_llm_nodes_constraint_string, get_node_types_docstrings
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
-from ebiose.core.engines.graph_engine.utils import find_placeholders
+from ebiose.core.engines.graph_engine.utils import get_placeholders
 
 
 class InputState(LangGraphEngineInputState):
@@ -61,12 +62,22 @@ class LangGraphLLMNode(LLMNode):
             shared_context_prompt = config["configurable"]["shared_context_prompt"]
             model_endpoint_id = config["configurable"]["model_endpoint_id"]
             agent_id = config["configurable"]["agent_id"]
+            forge_cycle_id = config["configurable"]["forge_cycle_id"]
+
             output_conditions = []
             if self.id in config["configurable"] and "output_conditions" in config["configurable"][self.id]:
                 output_conditions = config["configurable"][self.id]["output_conditions"]
 
-            has_placeholders = find_placeholders(shared_context_prompt)
-            if has_placeholders:
+            placeholders = get_placeholders(shared_context_prompt)
+            # TODO(xabier): this is a temporary solution to generate missing fields for achitect agents
+            if "node_types_description" in placeholders:
+                state.input.node_types_description = get_node_types_docstrings(state.input.node_types)
+            if "n_llm_nodes_constraint_string" in placeholders:
+                state.input.n_llm_nodes_constraint_string = get_n_llm_nodes_constraint_string(
+                    random_n_llm_nodes=state.input.random_n_llm_nodes,
+                    max_llm_nodes=state.input.max_llm_nodes,
+                )
+            if len(placeholders) > 0:
                 shared_context_prompt = shared_context_prompt.format(
                     **state.input.model_dump(),
                 )
@@ -101,6 +112,7 @@ class LangGraphLLMNode(LLMNode):
                 messages=prompts,
                 tools=self.tools,
                 temperature=self.temperature,
+                forge_cycle_id=forge_cycle_id,
             )
             messages = [response]
             if self.tools is not None and len(self.tools) > 0:
