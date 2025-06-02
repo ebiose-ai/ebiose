@@ -104,7 +104,7 @@ class LangGraphEngine(GraphEngine):
             )
 
             try:
-                return await structured_output_agent.run(so_agent_input, forge_cycle_id=forge_cycle_id)
+                return await structured_output_agent.run(so_agent_input, master_agent_id, forge_cycle_id=forge_cycle_id)
             except Exception as e:
                 logger.debug(f"Error while running agent {self.agent_id}, when calling structured output agent: {e!s}")
         else:

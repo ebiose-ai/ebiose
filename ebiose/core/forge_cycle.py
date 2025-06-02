@@ -293,16 +293,14 @@ class ForgeCycle:
 
         
         finally:
-            
             # Clean up
             if self.config.mode == "cloud":
                 EbioseAPIClient.end_forge_cycle(
-                    forge_cycle_id=forge_cycle_id,
+                    forge_cycle_uuid=forge_cycle_id,
                     winning_agents=list(selected_agents.values()),
                 )
 
     async def run_generation(self, cur_generation: int) -> float:
-
         logger.info(f"****** Running generation {cur_generation} ******")
         # Evaluate current population asynchronously
         logger.info(f"Evaluating current population of {len(self.agents)} agents...")
@@ -398,7 +396,11 @@ class ForgeCycle:
         for i, agent in enumerate(agents):
             tournament_agents = [agent]
             # pick tournament_size agents at random, except the agent itself
-            tournament_agents += random.sample(agents[:i] + agents[i+1:], tournament_size-1)
+            # TODO(xabier): to be fixed because we should not select the same agent twice
+            if len(agents) <= 1:
+                tournament_agents += [agents[0]] * (tournament_size - 1)
+            else:
+                tournament_agents += random.sample(agents[:i] + agents[i+1:], tournament_size-1)
             tournament_fitness = [self.agents_fitness[agent.id] for agent in tournament_agents]
             best_agent = tournament_agents[tournament_fitness.index(max(tournament_fitness))]
             winning_agent_ids.append(best_agent.id)
@@ -434,6 +436,8 @@ class ForgeCycle:
                 crossover_agent_input=crossover_input,
                 parent1=parent1,
                 parent2=parent2,
+                master_agent_id=None,
+                forge_cycle_id=self.id,
             )
 
             tasks.append(task)

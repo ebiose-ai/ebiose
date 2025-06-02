@@ -62,6 +62,7 @@ async def crossover_agent_task(
                 crossover_agent_input: BaseModel,
                 parent1: Agent,
                 parent2: Agent | None,
+                master_agent_id: str | None = None,
                 forge_cycle_id: str | None = None,
             ) -> Agent | None:
 
@@ -75,6 +76,7 @@ async def crossover_agent_task(
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
             parent_ids = [parent1.id, parent2.id] if parent2 is not None else [parent1.id],
+            master_agent_id=master_agent_id,
             forge_cycle_id=forge_cycle_id,
         )
     except Exception as e:
