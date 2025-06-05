@@ -1,9 +1,10 @@
 import json
-import requests
-from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field, HttpUrl
+from typing import Any, Optional
+
+import requests
+from pydantic import BaseModel, Field
 
 # --- Constants ---
 # You might want to manage the base URL and API key/token through environment variables or a config file
@@ -12,7 +13,7 @@ from pydantic import BaseModel, Field, HttpUrl
 # --- Custom Exceptions ---
 class EbioseCloudError(Exception):
     """Base exception for EbioseCloud API errors."""
-    def __init__(self, message, status_code: Optional[int] = None, response_text: Optional[str] = None):
+    def __init__(self, message, status_code: int | None = None, response_text: str | None = None):
         super().__init__(message)
         self.status_code = status_code
         self.response_text = response_text
@@ -22,35 +23,32 @@ class EbioseCloudError(Exception):
 
 class EbioseCloudHTTPError(EbioseCloudError):
     """Exception for HTTP errors (4xx, 5xx)."""
-    pass
 
 class EbioseCloudAuthError(EbioseCloudError):
     """Exception for authentication-related errors."""
-    pass
 
 # --- Enums ---
 class Role(int, Enum):
-    """
-    Enum for User Roles. The OpenAPI spec defines [1, 2].
+    """Enum for User Roles. The OpenAPI spec defines [1, 2].
     Assuming 1 could be an admin-like role and 2 a standard user.
     Adjust names if specific roles are known.
     """
-    VALUE_1 = 1
-    VALUE_2 = 2
+    USER = 1
+    ADMIN = 2
 
 # --- Pydantic Models (Generated from #/components/schemas) ---
 # Forward references will be resolved by Pydantic using string type hints.
 
 class AgentEngineInputModel(BaseModel):
-    engineType: Optional[str] = None
-    configuration: Optional[str] = None
+    engineType: str | None = None
+    configuration: str | None = None
 
 class AgentEngineOutputModel(BaseModel):
-    engineType: Optional[str] = None
-    configuration: Optional[str] = None
+    engineType: str | None = None
+    configuration: str | None = None
 
 class ApiKeyInputModel(BaseModel):
-    userUuid: Optional[str] = None
+    userUuid: str | None = None
     expirationDate: datetime
 
 class SelfApiKeyInputModel(BaseModel):
@@ -60,91 +58,91 @@ class EcosystemInputModel(BaseModel):
     communityCreditsAvailable: float
 
 class ForgeCycleInputModel(BaseModel):
-    forgeDescription: Optional[str] = None
-    forgeName: Optional[str] = None
+    forgeDescription: str | None = None
+    forgeName: str | None = None
     nAgentsInPopulation: int
     nSelectedAgentsFromEcosystem: int
     nBestAgentsToReturn: int
     replacementRatio: float
     tournamentSizeRatio: float
-    localResultsPath: Optional[str] = None
+    localResultsPath: str | None = None
     budget: float
 
 class SelfUserInputModel(BaseModel):
-    firstname: Optional[str] = None
-    lastname: Optional[str] = None
-    email: Optional[str] = None
-    githubId: Optional[str] = None
-    password: Optional[str] = None # Be cautious with sending passwords
+    firstname: str | None = None
+    lastname: str | None = None
+    email: str | None = None
+    githubId: str | None = None
+    password: str | None = None # Be cautious with sending passwords
 
 class SignupInputModel(BaseModel):
-    firstname: Optional[str] = None
-    lastname: Optional[str] = None
-    email: Optional[str] = None
-    githubId: Optional[str] = None
-    password: Optional[str] = None # Be cautious with sending passwords
+    firstname: str | None = None
+    lastname: str | None = None
+    email: str | None = None
+    githubId: str | None = None
+    password: str | None = None # Be cautious with sending passwords
 
 class UserInputModel(BaseModel):
     role: Role
-    firstname: Optional[str] = None
-    lastname: Optional[str] = None
-    email: Optional[str] = None
-    githubId: Optional[str] = None
+    firstname: str | None = None
+    lastname: str | None = None
+    email: str | None = None
+    githubId: str | None = None
     creditsLimit: float
-    password: Optional[str] = None # Be cautious with sending passwords
+    password: str | None = None # Be cautious with sending passwords
 
 # Models that might have forward references or be referenced by others
 class UserOutputModel(BaseModel):
-    uuid: Optional[str] = None
+    uuid: str | None = None
     role: Role
-    firstname: Optional[str] = None
-    lastname: Optional[str] = None
-    email: Optional[str] = None
-    githubId: Optional[str] = None
-    apiKeys: Optional[List['ApiKeyOutputModel']] = None # Forward reference
+    firstname: str | None = None
+    lastname: str | None = None
+    email: str | None = None
+    githubId: str | None = None
+    apiKeys: list["ApiKeyOutputModel"] | None = None # Forward reference
     creditsLimit: float
     creditsUsed: float
     availableCredits: float = Field(..., description="Read-only field")
 
 class ApiKeyOutputModel(BaseModel):
-    uuid: Optional[str] = None
-    key: Optional[str] = None
+    uuid: str | None = None
+    key: str | None = None
     createdAt: datetime
     expirationDate: datetime
-    user: Optional[UserOutputModel] = None # Reference to UserOutputModel
+    user: UserOutputModel | None = None # Reference to UserOutputModel
 
 class AgentOutputModel(BaseModel):
-    uuid: Optional[str] = None
-    name: Optional[str] = None
-    description: Optional[str] = None
-    ecosystem: Optional['EcosystemOutputModel'] = None # Forward reference
-    architectAgent: Optional['AgentOutputModel'] = None # Self/Forward reference
-    geneticOperatorAgent: Optional['AgentOutputModel'] = None # Self/Forward reference
-    agentEngine: Optional[AgentEngineOutputModel] = None
-    descriptionEmbedding: Optional[List[float]] = None
+    uuid: str | None = None
+    name: str | None = None
+    description: str | None = None
+    ecosystem: Optional["EcosystemOutputModel"] = None # Forward reference
+    architectAgent: Optional["AgentOutputModel"] = None # Self/Forward reference
+    geneticOperatorAgent: Optional["AgentOutputModel"] = None # Self/Forward reference
+    agentEngine: AgentEngineOutputModel | None = None
+    descriptionEmbedding: list[float] | None = None
     computeBankInDollars: float
 
 class EcosystemOutputModel(BaseModel):
-    uuid: Optional[str] = None
+    uuid: str | None = None
     communityCreditsAvailable: float
-    agents: Optional[List[AgentOutputModel]] = None # Reference to AgentOutputModel
+    agents: list[AgentOutputModel] | None = None # Reference to AgentOutputModel
 
 class AgentInputModel(BaseModel):
-    uuid: Optional[str] = None # Typically not set on input unless for update linking
-    name: Optional[str] = None
-    description: Optional[str] = None
-    architectAgentUuid: Optional[str] = None
-    geneticOperatorAgentUuid: Optional[str] = None
-    agentEngine: Optional[AgentEngineInputModel] = None
-    descriptionEmbedding: Optional[List[float]] = None
+    uuid: str | None = None # Typically not set on input unless for update linking
+    name: str | None = None
+    description: str | None = None
+    architectAgentUuid: str | None = None
+    geneticOperatorAgentUuid: str | None = None
+    agentEngine: AgentEngineInputModel | None = None
+    descriptionEmbedding: list[float] | None = None
 
 class LoginOutputModel(BaseModel):
-    user: Optional[UserOutputModel] = None
-    token: Optional[str] = None
+    user: UserOutputModel | None = None
+    token: str | None = None
 
 class NewCycleOutputModel(BaseModel):
-    liteLLMKey: Optional[str] = None
-    forgeCycleUuid: Optional[str] = None
+    liteLLMKey: str | None = None
+    forgeCycleUuid: str | None = None
 
 # Rebuild models to resolve forward references (Pydantic usually handles this with string annotations)
 # For older Pydantic versions, explicit rebuild might be needed.
@@ -157,12 +155,10 @@ EcosystemOutputModel.model_rebuild()
 
 # --- Core API Client ---
 class EbioseCloudClient:
+    """Core client for interacting with the EbioseCloud API.
     """
-    Core client for interacting with the EbioseCloud API.
-    """
-    def __init__(self, base_url: str, api_key: Optional[str] = None, bearer_token: Optional[str] = None, timeout: int = 30):
-        """
-        Initializes the EbioseCloudClient.
+    def __init__(self, base_url: str, api_key: str | None = None, bearer_token: str | None = None, timeout: int = 30):
+        """Initializes the EbioseCloudClient.
 
         Args:
             base_url: The base URL for the API.
@@ -170,11 +166,11 @@ class EbioseCloudClient:
             bearer_token: The Bearer token for authentication.
             timeout: Request timeout in seconds.
         """
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.bearer_token = bearer_token
         self.timeout = timeout
-        
+
         if not self.api_key and not self.bearer_token:
             # Depending on API design, some public endpoints might not need auth.
             # However, the global security definition suggests auth is generally required.
@@ -185,12 +181,11 @@ class EbioseCloudClient:
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Any] = None, # For form data
-        json_data: Optional[Any] = None, # For JSON body
+        params: dict[str, Any] | None = None,
+        data: Any | None = None, # For form data
+        json_data: Any | None = None, # For JSON body
     ) -> Any:
-        """
-        Makes an HTTP request to the API.
+        """Makes an HTTP request to the API.
 
         Args:
             method: HTTP method (GET, POST, PUT, DELETE).
@@ -227,7 +222,7 @@ class EbioseCloudClient:
                 data=data,
                 json=json_data,
                 headers=headers,
-                timeout=self.timeout
+                timeout=self.timeout,
             )
             response.raise_for_status()  # Raises HTTPError for 4xx/5xx responses
 
@@ -238,7 +233,7 @@ class EbioseCloudClient:
         except requests.exceptions.HTTPError as e:
             response_text = e.response.text if e.response is not None else "No response body"
             status_code = e.response.status_code if e.response is not None else None
-            
+
             # Log or capture more details from e.response if needed
             # For example, try to parse JSON error from response_text
             error_details = response_text
@@ -252,7 +247,7 @@ class EbioseCloudClient:
             raise EbioseCloudHTTPError(
                 f"HTTP error occurred: {e.request.method} {e.request.url} - {error_details}",
                 status_code=status_code,
-                response_text=response_text
+                response_text=response_text,
             ) from e
         except requests.exceptions.RequestException as e:
             raise EbioseCloudError(f"Request failed: {e}") from e
@@ -262,7 +257,7 @@ class EbioseCloudClient:
         """POST /apikeys - AddApiKey"""
         return self._request("POST", "/apikeys", json_data=data.model_dump(by_alias=True))
 
-    def get_api_keys(self) -> List[ApiKeyOutputModel]:
+    def get_api_keys(self) -> list[ApiKeyOutputModel]:
         """GET /apikeys - GetApiKeys"""
         response_data = self._request("GET", "/apikeys")
         return [ApiKeyOutputModel(**item) for item in response_data]
@@ -271,7 +266,7 @@ class EbioseCloudClient:
         """POST /apikeys/self - SelfAddApiKey"""
         return self._request("POST", "/apikeys/self", json_data=data.model_dump(by_alias=True))
 
-    def self_get_api_keys(self) -> List[ApiKeyOutputModel]:
+    def self_get_api_keys(self) -> list[ApiKeyOutputModel]:
         """GET /apikeys/self - SelfGetApiKeys"""
         response_data = self._request("GET", "/apikeys/self")
         return [ApiKeyOutputModel(**item) for item in response_data]
@@ -331,7 +326,7 @@ class EbioseCloudClient:
         response_data = self._request("POST", "/ecosystems", json_data=data.model_dump(by_alias=True))
         return EcosystemOutputModel(**response_data)
 
-    def list_ecosystems(self) -> List[EcosystemOutputModel]:
+    def list_ecosystems(self) -> list[EcosystemOutputModel]:
         """GET /ecosystems"""
         response_data = self._request("GET", "/ecosystems")
         return [EcosystemOutputModel(**item) for item in response_data]
@@ -350,32 +345,32 @@ class EbioseCloudClient:
         """DELETE /ecosystems/{uuid}"""
         self._request("DELETE", f"/ecosystems/{uuid}")
 
-    def add_agents_to_ecosystem(self, ecosystem_uuid: str, agents_data: List[AgentInputModel]) -> None:
+    def add_agents_to_ecosystem(self, ecosystem_uuid: str, agents_data: list[AgentInputModel]) -> None:
         """POST /ecosystems/{ecosystemUuid}/agents"""
         json_payload = [agent.model_dump(by_alias=True) for agent in agents_data]
         self._request("POST", f"/ecosystems/{ecosystem_uuid}/agents", json_data=json_payload)
 
-    def list_agents_in_ecosystem(self, ecosystem_uuid: str) -> List[AgentOutputModel]:
+    def list_agents_in_ecosystem(self, ecosystem_uuid: str) -> list[AgentOutputModel]:
         """GET /ecosystems/{ecosystemUuid}/agents"""
         response_data = self._request("GET", f"/ecosystems/{ecosystem_uuid}/agents")
         return [AgentOutputModel(**item) for item in response_data]
 
-    def delete_agents_from_ecosystem(self, ecosystem_uuid: str, agent_uuids: List[str]) -> None:
+    def delete_agents_from_ecosystem(self, ecosystem_uuid: str, agent_uuids: list[str]) -> None:
         """DELETE /ecosystems/{ecosystemUuid}/agents"""
         self._request("DELETE", f"/ecosystems/{ecosystem_uuid}/agents", json_data=agent_uuids)
 
-    def select_agents_from_ecosystem(self, ecosystem_uuid: str, nb_agents: int, forge_cycle_uuid: str) -> List[AgentOutputModel]:
+    def select_agents_from_ecosystem(self, ecosystem_uuid: str, nb_agents: int, forge_cycle_uuid: str) -> list[AgentOutputModel]:
         """GET /ecosystems/{ecosystemUuid}/select-agents"""
         params = {"nbAgents": nb_agents, "forgeCycleUuid": forge_cycle_uuid}
         response_data = self._request("GET", f"/ecosystems/{ecosystem_uuid}/select-agents", params=params)
         return [AgentOutputModel(**item) for item in response_data]
 
-    def deduct_compute_banks_for_ecosystem(self, ecosystem_uuid: str, deductions: Dict[str, float]) -> None:
+    def deduct_compute_banks_for_ecosystem(self, ecosystem_uuid: str, deductions: dict[str, float]) -> None:
         """POST /ecosystems/{ecosystemUuid}/deduct-compute-banks"""
         self._request("POST", f"/ecosystems/{ecosystem_uuid}/deduct-compute-banks", json_data=deductions)
 
     # --- ForgeCycleEndpoints ---
-    def start_new_forge_cycle(self, data: ForgeCycleInputModel, override_key: Optional[bool] = None) -> NewCycleOutputModel:
+    def start_new_forge_cycle(self, data: ForgeCycleInputModel, override_key: bool | None = None) -> NewCycleOutputModel:
         """POST /forges/cycles/start - StartNewForgeCycle"""
         params = {}
         if override_key is not None:
@@ -383,7 +378,7 @@ class EbioseCloudClient:
         response_data = self._request("POST", "/forges/cycles/start", params=params if params else None, json_data=data.model_dump(by_alias=True))
         return NewCycleOutputModel(**response_data)
 
-    def end_forge_cycle(self, forge_cycle_uuid: str, agents_data: List[AgentInputModel]) -> None:
+    def end_forge_cycle(self, forge_cycle_uuid: str, agents_data: list[AgentInputModel]) -> None:
         """POST /forges/cycles/end/{forgeCycleUuid} - EndForgeCycle"""
         json_payload = [agent.model_dump(by_alias=True) for agent in agents_data]
         self._request("POST", f"/forges/cycles/end/{forge_cycle_uuid}", json_data=json_payload)
@@ -398,7 +393,7 @@ class EbioseCloudClient:
         response_data = self._request("POST", "/users", json_data=data.model_dump(by_alias=True))
         return UserOutputModel(**response_data)
 
-    def list_users(self) -> List[UserOutputModel]:
+    def list_users(self) -> list[UserOutputModel]:
         """GET /users"""
         response_data = self._request("GET", "/users")
         return [UserOutputModel(**item) for item in response_data]
@@ -429,13 +424,12 @@ class EbioseCloudClient:
 
 # --- Facade API Client (as per user's example structure) ---
 class EbioseAPIClient:
-    _client: Optional[EbioseCloudClient] = None
-    _base_url: Optional[str] = None # Store base_url for re-initialization if needed
+    _client: EbioseCloudClient | None = None
+    _base_url: str | None = None # Store base_url for re-initialization if needed
 
     @classmethod
-    def set_client_credentials(cls, base_url: str, api_key: Optional[str] = None, bearer_token: Optional[str] = None) -> None:
-        """
-        Set the API client with the provided base URL and API key or Bearer token.
+    def set_client_credentials(cls, base_url: str, api_key: str | None = None, bearer_token: str | None = None) -> None:
+        """Set the API client with the provided base URL and API key or Bearer token.
         This method initializes or re-initializes the internal client.
         """
         cls._base_url = base_url # Store for potential re-init or reference
@@ -444,22 +438,21 @@ class EbioseAPIClient:
 
     @classmethod
     def _get_client(cls) -> EbioseCloudClient:
-        """
-        Ensures the client is initialized and returns it.
+        """Ensures the client is initialized and returns it.
         Raises EbioseCloudAuthError if the client is not set.
         """
         if cls._client is None:
             # You might want to load credentials from a config/env here if not set via set_client_credentials
             # For now, it strictly requires set_client_credentials to be called first.
             raise EbioseCloudAuthError(
-                "Client not initialized. Call EbioseAPIClient.set_client_credentials(base_url, api_key/bearer_token) first."
+                "Client not initialized. Call EbioseAPIClient.set_client_credentials(base_url, api_key/bearer_token) first.",
             )
         return cls._client
 
     # --- Wrapper Methods for EbioseCloudClient operations ---
     # Example: Ecosystems (as in user's provided snippet)
     @classmethod
-    def get_ecosystems(cls) -> List[EcosystemOutputModel]:
+    def get_ecosystems(cls) -> list[EcosystemOutputModel]:
         """Get the list of all ecosystems."""
         client = cls._get_client()
         try:
@@ -471,13 +464,12 @@ class EbioseAPIClient:
                 # For brevity, not printing full JSON here, but you can uncomment:
                 # print(json.dumps([eco.model_dump() for eco in list_of_ecosystems], indent=2, default=str))
                 return list_of_ecosystems
-            else:
-                print("No ecosystems were found.")
-                return []
+            print("No ecosystems were found.")
+            return []
         except EbioseCloudHTTPError as e:
             print(f"An API HTTP error occurred while fetching ecosystems: {e}")
             # Consider re-raising or handling more gracefully based on application needs
-            raise 
+            raise
         except EbioseCloudError as e:
             print(f"An API error occurred while fetching ecosystems: {e}")
             raise
@@ -488,13 +480,13 @@ class EbioseAPIClient:
     # --- Add wrappers for all other EbioseCloudClient methods here ---
     # Example for another method group: ApiKey
     @classmethod
-    def add_new_api_key(cls, user_uuid: Optional[str], expiration_date: datetime) -> bool:
+    def add_new_api_key(cls, user_uuid: str | None, expiration_date: datetime) -> bool:
         client = cls._get_client()
         input_data = ApiKeyInputModel(userUuid=user_uuid, expirationDate=expiration_date)
         return client.add_api_key(data=input_data)
 
     @classmethod
-    def list_all_api_keys(cls) -> List[ApiKeyOutputModel]:
+    def list_all_api_keys(cls) -> list[ApiKeyOutputModel]:
         client = cls._get_client()
         return client.get_api_keys()
 
@@ -512,7 +504,7 @@ class EbioseAPIClient:
     def perform_sign_up(cls, signup_data: SignupInputModel) -> UserOutputModel:
         client = cls._get_client()
         return client.sign_up(data=signup_data)
-    
+
     @classmethod
     def get_current_user_info(cls) -> UserOutputModel:
         client = cls._get_client()
@@ -526,7 +518,7 @@ class EbioseAPIClient:
     #     return client.create_user(data=user_data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # --- Example Usage (Illustrative) ---
     # **Important**: Replace with your actual base_url and credentials.
     # This example assumes you have a running instance of the EbioseCloud API.
@@ -542,7 +534,7 @@ if __name__ == '__main__':
     #     base_url="http://localhost:8000", # Replace with your API base URL
     #     bearer_token="YOUR_BEARER_TOKEN"
     # )
-    
+
     print("Ebiose API Client (Python) - Example Usage")
     print("Please configure EbioseAPIClient.set_client_credentials() before running examples.")
     print("-" * 30)
@@ -598,7 +590,7 @@ if __name__ == '__main__':
         # This call would typically not require an API key/bearer token on the client itself,
         # as the login endpoint is usually public.
         # However, the client still needs the base_url.
-        
+
         # EbioseAPIClient.set_client_credentials(base_url=ModelEndpoints.get_ebiose_api_base()) # Set only base_url for login
         # if EbioseAPIClient._client:
         #     try:
@@ -627,7 +619,6 @@ if __name__ == '__main__':
         # else:
         #     print("\nSkipping login example as client base_url is not configured.")
 
-        pass
 
     except EbioseCloudAuthError as e:
         print(f"Client setup error: {e}")

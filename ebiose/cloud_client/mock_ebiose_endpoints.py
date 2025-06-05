@@ -55,6 +55,7 @@ def build_agent_input_model(agent: "Agent") -> AgentInputModel:
 
 class EbioseAPIClient:
     _client: EbioseCloudClient | None = None
+    _previous_cost: float = 0.0 # TODO(xabier): remove this when server side is ready
 
     @classmethod
     def set_client(cls) -> None:
@@ -220,7 +221,7 @@ class EbioseAPIClient:
         forge_description: str, 
         forge_cycle_config: "CloudForgeCycleConfig",
         override_key: bool | None = None,
-    )-> tuple[str, str]:
+    )-> tuple[str, str, str]:
 
         forge_cycle_input = ForgeCycleInputModel(
             forgeDescription=forge_description,
@@ -238,7 +239,11 @@ class EbioseAPIClient:
             data=forge_cycle_input, 
             override_key=override_key,
         )
-        return new_cycle_output.liteLLMKey, new_cycle_output.forgeCycleUuid
+
+        # TODO(xabier): should be returned by the server side
+        lite_llm_api_base = "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
+
+        return new_cycle_output.liteLLMKey, lite_llm_api_base, new_cycle_output.forgeCycleUuid
 
     @classmethod
     @_handle_api_errors
@@ -262,6 +267,21 @@ class EbioseAPIClient:
     @_handle_api_errors
     def get_cost(cls, forge_cycle_uuid: str) -> float:
         return cls._client.get_spend(forge_cycle_uuid=forge_cycle_uuid)
+        # TODO(xabier): remove this when server side is ready
+        # n_retries = 0
+        # while cost == cls._previous_cost and n_retries < 10:
+        #     # Wait for the cost to change
+        #     print("Waiting for the cost to change...")
+        #     import time
+        #     time.sleep(1)
+        #     cost = cls._client.get_spend(forge_cycle_uuid=forge_cycle_uuid)
+        #     n_retries += 1
+        # if n_retries >= 10:
+        #     print("Cost did not change after 10 retries, returning the previous cost.")
+        #     cost = cls._previous_cost
+        # cls._previous_cost = cost
+        # # Return the cost in dollars
+        # return cost
     
     @classmethod
     @_handle_api_errors

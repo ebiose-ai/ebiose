@@ -19,7 +19,9 @@ from uuid import uuid4
 from IPython import get_ipython
 from pydantic import BaseModel, Field
 
-from ebiose.generated_cloud_client.mock_ebiose_endpoints import EbioseAPIClient
+from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
+from ebiose.core.model_endpoint import ModelEndpoints
+from ebiose.cloud_client.mock_ebiose_endpoints import EbioseAPIClient
 
 if get_ipython() is not None:
     pass
@@ -27,9 +29,6 @@ if get_ipython() is not None:
 from loguru import logger
 from tqdm.asyncio import tqdm
 
-from ebiose.llm_api.llm_api import (
-    LLMApi,
-)
 from ebiose.core.agent import Agent
 from ebiose.tools.agent_generation_task_with_fallback import (
     architect_agent_task,
@@ -190,8 +189,7 @@ class ForgeCycle:
         for selected_agent in selected_agents if n_selected_agents > 0 else []:
             self.add_agent(selected_agent)
 
-        logger.debug(f"Agent initialization cost: {sum(LLMApi.cost_per_agent.values())}")
-        LLMApi.reset_cost_per_agent()
+        logger.debug(f"Agent initialization cost: {LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
         for new_agent in results:
             if new_agent is None:
                 continue
@@ -213,7 +211,7 @@ class ForgeCycle:
             ecosystem = EbioseAPIClient.get_ecosystem(ecosystem_uuid)
             # call cloud start forge cycle
             # returns: lite llm api key and forge cycle id
-            lite_llm_api_key, forge_cycle_id = EbioseAPIClient.start_new_forge_cycle(
+            lite_llm_api_key, lite_llm_api_base, forge_cycle_id = EbioseAPIClient.start_new_forge_cycle(
                 forge_name=self.forge.name,
                 forge_description=self.forge.description,
                 forge_cycle_config=self.config,
@@ -226,7 +224,12 @@ class ForgeCycle:
             from ebiose.core.ecosystem import Ecosystem
             ecosystem = Ecosystem.new()
 
-        LLMApi.initialize(mode=self.config.mode, lite_llm_api_key=lite_llm_api_key)
+        LangGraphLLMApi.initialize(
+            mode=self.config.mode,
+            lite_llm_api_key=lite_llm_api_key,
+            lite_llm_api_base=lite_llm_api_base,
+        )
+        
         try:
             t0 = time()
             await self.initialize_population(ecosystem=ecosystem)
@@ -235,25 +238,25 @@ class ForgeCycle:
                 logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
                 return []
 
-            total_cycle_cost = LLMApi.get_spent_cost()
+            total_cycle_cost = LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)
             logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
             if self.config.mode == "cloud":
-                logger.info(f"Budget left after initialization: {self.config.budget - LLMApi.get_spent_cost()} $")
+                logger.info(f"Budget left after initialization: {self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
 
             # running generation 0
             generation = 0
             first_generation_cost = await self.run_generation(generation)
             total_cycle_cost += first_generation_cost
             if self.config.mode == "cloud":
-                logger.info(f"Budget left after first generation: {self.config.budget - LLMApi.get_spent_cost()} $")
+                logger.info(f"Budget left after first generation: {self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
 
             # running next generations until budget is reached
-            while self.config.budget - LLMApi.get_spent_cost() > first_generation_cost if self.config.mode == "cloud" else generation < self.config.n_generations:
+            while self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id) > first_generation_cost if self.config.mode == "cloud" else generation < self.config.n_generations:
                 generation += 1
                 total_cycle_cost += await self.run_generation(generation)
                 if self.config.mode == "cloud":
-                    logger.info(f"Budget left after new generation: {self.config.budget - LLMApi.get_spent_cost()} $")
-                LLMApi.reset_cost_per_agent()
+                    logger.info(f"Budget left after new generation: {self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
+                # LangGraphLLMApi.reset_cost_per_agent()
 
 
             # Evaluate last offsprings before sorting all population by fitness
@@ -274,7 +277,7 @@ class ForgeCycle:
                 key=lambda agent: self.agents_fitness[agent.id],
                 reverse=True,
             )
-            
+
         except Exception as e:
             logger.error(f"Error during cycle execution: {e!s}")
             logger.info("Cycle execution failed. Cleaning up...")
@@ -282,7 +285,7 @@ class ForgeCycle:
         else:
             logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
             if self.config.mode == "cloud":
-                logger.info(f"Budget left at final: {self.config.budget - LLMApi.get_spent_cost()} $")
+                logger.info(f"Budget left at final: {self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
             logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
             selected_agents = {
@@ -291,7 +294,6 @@ class ForgeCycle:
             selected_fitness = {agent_id: self.agents_fitness[agent_id] for agent_id in selected_agents}
             return selected_agents, selected_fitness
 
-        
         finally:
             # Clean up
             if self.config.mode == "cloud":
@@ -322,8 +324,8 @@ class ForgeCycle:
         logger.info("Starting crossover and mutation...")
         selected_parent_ids_for_crossover = self.tournament_selection(n_to_select=n_replaced)
         t1 = time()
-        offspring_agents = await self.crossover_and_mutate(selected_parent_ids_for_crossover)
-        logger.info(f"Crossover and mutation completed in {human_readable_duration(t1)} for a total cost of TODO $")
+        offspring_agents, genetic_cost = await self.crossover_and_mutate(selected_parent_ids_for_crossover)
+        logger.info(f"Crossover and mutation completed in {human_readable_duration(t1)} for a total cost of {genetic_cost} $")
 
         # we finally add kept and offspring agents
         self.agents = {agent.id: agent for agent in kept_agents.values()}
@@ -352,7 +354,7 @@ class ForgeCycle:
         for index, agent_id in enumerate(self.agents.keys()):
             fitness = results[index]
             self.agents_fitness[agent_id] = fitness
-            current_agent_cost = LLMApi.get_agent_cost(agent_id)
+            current_agent_cost = LangGraphLLMApi.get_agent_cost(agent_id)
             total_cost_in_dollars += current_agent_cost
 
             if update_first_generation_costs:
@@ -409,6 +411,7 @@ class ForgeCycle:
         return random.choices(winning_agent_ids, k=n_to_select)
  
     async def crossover_and_mutate(self, selected_parent_ids: list[str]) -> tuple[list[Agent], float]:
+        previous_cost = LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)
         tasks = []
         for i in range(len(selected_parent_ids)):
             parent1_id = selected_parent_ids[i]
@@ -449,7 +452,8 @@ class ForgeCycle:
 
         logger.debug(f"Number of offsprings: {len(offsprings)}/{len(selected_parent_ids)}")
 
-        return offsprings
+        total_cost = LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id) - previous_cost
+        return offsprings, total_cost
 
 
     def display_current_results(self, n_best: int = 3) -> None:
