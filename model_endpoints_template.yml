@@ -3,7 +3,7 @@
 # and fill in the API keys and endpoint URLs for the models you want to use
 
 default_endpoint_id: "azure/gpt-4o-mini" 
-default_architect_endpoint_id: "azure/o3-mini"
+default_architect_endpoint_id: "azure/gpt-4o"
 
 lite_llm:
   use: true
@@ -18,7 +18,7 @@ endpoints:
     provider: "OpenAI"
     api_key: "YOUR_OPENAI_API_KEY" # fill in your OpenAI API key
 
-  # Azure OpenAI endpoints
+  # Azure OpenAI endpoints with LiteLLM proxy
   - endpoint_id: "azure/gpt-4o-mini"
     provider: "Azure OpenAI"
     

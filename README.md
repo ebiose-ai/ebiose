@@ -110,10 +110,37 @@ way to define the model endpoints to which you have access to is to create a
 `model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml]`(model_endpoints_template.yml)
 YAML file at the root of the project, and fill it with your secret credentials.
 
+Default models for architect agents and standard agents are defined by 
+the following fields at the beginning of the `model_endpoints.yml` file. For instance:
+```
+default_endpoint_id: "azure/gpt-4o-mini" 
+default_architect_endpoint_id: "azure/gpt-4o"
+```
+
 ## Main model endpoints
 We have implemented the most popular LLM APIs. For others, please refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/) and adapt 
 the [`LangGraphComputeIntensiveBatchProcessor` class](ebiose/backends/langgraph/compute_intensive_batch_processor.py) accordingly. Issues and pull requests are 
 welcomed.
+
+### LiteLLM
+Ebiose recommends the use of [LiteLLM](https://docs.litellm.ai/docs/) for easily managing LLM models and budgets. To use LiteLLM, fill the `model_endpoints.yml` file at the root of the project, with, for example:
+```
+lite_llm:
+  use: true
+  use_proxy: true
+  api_key: "your-litellm-api-key"
+  api_base: "your-api-base-url" 
+```
+
+When using LiteLLM, you only need to provide the endpoint IDs of the models, together with the provider, 
+as defined in LiteLLM. For instance:
+```
+endpoints:
+  - endpoint_id: "gpt-4o-mini"
+    provider: "Azure OpenAI"
+  - endpoint_id: "azure/gpt-4o-mini"
+    provider: "OpenAI"
+```
 
 ### OpenAI
 To use OpenAI LLMs, fill the `model_endpoints.yml` file at the root of the project, 
