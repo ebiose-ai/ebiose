@@ -9,7 +9,7 @@ lite_llm:
   use: true
   use_proxy: true
   api_key: "your-lite-llm-api-key" # fill in your Lite LLM API key
-  api_base: "https://ebiose-litellm-proxy.greencliff-4ddafd29.francecentral.azurecontainerapps.io/"
+  api_base: "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
 
 endpoints:
 
