@@ -40,6 +40,7 @@ class LangGraphEngine(GraphEngine):
     engine_type: str = "langgraph_engine"
     model_endpoint_id: str | None = None
     recursion_limit: int = Field(default=15)
+    # TODO(xabier): remove tags, should now use agent_type instead
     tags: Sequence[str] = ["agent"]
 
     _compiled_graph: CompiledGraph | None = PrivateAttr(None)
@@ -218,7 +219,7 @@ class LangGraphEngine(GraphEngine):
                 continue
             # We first retrieve the function that represents the node it does not depend
             # if we have a llm, a rag or whatnot
-            # TODO(xabier): can also use keywprd arguments metadata, input and retry
+            # TODO(xabier): can also use keyword arguments metadata, input and retry
             workflow.add_node(node_id, node.call_node)
 
         # add edges to the workflow

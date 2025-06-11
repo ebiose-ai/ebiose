@@ -190,7 +190,6 @@ class LangGraphLLMApi:
             )
 
         if model_endpoint.provider == "AzureML":
-            # TODO(xabier): Add the max tokens argument
             return AzureMLChatOnlineEndpoint(
                 endpoint_url=model_endpoint.endpoint_url.get_secret_value(),
                 endpoint_api_type=AzureMLEndpointApiType.serverless,
@@ -198,6 +197,7 @@ class LangGraphLLMApi:
                 content_formatter=CustomOpenAIChatContentFormatter(),
                 timeout=request_timeout,
                 max_retries=max_retries,
+                max_tokens=max_tokens,
                 model_kwargs={"temperature": temperature},
             )
 
@@ -253,7 +253,6 @@ class LangGraphLLMApi:
             llm = llm.bind_tools(tools=tools)
 
         # Call LLM
-        # TODO(xabier): check if LiteLLM also does retry
         return await llm.with_retry(
             retry_if_exception_type=(RateLimitError,),  # APITimeoutError
             wait_exponential_jitter=True,
@@ -267,9 +266,8 @@ class LangGraphLLMApi:
         messages: list[AnyMessage],
         agent_id: str,
         temperature: float = 0.0,
-        max_tokens: int = 4096, # TODO(xabier): 4096 is the maximum number of tokens allowed by OpenAI GPT-4o, should be handled by
+        max_tokens: int = 4096,
         tools: list | None = None,
-        forge_cycle_id: str | None = None,
     ) -> AnyMessage:
 
         try:

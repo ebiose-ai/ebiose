@@ -70,9 +70,17 @@ class AgentFactory:
             response_dict.geneticOperatorAgent,
         ) if response_dict.geneticOperatorAgent is not None else None
 
+        # TODO(xabier): remove when agent_type is implemented server-side
+        agent_type = None
+        if "architect" in response_dict.name:
+            agent_type = "architect"
+        elif "crossover" in response_dict.name:
+            agent_type = "genetic_operator"
+
         return Agent(
             id=response_dict.uuid,
             name=response_dict.name,
+            agent_type=agent_type,  # TODO(xabier): remove when agent_type is implemented server-side
             description=response_dict.description,
             # architect_agent_id=response_dict.architectAgentId if,
             architect_agent=architect_agent,  # TODO(xabier): replace with id

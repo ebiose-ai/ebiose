@@ -112,7 +112,6 @@ class LangGraphLLMNode(LLMNode):
                 messages=prompts,
                 tools=self.tools,
                 temperature=self.temperature,
-                forge_cycle_id=forge_cycle_id,
             )
             messages = [response]
             if self.tools is not None and len(self.tools) > 0:
