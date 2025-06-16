@@ -54,7 +54,6 @@ class AgentFactory:
         from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
         from ebiose.core.agent import Agent # Local import
 
-
         engine_configuration = json.loads(response_dict.agentEngine.configuration)
         # creating engine
         agent_engine = AgentEngineFactory.create_engine(
@@ -63,12 +62,13 @@ class AgentFactory:
             model_endpoint_id=model_endpoint_id,
             agent_id=engine_configuration["agent_id"],
         )
-        architect_agent = AgentFactory.load_agent_from_api(
-            response_dict.architectAgent,
-        ) if response_dict.architectAgent is not None else None
-        genetic_operator_agent = AgentFactory.load_agent_from_api(
-            response_dict.geneticOperatorAgent,
-        ) if response_dict.geneticOperatorAgent is not None else None
+
+        # architect_agent = AgentFactory.load_agent_from_api(
+        #     response_dict.architectAgent,
+        # ) if response_dict.architectAgent is not None else None
+        # genetic_operator_agent = AgentFactory.load_agent_from_api(
+        #     response_dict.geneticOperatorAgent,
+        # ) if response_dict.geneticOperatorAgent is not None else None
 
         # TODO(xabier): remove when agent_type is implemented server-side
         agent_type = None
@@ -82,12 +82,12 @@ class AgentFactory:
             name=response_dict.name,
             agent_type=agent_type,  # TODO(xabier): remove when agent_type is implemented server-side
             description=response_dict.description,
-            # architect_agent_id=response_dict.architectAgentId if,
-            architect_agent=architect_agent,  # TODO(xabier): replace with id
-            # genetic_operator_agent_id=response_dict.geneticOperatorAgentId,
-            genetic_operator_agent=genetic_operator_agent,  # TODO(xabier): replace with id
+            architect_agent_id=response_dict.architectAgentUuid,
+            # architect_agent=architect_agent,  # TODO(xabier): replace with id
+            genetic_operator_agent_id=response_dict.geneticOperatorAgentUuid,
+            # genetic_operator_agent=genetic_operator_agent,  # TODO(xabier): replace with id
             agent_engine=agent_engine,
-            parent_ids=[]#TODO(xabier): response_dict.parentIds or [],
+            parent_ids=response_dict.parentAgentUuids, #TODO(xabier): response_dict.parentIds or [],
         )
 
     @staticmethod
@@ -130,8 +130,8 @@ class AgentFactory:
                 name=agent_name,
                 description=agent_description,
                 id=agent_id,
-                architect_agent=architect_agent,
-                genetic_operator_agent=genetic_operator_agent,
+                architect_agent_id=architect_agent.id,
+                genetic_operator_agent_id=genetic_operator_agent.id,
                 agent_engine=generated_agent_engine,
             )
         except Exception as e:
@@ -152,6 +152,7 @@ class AgentFactory:
         parent_ids: list[str] | None = None,
         master_agent_id: str | None = None,
         forge_cycle_id: str | None = None,
+        architect_agent_id: str | None = None,
     ) -> tuple["Agent", "Agent"] | "Agent" :
         from ebiose.core.agent import Agent # Local import
         from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
@@ -177,8 +178,8 @@ class AgentFactory:
                 name=agent_name,
                 description=agent_description,
                 id=agent_id,
-                architect_agent=None,
-                genetic_operator_agent=crossover_agent,
+                architect_agent_id=architect_agent_id,
+                genetic_operator_agent_id=crossover_agent.id,
                 agent_engine=generated_agent_engine,
                 parent_ids=parent_ids,
             )

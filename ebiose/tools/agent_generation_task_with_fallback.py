@@ -64,6 +64,7 @@ async def crossover_agent_task(
                 parent2: Agent | None,
                 master_agent_id: str | None = None,
                 forge_cycle_id: str | None = None,
+                architect_agent_id: str | None = None,
             ) -> Agent | None:
 
     result = None
@@ -78,6 +79,7 @@ async def crossover_agent_task(
             parent_ids = [parent1.id, parent2.id] if parent2 is not None else [parent1.id],
             master_agent_id=master_agent_id,
             forge_cycle_id=forge_cycle_id,
+            architect_agent_id=architect_agent_id,
         )
     except Exception as e:
         logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")

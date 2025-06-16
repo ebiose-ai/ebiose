@@ -81,6 +81,9 @@ class ForgeCycle:
     agents_first_generation_costs: dict[str, float] = field(default_factory=dict)
     init_agents_population: dict[Agent] = field(default_factory=list)
 
+    architect_agents: dict[str, Agent] = field(default_factory=dict)
+    genetic_operator_agents: dict[str, Agent] = field(default_factory=dict)
+
     def save_current_state(self, generation: int | None = None) -> None:
         if self.config.local_results_path is not None:
             if generation is not None:
@@ -125,11 +128,15 @@ class ForgeCycle:
         n_selected_agents = self.config.n_selected_agents_from_ecosystem
         selected_agents = []
         if self.config.mode == "cloud":
+            # TODO(xabier): remove this hack when select_agents working server side
+            # selected_agents = [ecosystem.agents["test-agent-4"]]
             selected_agents = EbioseAPIClient.select_agents(
-                ecosystem_id=ecosystem.id, 
+                ecosystem_id=ecosystem.id,
                 nb_agents=n_selected_agents,
                 forge_cycle_uuid=self.id,
             )
+            self.load_agents_from_ecosystem(ecosystem)
+
         # selected_agents = select_agents(self.id, n_selected_agents)
         logger.debug(f"{len(selected_agents)} agents selected from ecosystem over {n_selected_agents} requested")
 
@@ -137,6 +144,7 @@ class ForgeCycle:
         # Initialize population
         tasks = []
         if n_selected_agents == 0 or len(selected_agents) == 0:
+            # when no agents are selected from the ecosystem
             logger.info(f"Creating {self.config.n_agents_in_population} new agents with architect agents...")
             for _ in range(self.config.n_agents_in_population):
                 architect_agent = random.choice(ecosystem.initial_architect_agents)
@@ -153,26 +161,24 @@ class ForgeCycle:
                     forge_cycle_id=self.id,
                 )
                 tasks.append(task)
-        else:
+        else:   
+            # when some agents are selected from the ecosystem
             logger.info(f"{len(selected_agents)} selected agents from ecosystem. Creating {self.config.n_agents_in_population - len(selected_agents)} agents...")
 
             while len(tasks) < (self.config.n_agents_in_population - len(selected_agents)):
                 for selected_agent in selected_agents:
                     if len(tasks) >= self.config.n_agents_in_population:
                         break
-                    
+
                     # TODO(xabier): if selected agent is an architect agent
                     # it does not have an architect agent...
-                    architect_agent = ecosystem.get_agent(
-                        selected_agent.architect_agent.id # TODO(xabier): replace by _id
-                    )        
+                    architect_agent = self.architect_agents[selected_agent.architect_agent_id]
                     # architect_agent = selected_agent.architect_agent
                     architect_agent_input = architect_agent.agent_engine.input_model(
                         forge_description=self.forge.description,
                     )
-                    genetic_operator_agent = ecosystem.get_agent(
-                        selected_agent.genetic_operator_agent.id # TODO(xabier): replace by _id
-                    ) if selected_agent.genetic_operator_agent is not None else None
+                    genetic_operator_agent = self.genetic_operator_agents[selected_agent.genetic_operator_agent_id] \
+                        if selected_agent.genetic_operator_agent_id is not None else None
                     # genetic_operator_agent = selected_agent.genetic_operator_agent
 
                     task = architect_agent_task(
@@ -197,6 +203,26 @@ class ForgeCycle:
 
         logger.info(f"Population initialized with {len(self.agents)} agents")
 
+    def load_agents_from_ecosystem(
+        self, ecosystem: "Ecosystem",
+    ) -> None:
+        #TODO(xabier): this should be used to get architect and genetic operator agents
+        # only after agents are selected from the ecosystem
+        # self.agents = {
+        #     _id: agent for _id, agent in ecosystem.agents.items()
+        #     if agent.agent_type is None
+        # }
+
+        self.architect_agents = {
+            _id: agent for _id, agent in ecosystem.agents.items()
+            if agent.agent_type == "architect"
+        }
+        self.genetic_operator_agents = {
+            _id: agent for _id, agent in ecosystem.agents.items()
+            if agent.agent_type == "genetic_operator"
+        }
+
+        
 
     async def execute_a_cycle(
             self,
@@ -212,12 +238,14 @@ class ForgeCycle:
             # call cloud start forge cycle
             # returns: lite llm api key and forge cycle id
             lite_llm_api_key, lite_llm_api_base, forge_cycle_id = EbioseAPIClient.start_new_forge_cycle(
+                ecosystem_id=ecosystem_uuid,
                 forge_name=self.forge.name,
                 forge_description=self.forge.description,
                 forge_cycle_config=self.config,
-                override_key=True, #TODO(xabier): voir comment faire 
+                override_key=True, #TODO(xabier): see how to do this properly
             )
             self.id = forge_cycle_id
+
 
         if ecosystem is None :
             # TODO(xabier): this does not work 
@@ -229,7 +257,7 @@ class ForgeCycle:
             lite_llm_api_key=lite_llm_api_key,
             lite_llm_api_base=lite_llm_api_base,
         )
-        
+
         try:
             t0 = time()
             await self.initialize_population(ecosystem=ecosystem)
@@ -323,6 +351,8 @@ class ForgeCycle:
         # Tournament selection for crossover
         logger.info("Starting crossover and mutation...")
         selected_parent_ids_for_crossover = self.tournament_selection(n_to_select=n_replaced)
+        if selected_parent_ids_for_crossover is None or len(selected_parent_ids_for_crossover) == 0:
+            logger.warning("No parents selected for crossover. This may lead to no new agents being created.")
         t1 = time()
         offspring_agents, genetic_cost = await self.crossover_and_mutate(selected_parent_ids_for_crossover)
         logger.info(f"Crossover and mutation completed in {human_readable_duration(t1)} for a total cost of {genetic_cost} $")
@@ -419,7 +449,12 @@ class ForgeCycle:
             potential_parent_ids = [_id for _id in selected_parent_ids if _id != parent1_id]
             parent2_id = random.choice(potential_parent_ids) if len(potential_parent_ids) > 0 else parent1_id
             parent2 = self.agents[parent2_id]
-            genetic_operator_agent = random.choice([parent1.genetic_operator_agent, parent2.genetic_operator_agent])
+            # pick a random parent id
+            random_parent_id = random.choice([parent1_id, parent2_id])
+            genetic_operator_agent_id = self.agents[random_parent_id].genetic_operator_agent_id
+            genetic_operator_agent = self.genetic_operator_agents[genetic_operator_agent_id]
+            architect_agent_id = self.agents[random_parent_id].architect_agent_id
+            # genetic_operator_agent = random.choice([parent1.genetic_operator_agent, parent2.genetic_operator_agent])
             if genetic_operator_agent.name == "crossover_agent":
                 crossover_input = genetic_operator_agent.agent_engine.input_model(
                     forge_description=self.forge.description,
@@ -441,6 +476,7 @@ class ForgeCycle:
                 parent2=parent2,
                 master_agent_id=None,
                 forge_cycle_id=self.id,
+                architect_agent_id=architect_agent_id,
             )
 
             tasks.append(task)
@@ -449,6 +485,10 @@ class ForgeCycle:
 
         # removing None
         offsprings = [offspring for offspring in offsprings if offspring is not None]
+
+        if len(offsprings) == 0:
+            logger.warning("No offsprings were generated. Check the logs for more information.")
+
 
         logger.debug(f"Number of offsprings: {len(offsprings)}/{len(selected_parent_ids)}")
 

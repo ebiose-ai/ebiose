@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from ebiose.core.agent_forge import AgentForge
     from ebiose.core.agent import Agent
 
-
 class Ecosystem(BaseModel):
     id: str = Field(default_factory=lambda: f"forge-cycle-{uuid4()!s}")
     initial_architect_agents: list["Agent"] | None = None
@@ -39,6 +38,9 @@ class Ecosystem(BaseModel):
             GraphUtils.get_crossover_agent(ModelEndpoints.get_default_model_endpoint_id()),
             GraphUtils.get_mutation_agent(ModelEndpoints.get_default_model_endpoint_id()),
         ]
+        # TODO(xabier): fix this import to avoid circular dependency
+        from ebiose.core.agent import Agent
+        cls.model_rebuild()
         return cls(
             initial_architect_agents=initial_architect_agents,
             initial_genetic_operator_agents=initial_genetic_operator_agents,

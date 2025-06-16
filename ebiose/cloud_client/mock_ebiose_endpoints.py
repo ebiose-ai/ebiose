@@ -5,7 +5,7 @@ import re
 from typing import TYPE_CHECKING
 import uuid
 
-from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel
+from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel, ForgeInputModel
 from ebiose.core.agent_factory import AgentFactory
 from ebiose.core.ecosystem import Ecosystem
 from ebiose.core.engines.graph_engine.utils import GraphUtils
@@ -183,13 +183,16 @@ class EbioseAPIClient:
     @_handle_api_errors
     def get_ecosystem(cls, ecosystem_id: str) -> Ecosystem | None:
         """Get an ecosystem by its UUID."""
+        # TODO(xabier): we don't need the ecosystem to be loaded from the API,
+        # we just need to get architect and genetic operator agents from the API
+        # based on the selected agents from the ecosystem.
         response = cls._client.get_ecosystem(uuid=ecosystem_id)
         if response:
             agents = [
                 AgentFactory.load_agent_from_api(agent_data)
                 for agent_data in response.agents or []
             ]
-            # TODO(xabier): understand why this import is needed here
+            # TODO(xabier): understand why this import is agneeded here
             from ebiose.core.agent import Agent
             Ecosystem.model_rebuild()
             return Ecosystem(
@@ -214,50 +217,74 @@ class EbioseAPIClient:
 
     @classmethod
     @_handle_api_errors
+    def add_forge(
+        cls,
+        name: str,
+        description:str,
+        ecosystem_id: str,
+    ) -> str | None:
+
+        forge_input_model = ForgeInputModel(
+            name=name,
+            description=description,
+            ecosystemUuid=ecosystem_id,
+        )
+        response = cls._client.add_forge(
+            data=forge_input_model,
+        )
+        return response.uuid
+
+
+    @classmethod
+    @_handle_api_errors
     def start_new_forge_cycle(
         cls,
-        forge_name: str, 
-        forge_description: str, 
+        ecosystem_id: str,
+        forge_name: str,
+        forge_description: str,
         forge_cycle_config: "CloudForgeCycleConfig",
         override_key: bool | None = None,
     )-> tuple[str, str, str]:
 
+        forge_id = cls.add_forge(
+            name=forge_name,
+            description=forge_description,
+            ecosystem_id=ecosystem_id,
+        )
+
         forge_cycle_input = ForgeCycleInputModel(
-            forgeDescription=forge_description,
-            forgeName=forge_name,
             nAgentsInPopulation=forge_cycle_config.n_agents_in_population,
             nSelectedAgentsFromEcosystem=forge_cycle_config.n_selected_agents_from_ecosystem,
             nBestAgentsToReturn=forge_cycle_config.n_best_agents_to_return,
             replacementRatio=forge_cycle_config.replacement_ratio,
             tournamentSizeRatio=forge_cycle_config.tournament_size_ratio,
-            localResultsPath=None, # forge_cycle_config.local_results_path, no use to send this
+            localResultsPath= None, # forge_cycle_config.local_results_path, no use to send it to the server side
             budget=forge_cycle_config.budget,
         )
 
         new_cycle_output = cls._client.start_new_forge_cycle(
+            forge_uuid=forge_id,
             data=forge_cycle_input, 
             override_key=override_key,
         )
 
-        # TODO(xabier): should be returned by the server side (asket to Gildas)
-        lite_llm_api_base = "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
-
-        return new_cycle_output.liteLLMKey, lite_llm_api_base, new_cycle_output.forgeCycleUuid
+        return new_cycle_output.liteLLMKey, new_cycle_output.baseUrl, new_cycle_output.forgeCycleUuid
 
     @classmethod
     @_handle_api_errors
     def select_agents(cls, ecosystem_id:str, nb_agents:int, forge_cycle_uuid: str) -> list["Agent"]:
         """Select agents from an ecosystem."""
-        response = cls._client.select_agents_from_ecosystem(
-            ecosystem_uuid=ecosystem_id,
-            nb_agents= nb_agents +7, # TODO(xabier): fix when server side is ready (then should at least filter on agent_type==None)
+        response = cls._client.select_agents_for_forge_cycle(
             forge_cycle_uuid=forge_cycle_uuid,
+            nb_agents= 100, #nb_agents, # TODO(xabier): fix when server side is ready (then should at least filter on agent_type==None)
         )
         agents = []
         for r in response:
             agent = AgentFactory.load_agent_from_api(r)
-            agents.append(agent)
-        return agents
+            if agent.agent_type is None:  # Filter out architect and genetic operator agents
+                agents.append(agent)
+
+        return agents[-nb_agents:]  # Return only the requested number of agents
     
     @classmethod
     @_handle_api_errors
@@ -272,7 +299,9 @@ class EbioseAPIClient:
         winning_agents: list["Agent"],
     ) -> None:
         """End a forge cycle."""
-        agents_data = [build_agent_input_model(agent) for agent in winning_agents]
+        agents_data = [
+            build_agent_input_model(agent) for agent in winning_agents
+        ]
         cls._client.end_forge_cycle(
             forge_cycle_uuid=forge_cycle_uuid,
             agents_data=agents_data,
