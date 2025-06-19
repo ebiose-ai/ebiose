@@ -10,7 +10,7 @@ from typing import ClassVar, Literal
 
 from pydantic import BaseModel
 
-from ebiose.cloud_client.mock_ebiose_endpoints import EbioseAPIClient
+from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
 
 
 class LLMAPIConfig(BaseModel):

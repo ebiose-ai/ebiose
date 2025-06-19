@@ -60,11 +60,11 @@ async def crossover_agent_task(
                 forge: AgentForge,
                 genetic_operator_agent: Agent,
                 crossover_agent_input: BaseModel,
+                architect_agent: Agent | None,
                 parent1: Agent,
                 parent2: Agent | None,
                 master_agent_id: str | None = None,
                 forge_cycle_id: str | None = None,
-                architect_agent_id: str | None = None,
             ) -> Agent | None:
 
     result = None
@@ -79,13 +79,13 @@ async def crossover_agent_task(
             parent_ids = [parent1.id, parent2.id] if parent2 is not None else [parent1.id],
             master_agent_id=master_agent_id,
             forge_cycle_id=forge_cycle_id,
-            architect_agent_id=architect_agent_id,
+            architect_agent=architect_agent,
         )
     except Exception as e:
         logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
         result = await AgentFactory.generate_agent(
-            parent1.architect_agent,
-            parent1.architect_agent.agent_engine.input_model(forge_description=forge.description),
+            architect_agent,
+            architect_agent.agent_engine.input_model(forge_description=forge.description),
             genetic_operator_agent,
             generated_agent_engine_type=forge.default_generated_agent_engine_type,
             generated_model_endpoint_id=forge.default_model_endpoint_id,

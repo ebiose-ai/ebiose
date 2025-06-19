@@ -90,7 +90,5 @@ def init_routing_agent(model_endpoint_id: str) -> None:
             name="routing_agent",
             id=agent_id,
             description="Agent to route to the next node",
-            architect_agent=None,
-            genetic_operator_agent=None,
             agent_engine=agent_engine,
         )

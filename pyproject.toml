@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11,<4.0"
 dependencies = [
     "asyncio>=3.4.3",
+    "elasticsearch>=9.0.2",
     "ipykernel>=6.29.5",
     "langchain>=0.3.17",
     "langchain-community>=0.3.16",
@@ -73,9 +74,6 @@ packages = ["ebiose"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
-
-[tool.uv.sources]
-openapi-client = { path = "ebiose/generated_cloud_client/" }
 
 [build-system]
 requires = ["hatchling"]

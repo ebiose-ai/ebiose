@@ -26,9 +26,8 @@ class Agent(BaseModel):
     agent_type: Literal["architect", "genetic_operator"] | None = None
     description: str = Field(repr=False)
     architect_agent_id: str | None = None 
-    architect_agent: Agent | None = None # TODO(xabier): replace with id
     genetic_operator_agent_id: str | None = None  #
-    genetic_operator_agent: Agent | None  = None # TODO(xabier): replace with id
+    architect_agent: Agent | None = None  # Reference to the architect agent if this is a generated agent
     parent_ids: list[str] = Field(default_factory=list)
 
     agent_engine: AgentEngine | None = Field(default=None)

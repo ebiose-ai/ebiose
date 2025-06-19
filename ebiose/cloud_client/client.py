@@ -36,10 +36,12 @@ class Role(int, Enum):
 
 class AgentType(int, Enum):
     """Enum for Agent Types, as defined in the new swagger spec."""
-    GENERATOR = 0
-    DISCRIMINATOR = 1
-    CURATOR = 2
-
+    STANDARD = 0
+    GENETIC_OPERATOR = 1
+    # MUTATION = 1
+    # CROSSOVER = 2
+    # ARCHITECT = 3
+    ARCHITECT = 2
 
 # --- Pydantic Models (Updated based on new swagger.json) ---
 # These models define the data structures for API requests and responses.
@@ -557,178 +559,221 @@ class EbioseAPIClient:
             raise
 
     # --- ApiKey Facade ---
+    @classmethod
     def add_new_api_key(cls, data: ApiKeyInputModel) -> bool:
         """Creates a new API key."""
         return cls._handle_request("add new API key", cls._get_client().add_api_key, data=data)
 
+    @classmethod
     def list_all_api_keys(cls) -> list[ApiKeyOutputModel]:
         """Retrieves all API keys (admin operation)."""
         return cls._handle_request("list all API keys", cls._get_client().get_api_keys)
     
+    @classmethod
     def add_self_api_key(cls, data: SelfApiKeyInputModel) -> bool:
         """Creates a new API key for the currently authenticated user."""
         return cls._handle_request("add self API key", cls._get_client().self_add_api_key, data=data)
 
+    @classmethod
     def list_self_api_keys(cls) -> list[ApiKeyOutputModel]:
         """Retrieves API keys for the currently authenticated user."""
         return cls._handle_request("list self API keys", cls._get_client().self_get_api_keys)
 
+    @classmethod
     def get_specific_api_key(cls, apiKeyUuid: str) -> ApiKeyOutputModel:
         """Retrieves a specific API key by its UUID."""
         return cls._handle_request(f"get API key {apiKeyUuid}", cls._get_client().get_api_key, apiKeyUuid=apiKeyUuid)
 
+    @classmethod
     def remove_api_key(cls, apiKeyUuid: str) -> None:
         """Deletes a specific API key by its UUID."""
         return cls._handle_request(f"delete API key {apiKeyUuid}", cls._get_client().delete_api_key, apiKeyUuid=apiKeyUuid)
 
+    @classmethod
     def modify_api_key(cls, apiKeyUuid: str, data: ApiKeyInputModel) -> None:
         """Updates a specific API key by its UUID."""
         return cls._handle_request(f"update API key {apiKeyUuid}", cls._get_client().update_api_key, apiKeyUuid=apiKeyUuid, data=data)
 
+    @classmethod
     def remove_self_api_key(cls, apiKeyUuid: str) -> None:
         """Deletes a specific API key belonging to the current user."""
         return cls._handle_request(f"delete self API key {apiKeyUuid}", cls._get_client().self_delete_api_key, apiKeyUuid=apiKeyUuid)
 
     # --- Auth Facade ---
+    @classmethod
     def perform_login(cls, email: str, password: str) -> LoginOutputModel:
         """Authenticates a user with email and password."""
         return cls._handle_request(f"perform login for {email}", cls._get_client().login, email=email, password=password)
 
+    @classmethod
     def perform_github_login(cls, code: str) -> LoginOutputModel:
         """Authenticates a user using a GitHub OAuth code."""
         return cls._handle_request("perform GitHub login", cls._get_client().login_github, code=code)
 
+    @classmethod
     def perform_sign_up(cls, data: SignupInputModel) -> UserOutputModel:
         """Registers a new user."""
         return cls._handle_request("perform user sign up", cls._get_client().sign_up, data=data)
     
+    @classmethod
     def perform_self_update(cls, data: SelfUserInputModel) -> UserOutputModel:
         """Updates the profile of the currently authenticated user."""
         return cls._handle_request("perform self user update", cls._get_client().self_update, data=data)
 
+    @classmethod
     def change_password(cls, new_password: str) -> None:
         """Updates the password for the currently authenticated user."""
         return cls._handle_request("update password", cls._get_client().update_password, new_password=new_password)
     
+    @classmethod
     def get_refresh_token(cls, token: str) -> str:
         """Obtains a new JWT by providing a valid refresh token."""
         return cls._handle_request("refresh token", cls._get_client().refresh_token, token=token)
 
+    @classmethod
     def get_current_user_info(cls) -> UserOutputModel:
         """Retrieves the profile of the currently authenticated user."""
         return cls._handle_request("get current user info", cls._get_client().user_info)
 
     # --- Ecosystem Facade ---
+    @classmethod
     def get_ecosystems(cls) -> list[EcosystemOutputModel]:
         """Retrieves a list of all ecosystems."""
         return cls._handle_request("list all ecosystems", cls._get_client().list_ecosystems)
         
+    @classmethod
     def make_ecosystem(cls, data: EcosystemInputModel) -> EcosystemOutputModel:
         """Creates a new ecosystem."""
         return cls._handle_request("create ecosystem", cls._get_client().create_ecosystem, data=data)
 
+    @classmethod
     def get_specific_ecosystem(cls, uuid: str) -> EcosystemOutputModel:
         """Retrieves a specific ecosystem by its UUID."""
         return cls._handle_request(f"get ecosystem {uuid}", cls._get_client().get_ecosystem, uuid=uuid)
 
+    @classmethod
     def modify_ecosystem(cls, uuid: str, data: EcosystemInputModel) -> EcosystemOutputModel:
         """Updates a specific ecosystem by its UUID."""
         return cls._handle_request(f"update ecosystem {uuid}", cls._get_client().update_ecosystem, uuid=uuid, data=data)
 
+    @classmethod
     def remove_ecosystem(cls, uuid: str) -> None:
         """Deletes a specific ecosystem by its UUID."""
         return cls._handle_request(f"delete ecosystem {uuid}", cls._get_client().delete_ecosystem, uuid=uuid)
 
+    @classmethod
     def add_new_agents_to_ecosystem(cls, ecosystem_uuid: str, agents_data: list[AgentInputModel]) -> None:
         """Adds a batch of new agents to a specific ecosystem."""
         return cls._handle_request(f"add agents to ecosystem {ecosystem_uuid}", cls._get_client().add_agents_to_ecosystem, ecosystem_uuid=ecosystem_uuid, agents_data=agents_data)
 
+    @classmethod
     def list_all_agents_in_ecosystem(cls, ecosystem_uuid: str) -> list[AgentOutputModel]:
         """Lists all agents within a specific ecosystem."""
         return cls._handle_request(f"list agents in ecosystem {ecosystem_uuid}", cls._get_client().list_agents_in_ecosystem, ecosystem_uuid=ecosystem_uuid)
 
+    @classmethod
     def remove_agents_from_ecosystem(cls, ecosystem_uuid: str, agent_uuids: list[str]) -> None:
         """Removes a list of agents from a specific ecosystem by their UUIDs."""
         return cls._handle_request(f"delete agents from ecosystem {ecosystem_uuid}", cls._get_client().delete_agents_from_ecosystem, ecosystem_uuid=ecosystem_uuid, agent_uuids=agent_uuids)
 
+    @classmethod
     def add_single_agent(cls, ecosystem_uuid: str, agent_data: AgentInputModel) -> AgentOutputModel:
         """Adds a single new agent to a specific ecosystem."""
         return cls._handle_request(f"add single agent to ecosystem {ecosystem_uuid}", cls._get_client().add_single_agent_to_ecosystem, ecosystem_uuid=ecosystem_uuid, agent_data=agent_data)
 
+    @classmethod
     def get_specific_agent(cls, ecosystem_uuid: str, agent_uuid: str) -> AgentOutputModel:
         """Retrieves a single agent by its UUID from a specific ecosystem."""
         return cls._handle_request(f"get agent {agent_uuid} from ecosystem {ecosystem_uuid}", cls._get_client().get_agent_in_ecosystem, ecosystem_uuid=ecosystem_uuid, agent_uuid=agent_uuid)
 
+    @classmethod
     def modify_agent(cls, ecosystem_uuid: str, agent_uuid: str, agent_data: AgentInputModel) -> AgentOutputModel:
         """Updates a single agent within a specific ecosystem."""
         return cls._handle_request(f"update agent {agent_uuid} in ecosystem {ecosystem_uuid}", cls._get_client().update_agent_in_ecosystem, ecosystem_uuid=ecosystem_uuid, agent_uuid=agent_uuid, agent_data=agent_data)
 
     # --- Forge Facade ---
+    @classmethod
     def list_all_forges(cls) -> list[ForgeOutputModel]:
         """Retrieves a list of all forges."""
         return cls._handle_request("list all forges", cls._get_client().get_forges)
         
+    @classmethod
     def add_new_forge(cls, data: ForgeInputModel) -> ForgeOutputModel:
         """Creates a new forge."""
         return cls._handle_request("add new forge", cls._get_client().add_forge, data=data)
 
+    @classmethod
     def get_specific_forge(cls, forge_uuid: str) -> ForgeOutputModel:
         """Retrieves a specific forge by its UUID."""
         return cls._handle_request(f"get forge {forge_uuid}", cls._get_client().get_forge, forge_uuid=forge_uuid)
 
+    @classmethod
     def modify_forge(cls, forge_uuid: str, data: ForgeInputModel) -> ForgeOutputModel:
         """Updates a specific forge by its UUID."""
         return cls._handle_request(f"update forge {forge_uuid}", cls._get_client().update_forge, forge_uuid=forge_uuid, data=data)
 
+    @classmethod
     def remove_forge(cls, forge_uuid: str) -> None:
         """Deletes a specific forge by its UUID."""
         return cls._handle_request(f"delete forge {forge_uuid}", cls._get_client().delete_forge, forge_uuid=forge_uuid)
 
+    @classmethod
     def begin_new_forge_cycle(cls, forge_uuid: str, data: ForgeCycleInputModel, override_key: bool | None = None) -> NewCycleOutputModel:
         """Starts a new evolutionary cycle within a specific forge."""
         return cls._handle_request(f"start new forge cycle for forge {forge_uuid}", cls._get_client().start_new_forge_cycle, forge_uuid=forge_uuid, data=data, override_key=override_key)
 
+    @classmethod
     def conclude_forge_cycle(cls, forge_cycle_uuid: str, agents_data: list[AgentInputModel]) -> None:
         """Ends a forge cycle and submits the resulting agents."""
         return cls._handle_request(f"end forge cycle {forge_cycle_uuid}", cls._get_client().end_forge_cycle, forge_cycle_uuid=forge_cycle_uuid, agents_data=agents_data)
 
+    @classmethod
     def get_forge_cycle_spend(cls, forge_cycle_uuid: str) -> float:
         """Retrieves the total spend for a specific forge cycle."""
         return cls._handle_request(f"get spend for forge cycle {forge_cycle_uuid}", cls._get_client().get_spend, forge_cycle_uuid=forge_cycle_uuid)
     
+    @classmethod
     def log_forge_cycle_usage(cls, forge_cycle_uuid: str, cost: float) -> None:
         """Records a cost against a specific forge cycle."""
         return cls._handle_request(f"record usage for forge cycle {forge_cycle_uuid}", cls._get_client().record_forge_cycle_usage, forge_cycle_uuid=forge_cycle_uuid, cost=cost)
 
+    @classmethod
     def pick_agents_for_forge_cycle(cls, forge_cycle_uuid: str, nb_agents: int) -> list[AgentOutputModel]:
         """Selects a number of agents for a specific forge cycle."""
         return cls._handle_request(f"select agents for forge cycle {forge_cycle_uuid}", cls._get_client().select_agents_for_forge_cycle, forge_cycle_uuid=forge_cycle_uuid, nb_agents=nb_agents)
 
+    @classmethod
     def make_deduct_compute_banks_for_forge_cycle(cls, forge_cycle_uuid: str, deductions: dict[str, float]) -> None:
         """Deducts from the compute banks of agents for a specific forge cycle."""
         return cls._handle_request(f"deduct compute banks for forge cycle {forge_cycle_uuid}", cls._get_client().deduct_compute_banks_for_forge_cycle, forge_cycle_uuid=forge_cycle_uuid, deductions=deductions)
         
     # --- User Facade ---
+    @classmethod
     def make_user(cls, data: UserInputModel) -> UserOutputModel:
         """Creates a new user (admin operation)."""
         return cls._handle_request("create user", cls._get_client().create_user, data=data)
         
+    @classmethod
     def list_all_users(cls) -> list[UserOutputModel]:
         """Retrieves a list of all users (admin operation)."""
         return cls._handle_request("list all users", cls._get_client().list_users)
 
+    @classmethod
     def get_specific_user(cls, userUuid: str) -> UserOutputModel:
         """Retrieves a specific user by their UUID."""
         return cls._handle_request(f"get user {userUuid}", cls._get_client().get_user, userUuid=userUuid)
 
+    @classmethod
     def modify_user(cls, userUuid: str, data: UserInputModel) -> None:
         """Updates a specific user by their UUID (admin operation)."""
         return cls._handle_request(f"update user {userUuid}", cls._get_client().update_user, userUuid=userUuid, data=data)
 
+    @classmethod
     def remove_user(cls, userUuid: str) -> None:
         """Deletes a specific user by their UUID (admin operation)."""
         return cls._handle_request(f"delete user {userUuid}", cls._get_client().delete_user, userUuid=userUuid)
 
+    @classmethod
     def get_user_by_their_email(cls, email: str) -> UserOutputModel:
         """Retrieves a user by their email address."""
         return cls._handle_request(f"get user by email {email}", cls._get_client().get_user_by_email, email=email)

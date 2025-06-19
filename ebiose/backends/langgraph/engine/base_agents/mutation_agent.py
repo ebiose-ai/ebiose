@@ -124,7 +124,5 @@ def init_mutation_agent(model_endpoint_id: str | None) -> None:
         agent_type="genetic_operator",
         id=agent_id,
         description="Mutation agent that mutates an existingagent",
-        architect_agent=None,
-        genetic_operator_agent=None,
         agent_engine=agent_engine,
     )

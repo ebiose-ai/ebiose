@@ -74,7 +74,7 @@ class AgentFactory:
         agent_type = None
         if "architect" in response_dict.name:
             agent_type = "architect"
-        elif "crossover" in response_dict.name:
+        elif "crossover" in response_dict.name or "mutation" in response_dict.name:
             agent_type = "genetic_operator"
 
         return Agent(
@@ -149,10 +149,10 @@ class AgentFactory:
         generated_agent_input: type[BaseModel] | None = None,
         generated_agent_output: type[BaseModel] | None = None,
         generated_model_endpoint_id: str | None = None,
+        architect_agent: Agent | None = None,
         parent_ids: list[str] | None = None,
         master_agent_id: str | None = None,
         forge_cycle_id: str | None = None,
-        architect_agent_id: str | None = None,
     ) -> tuple["Agent", "Agent"] | "Agent" :
         from ebiose.core.agent import Agent # Local import
         from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
@@ -178,7 +178,7 @@ class AgentFactory:
                 name=agent_name,
                 description=agent_description,
                 id=agent_id,
-                architect_agent_id=architect_agent_id,
+                architect_agent_id=architect_agent.id if architect_agent else None,
                 genetic_operator_agent_id=crossover_agent.id,
                 agent_engine=generated_agent_engine,
                 parent_ids=parent_ids,

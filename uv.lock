@@ -1,5 +1,6 @@
 version = 1
-requires-python = ">=3.11"
+revision = 1
+requires-python = ">=3.11, <4.0"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4'",
@@ -413,6 +414,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "asyncio" },
+    { name = "elasticsearch" },
     { name = "ipykernel" },
     { name = "langchain" },
     { name = "langchain-community" },
@@ -423,6 +425,7 @@ dependencies = [
     { name = "litellm" },
     { name = "loguru" },
     { name = "nest-asyncio" },
+    { name = "openapi-client" },
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "ruff" },
@@ -438,6 +441,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "asyncio", specifier = ">=3.4.3" },
+    { name = "elasticsearch", specifier = ">=9.0.2" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "langchain", specifier = ">=0.3.17" },
     { name = "langchain-community", specifier = ">=0.3.16" },
@@ -448,6 +452,7 @@ requires-dist = [
     { name = "litellm", specifier = ">=1.63.12" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
+    { name = "openapi-client" },
     { name = "pydantic", specifier = ">=2.10.6" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "ruff", specifier = ">=0.9.6" },
@@ -457,6 +462,33 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [{ name = "ipykernel", specifier = ">=6.29.5" }]
+
+[[package]]
+name = "elastic-transport"
+version = "8.17.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/54/d498a766ac8fa475f931da85a154666cc81a70f8eb4a780bc8e4e934e9ac/elastic_transport-8.17.1.tar.gz", hash = "sha256:5edef32ac864dca8e2f0a613ef63491ee8d6b8cfb52881fa7313ba9290cac6d2", size = 73425 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/cd/b71d5bc74cde7fc6fd9b2ff9389890f45d9762cbbbf81dc5e51fd7588c4a/elastic_transport-8.17.1-py3-none-any.whl", hash = "sha256:192718f498f1d10c5e9aa8b9cf32aed405e469a7f0e9d6a8923431dbb2c59fb8", size = 64969 },
+]
+
+[[package]]
+name = "elasticsearch"
+version = "9.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "elastic-transport" },
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7f/63/a296828c46fd162a95ed1c560a3fdcea6a68a3b7c45d2aa60594f33eaf1b/elasticsearch-9.0.2.tar.gz", hash = "sha256:290e790153500d9f3cb66d74918ac70e9f96b5cd88147213859edca6ab5013f5", size = 829474 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3e/81/eadbbc38011dd3380dac72a142b175b4a174fa671c584ec38701995b1991/elasticsearch-9.0.2-py3-none-any.whl", hash = "sha256:47cac1f0e5e7be8d8c6751a5d7818d416adfc11eac72f1b59e145930a87de880", size = 914307 },
+]
 
 [[package]]
 name = "executing"
@@ -1452,6 +1484,16 @@ sdist = { url = "https://files.pythonhosted.org/packages/3f/6b/6b002d5d387946454
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fd/34/cebce15f64eb4a3d609a83ac3568d43005cc9a1cba9d7fde5590fd415423/openai-1.68.2-py3-none-any.whl", hash = "sha256:24484cb5c9a33b58576fdc5acf0e5f92603024a4e39d0b99793dfa1eb14c2b36", size = 606073 },
 ]
+
+[[package]]
+name = "openapi-client"
+version = "1.1.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cd/2a/aa4a901facc9c792dfc1cada4f2c4b4e6668332fefa371cbc9c95dbef146/openapi-client-1.1.7.tar.gz", hash = "sha256:9fbb3ccff2981d7180b896a4969b13c98f73105b707dab42483a8f2009065f83", size = 133175 }
 
 [[package]]
 name = "orjson"

@@ -87,7 +87,5 @@ def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_i
             name="structured_output_agent",
             id=agent_id,
             description="Agent to structure an input message into a given structured output",
-            architect_agent=None,
-            genetic_operator_agent=None,
             agent_engine=agent_engine,
         )

@@ -225,7 +225,5 @@ def init_architect_agent(
             name="architect_agent",
             agent_type="architect",
             description="Architect agent that generate agents",
-            architect_agent=None,
-            genetic_operator_agent=None,
             agent_engine=agent_engine,
         )

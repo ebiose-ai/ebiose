@@ -22,7 +22,7 @@ from loguru import logger
 from openai import RateLimitError
 from pydantic import BaseModel
 
-from ebiose.cloud_client.mock_ebiose_endpoints import EbioseAPIClient
+from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
 
 from ebiose.core.model_endpoint import ModelEndpoints
 from litellm.cost_calculator import cost_per_token, completion_cost

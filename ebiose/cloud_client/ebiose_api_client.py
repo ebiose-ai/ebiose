@@ -5,7 +5,7 @@ import re
 from typing import TYPE_CHECKING
 import uuid
 
-from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel, ForgeInputModel
+from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, AgentType, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel, ForgeInputModel
 from ebiose.core.agent_factory import AgentFactory
 from ebiose.core.ecosystem import Ecosystem
 from ebiose.core.engines.graph_engine.utils import GraphUtils
@@ -15,24 +15,6 @@ if TYPE_CHECKING:
     from ebiose.core.agent import Agent
 
 from uuid import uuid4
-
-
-STATUS_OK = 200
-
-
-# def check_ebiose_api_key() -> bool:
-#     # check user authentication 
-#     api_key = ModelEndpoints.get_ebiose_api_key()
-#     if api_key is None:
-#         msg = "No Ebiose API key found. Please set the Ebiose API key "
-#         msg += "or use the local forge cycle mode instead."
-#         raise ValueError(msg)
-
-#     return api_key == "sk-ebiose-test-key"
-
-# def get_ecosystem() -> Ecosystem:
-#     # retrieve the ecosystem object from the user
-#     return 
 
 
 def build_agent_input_model(agent: "Agent") -> AgentInputModel:
@@ -46,8 +28,8 @@ def build_agent_input_model(agent: "Agent") -> AgentInputModel:
         name=agent.name,
         description=agent.description,
         agent_engine=agent_engine_input_model,
-        architect_agent_uuid=agent.architect_agent.id if agent.architect_agent else None,
-        genetic_operator_agent_uuid=agent.genetic_operator_agent.id if agent.genetic_operator_agent else None,
+        architect_agent_uuid=agent.architect_agent_id,
+        genetic_operator_agent_uuid=agent.genetic_operator_agent_id,
         description_embedding=None,
         # description_embedding=agent.description_embedding, # TODO(gildas): add this field as list of float to the server side
     )
@@ -137,6 +119,14 @@ class EbioseAPIClient:
 
     @classmethod
     @_handle_api_errors
+    def get_user_id(cls) -> str | None:
+        """Get the user ID from the API."""
+        response = cls._client.user_info()
+        return response.uuid
+
+
+    @classmethod
+    @_handle_api_errors
     def get_ecosystems(cls) -> list | None:
         """Get all ecosystem UUIDs."""
         list_of_ecosystems = cls._client.list_ecosystems()
@@ -153,25 +143,47 @@ class EbioseAPIClient:
         """Get the first ecosystem UUID."""
         ecosystems = cls.get_ecosystems()
         return ecosystems[0].uuid if ecosystems else None
-    
+
+    @classmethod
+    @_handle_api_errors
+    def delete_agents(cls, ecosystem_id: str, agent_ids: list[str]) -> None:
+        """Delete agents in an ecosystem."""
+        if not agent_ids:
+            print("No agents to delete.")
+            return
+        
+        print(f"Deleting agents with IDs: {agent_ids} from ecosystem {ecosystem_id}")
+        cls._client.delete_agents_from_ecosystem(
+            ecosystem_uuid=ecosystem_id, 
+            agent_uuids=agent_ids,
+        )
+
     @classmethod
     @_handle_api_errors
     def add_agents(cls, ecosystem_id: str, agents:list["Agent"]) -> None:
         """Post agents in an ecosystem."""
-        def format_agent(agent: Agent) -> AgentInputModel:
+        def format_agent(agent: "Agent") -> AgentInputModel:
             """Format the agent for the API."""
             agent_engine = AgentEngineInputModel(
                 engineType=agent.agent_engine.engine_type,
                 configuration=agent.agent_engine.serialize_configuration(),
             )
+            # TODO(xabier): make this more straightforward
+            if agent.agent_type == "architect":
+                agent_type = AgentType(2)
+            elif agent.agent_type == "genetic_operator":
+                agent_type = AgentType(1)
+            else:
+                agent_type = AgentType(0)
             return AgentInputModel(
-                uuid=agent.id,
+                # uuid=agent.id,
                 name=agent.name,
                 description=agent.description,
-                architectAgentUuid=agent.architect_agent.id if agent.architect_agent is not None else None,
-                geneticOperatorAgentUuid=agent.genetic_operator_agent.id if agent.genetic_operator_agent is not None else None,
+                architectAgentUuid=agent.architect_agent_id,
+                geneticOperatorAgentUuid=agent.genetic_operator_agent_id,
                 agentEngine=agent_engine,
                 descriptionEmbedding=agent.description_embedding,
+                agentType=agent_type,
             )
 
         agents_data = [format_agent(agent) for agent in agents]
@@ -244,7 +256,7 @@ class EbioseAPIClient:
         forge_description: str,
         forge_cycle_config: "CloudForgeCycleConfig",
         override_key: bool | None = None,
-    )-> tuple[str, str, str]:
+    )-> tuple[str, str, str, str]:
 
         forge_id = cls.add_forge(
             name=forge_name,
@@ -268,7 +280,7 @@ class EbioseAPIClient:
             override_key=override_key,
         )
 
-        return new_cycle_output.liteLLMKey, new_cycle_output.baseUrl, new_cycle_output.forgeCycleUuid
+        return new_cycle_output.liteLLMKey, new_cycle_output.baseUrl, new_cycle_output.forgeCycleUuid, forge_id
 
     @classmethod
     @_handle_api_errors
@@ -309,6 +321,7 @@ class EbioseAPIClient:
 
 def get_sample_agent() -> "Agent":
     from pydantic import BaseModel, Field, ConfigDict
+    from ebiose.core.agent import Agent
 
     class AgentInput(BaseModel):
         math_problem: str = Field(..., description="The mathematical word problem to solve")
@@ -405,6 +418,6 @@ def get_sample_agent() -> "Agent":
         description="An agent that solves math problems",
         agent_engine=math_graph_engine,
         id = math_graph_engine.agent_id,
-        architect_agent=architect_agent,
-        genetic_operator_agent=mutation_agent,
+        architect_agent_id=architect_agent.id,
+        genetic_operator_agent_id=crossover_agent.id,
     )
