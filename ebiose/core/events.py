@@ -9,20 +9,13 @@ from elasticsearch import Elasticsearch
 from loguru import logger as _logger
 from pydantic import BaseModel, Field, computed_field
 
+from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
+
 if TYPE_CHECKING:
     # from ebiose.core.forge_cycle import ForgeCycleConfig # Not directly used in event fields, config is passed as dict
     from uuid import UUID # Moved UUID import for type checking
 
 event_logger = _logger
-
-# Elasticsearch sink setup
-
-
-es = Elasticsearch(
-    cloud_id=CLOUD_ID,
-    api_key=API_KEY,
-)
-es.info()
 
 def elastic_sink(message) -> None:  # noqa: ANN001
     record = message.record
@@ -40,25 +33,7 @@ def elastic_sink(message) -> None:  # noqa: ANN001
         "function": record["function"],
     }
 
-    # log_doc = {
-    #     "user_id": record_extra.pop("user_id", None),
-    #     "forge_id": record_extra.pop("forge_id", None),
-    #     "forge_cycle_id": record_extra.pop("forge_cycle_id", None),
-    # }
-    # log_doc = {
-    #     "logguru_time": record["time"].strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-    #     "level": record["level"].name,
-    #     "message": record["message"],
-    #     "file": record["file"].name,
-    #     "line": record["line"],
-    #     "function": record["function"],
-    # }
-    # log_doc.update(record["extra"])
-    try:
-        es.index(index=INDEX, document=log_doc)
-    except Exception as e:
-        # Optionally log to stderr or ignore
-        print(f"Elastic sink error: {e}")
+    EbioseAPIClient.log(message=log_doc)
 
 event_logger.add(elastic_sink, level="INFO")
 

@@ -140,9 +140,14 @@ class ForgeCycle:
 
     def add_agent(self, agent: Agent, source: str) -> None:
         try:
-            self.agents[agent.id] = agent
+            agent_id = EbioseAPIClient.add_agent_from_forge_cycle(
+                forge_cycle_id=self.id,
+                agent=agent,
+            )
+            agent.id = agent_id
+            self.agents[agent_id] = agent
             AgentAddedToPopulationEvent(
-                agent_id=agent.id,
+                agent_id=agent_id,
                 generation_number=self.cur_generation,
                 source=source,
                 agent = agent.model_dump(mode="json"),
@@ -256,19 +261,19 @@ class ForgeCycle:
         for selected_agent in selected_agents if n_selected_agents > 0 else []:
             self.add_agent(selected_agent, source="from_ecosystem")
 
-        logger.debug(f"Agent initialization cost: {LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
         for new_agent in results:
             if new_agent is None:
                 continue
             self.add_agent(new_agent, source="newly_created_during_init")
 
-        logger.info(f"Population initialized with {len(self.agents)} agents")
-        initialization_cost = LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)    
+        initialization_cost = LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)
         PopulationInitializationCompletedEvent(
             num_agents_initialized=len(self.agents),
             initialization_cost=initialization_cost,
             duration_seconds=time() - init_pop_start_time,
         ).log()
+
+        return initialization_cost
 
     def load_agents_from_ecosystem(
         self, ecosystem: Ecosystem, # Removed quotes from Ecosystem type hint
@@ -295,7 +300,6 @@ class ForgeCycle:
             ecosystem: Ecosystem | None, # Removed quotes from Ecosystem type hint
             lite_llm_api_key: str | None = None,
         ) -> list[Agent]:
-        logger.info(f"Starting a new cycle for forge {self.forge.name}")
 
         cycle_start_time = time()
         total_cycle_cost = 0.0
@@ -342,6 +346,7 @@ class ForgeCycle:
 
         try:
             t0 = time()
+            total_cycle_cost = 0
             initialization_cost = await self.initialize_population(ecosystem=ecosystem)
             # cancel run if no agent was initialized
             if len(self.agents) == 0:
@@ -352,24 +357,18 @@ class ForgeCycle:
                 ).log()
                 return []
 
-            total_cycle_cost = LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)
-            logger.info(f"Initialization of {len(self.agents)} agents took {human_readable_duration(t0)}")
-            if self.config.mode == "cloud":
-                logger.info(f"Budget left after initialization: {self.config.budget - total_cycle_cost} $")
+            total_cycle_cost += initialization_cost
+            logger.info(f"Budget left after initialization: {self.config.budget - total_cycle_cost} $")
 
             # running generation 0
             self.cur_generation += 1
             first_generation_cost = await self.run_generation()
             total_cycle_cost += first_generation_cost
-            if self.config.mode == "cloud":
-                logger.info(f"Budget left after first generation: {self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
 
             # running next generations until budget is reached
-            while self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id) > first_generation_cost if self.config.mode == "cloud" else self.cur_generation < self.config.n_generations:
+            while self.config.budget - total_cycle_cost > first_generation_cost if self.config.mode == "cloud" else self.cur_generation < self.config.n_generations:
                 self.cur_generation += 1
                 total_cycle_cost += await self.run_generation()
-                if self.config.mode == "cloud":
-                    logger.info(f"Budget left after new generation: {self.config.budget - LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id)} $")
 
 
             # Evaluate last offsprings before sorting all population by fitness
@@ -383,7 +382,6 @@ class ForgeCycle:
                 cost_ratio = init_cost / total_init_cost if total_init_cost > 0 else 0
                 agent_cycle_cost = cost_ratio * total_cycle_cost
                 self.agents_first_generation_costs[agent_id] = agent_cycle_cost
-
 
             sorted_agents = sorted(
                 self.agents.values(),
@@ -435,7 +433,7 @@ class ForgeCycle:
         # Evaluate current population asynchronously
         logger.info(f"Evaluating current population of {len(self.agents)} agents...")
         t0 = time()
-        evaluation_cost = await self._evaluate_population(self.cur_generation)
+        evaluation_cost = await self._evaluate_population()
         logger.info(f"Evaluation took {human_readable_duration(t0)} for a total cost of {evaluation_cost} $")
         self.display_current_results()
         self.save_current_state(self.cur_generation)
@@ -480,26 +478,26 @@ class ForgeCycle:
             population_size_after_generation=len(self.agents),
         ).log()
 
-        # TODO(xabier): fix the cost (what about crossover cost?)
+        
         return evaluation_cost + genetic_cost
 
 
-    async def _evaluate_population(self, generation: int) -> float:
+    async def _evaluate_population(self) -> float:
         PopulationEvaluationStartedEvent(
-            generation_number=generation,
+            generation_number=self.cur_generation,
             num_agents_to_evaluate=len(self.agents),
         ).log()
         eval_start_time = time()
         tasks = []
         for agent in self.agents.values():
             task = asyncio.create_task(
-                self.forge.compute_fitness(agent,generation=generation),
+                self.forge.compute_fitness(agent,generation=self.cur_generation),
             )
             tasks.append(task)
 
         results = await tqdm.gather(*tasks)
 
-        update_first_generation_costs = (generation == 0)
+        update_first_generation_costs = (self.cur_generation == 0)
         total_cost_in_dollars = 0
         for index, agent_id in enumerate(self.agents.keys()):
             fitness = results[index]
@@ -508,7 +506,7 @@ class ForgeCycle:
             total_cost_in_dollars += current_agent_cost
             AgentEvaluationCompletedEvent(
                 agent_id=agent_id,
-                generation_number=generation,
+                generation_number=self.cur_generation,
                 fitness=fitness,
                 evaluation_cost=current_agent_cost,
             ).log()
@@ -521,7 +519,7 @@ class ForgeCycle:
             logger.debug(f"Agent {agent_id} fitness: {fitness}, cost: {current_agent_cost}")
 
         PopulationEvaluationCompletedEvent(
-            generation_number=generation,
+            generation_number=self.cur_generation,
             total_evaluation_cost=total_cost_in_dollars,
             duration_seconds=time() - eval_start_time,
         ).log()

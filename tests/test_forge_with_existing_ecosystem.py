@@ -12,15 +12,13 @@ from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
-from loguru import logger
+# from loguru import logger
 from pydantic import BaseModel
 
 from ebiose.core.agent import Agent
 from ebiose.core.agent_forge import AgentForge
 from ebiose.core.forge_cycle import CloudForgeCycleConfig, LocalForgeCycleConfig
 
-logger.remove()
-logger.add(sys.stderr, level="DEBUG")
 
 
  # loading dotenv
@@ -34,8 +32,8 @@ if not SAVE_PATH.exists():
     SAVE_PATH.mkdir(parents=True)
 
 # logging config
-logger.remove()
-logger.add(sys.stderr, level="DEBUG")
+# logger.remove()
+# logger.add(sys.stderr, level="DEBUG")
 
 
 # run parameters
@@ -95,5 +93,5 @@ best_agents, best_finess = asyncio.run(
     forge.run_new_cycle(config=cycle_config),
 )
 
-logger.info("Best agents and their fitness:")
+# logger.info("Best agents and their fitness:")
 forge.display_results(best_agents, best_finess)

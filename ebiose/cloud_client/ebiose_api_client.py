@@ -5,7 +5,7 @@ import re
 from typing import TYPE_CHECKING
 import uuid
 
-from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, AgentType, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel, ForgeInputModel
+from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, AgentType, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel, ForgeInputModel, LogEntryInputModel
 from ebiose.core.agent_factory import AgentFactory
 from ebiose.core.ecosystem import Ecosystem
 from ebiose.core.engines.graph_engine.utils import GraphUtils
@@ -16,6 +16,31 @@ if TYPE_CHECKING:
 
 from uuid import uuid4
 
+ES_INDEX = "test-pva4"
+
+def format_agent(agent: "Agent") -> AgentInputModel:
+    """Format the agent for the API."""
+    agent_engine = AgentEngineInputModel(
+        engineType=agent.agent_engine.engine_type,
+        configuration=agent.agent_engine.serialize_configuration(),
+    )
+    # TODO(xabier): make this more straightforward
+    if agent.agent_type == "architect":
+        agent_type = AgentType(2)
+    elif agent.agent_type == "genetic_operator":
+        agent_type = AgentType(1)
+    else:
+        agent_type = AgentType(0)
+    return AgentInputModel(
+        # uuid=agent.id,
+        name=agent.name,
+        description=agent.description,
+        architectAgentUuid=agent.architect_agent_id,
+        geneticOperatorAgentUuid=agent.genetic_operator_agent_id,
+        agentEngine=agent_engine,
+        descriptionEmbedding=agent.description_embedding,
+        agentType=agent_type,
+    )
 
 def build_agent_input_model(agent: "Agent") -> AgentInputModel:
     """Build the AgentInputModel from the Agent."""
@@ -124,6 +149,17 @@ class EbioseAPIClient:
         response = cls._client.user_info()
         return response.uuid
 
+    @classmethod
+    @_handle_api_errors
+    def log(cls, message: dict[str, any]) -> None:
+        """Log a message to the API."""
+        json_message = json.dumps(message, sort_keys=True)
+        log_entry = LogEntryInputModel(
+             index=ES_INDEX,
+             data=json_message,
+        )
+        cls._client.add_log_entry(data=log_entry)
+
 
     @classmethod
     @_handle_api_errors
@@ -160,36 +196,27 @@ class EbioseAPIClient:
 
     @classmethod
     @_handle_api_errors
-    def add_agents(cls, ecosystem_id: str, agents:list["Agent"]) -> None:
-        """Post agents in an ecosystem."""
-        def format_agent(agent: "Agent") -> AgentInputModel:
-            """Format the agent for the API."""
-            agent_engine = AgentEngineInputModel(
-                engineType=agent.agent_engine.engine_type,
-                configuration=agent.agent_engine.serialize_configuration(),
-            )
-            # TODO(xabier): make this more straightforward
-            if agent.agent_type == "architect":
-                agent_type = AgentType(2)
-            elif agent.agent_type == "genetic_operator":
-                agent_type = AgentType(1)
-            else:
-                agent_type = AgentType(0)
-            return AgentInputModel(
-                # uuid=agent.id,
-                name=agent.name,
-                description=agent.description,
-                architectAgentUuid=agent.architect_agent_id,
-                geneticOperatorAgentUuid=agent.genetic_operator_agent_id,
-                agentEngine=agent_engine,
-                descriptionEmbedding=agent.description_embedding,
-                agentType=agent_type,
-            )
-
+    def add_agents_from_forge_cycle(cls, forge_cycle_id: str, agents: list["Agent"]) -> None:
+        """Post agents in a forge cycle."""
+        
         agents_data = [format_agent(agent) for agent in agents]
-        return cls._client.add_agents_to_ecosystem(
-            ecosystem_uuid=ecosystem_id, agents_data=agents_data,
+        return cls._client.add_agents_during_forge_cycle(
+            forge_cycle_uuid=forge_cycle_id, agents_data=agents_data,
         )
+    
+    @classmethod
+    @_handle_api_errors
+    def add_agent_from_forge_cycle(
+        cls, forge_cycle_id: str, agent: "Agent"
+    ) -> None:
+        """Post a single agent in a forge cycle."""
+        
+        agent_data = format_agent(agent)
+        agent_output_model = cls._client.add_agent_during_forge_cycle(
+            forge_cycle_uuid=forge_cycle_id, data=agent_data,
+        )
+
+        return agent_output_model.uuid
 
     @classmethod
     @_handle_api_errors
