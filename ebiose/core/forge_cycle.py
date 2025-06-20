@@ -197,7 +197,12 @@ class ForgeCycle:
                 nb_agents=n_selected_agents,
                 forge_cycle_uuid=self.id,
             )
-            self.load_agents_from_ecosystem(ecosystem)
+            for selected_agent in selected_agents:
+                selected_agent.update_io_models(
+                    agent_input_model= self.forge.agent_input_model,
+                    agent_output_model=self.forge.agent_output_model,
+                )
+            self.load_meta_agents_from_ecosystem(ecosystem)
 
         logger.debug(f"{len(selected_agents)} agents selected from ecosystem over {n_selected_agents} requested")
 
@@ -277,8 +282,8 @@ class ForgeCycle:
 
         return initialization_cost
 
-    def load_agents_from_ecosystem(
-        self, ecosystem: Ecosystem, # Removed quotes from Ecosystem type hint
+    def load_meta_agents_from_ecosystem(
+        self, ecosystem: Ecosystem,
     ) -> None:
         #TODO(xabier): this should be used to get architect and genetic operator agents
         # only after agents are selected from the ecosystem
@@ -506,8 +511,9 @@ class ForgeCycle:
 
         update_first_generation_costs = (self.cur_generation == 0)
         total_cost_in_dollars = 0
-        for index, agent_id in enumerate(self.agents.keys()):
-            fitness = results[index]
+        for agent_id, fitness in results:
+        # for index, agent_id in enumerate(self.agents.keys()):
+            # fitness = results[index]
             self.agents_fitness[agent_id] = fitness
             current_agent_cost = LangGraphLLMApi.get_agent_cost(agent_id)
             total_cost_in_dollars += current_agent_cost

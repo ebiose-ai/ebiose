@@ -74,3 +74,13 @@ class Agent(BaseModel):
     @observe(name="run_agent")
     async def run(self, input_data: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None) -> any:
         return await self.agent_engine.run(input_data, master_agent_id, forge_cycle_id)
+
+    def update_io_models(
+        self,
+        agent_input_model: type[BaseModel] | None = None,
+        agent_output_model: type[BaseModel] | None = None,
+    ) -> None:
+        if agent_input_model is not None:
+            self.agent_engine.input_model = agent_input_model
+        if agent_output_model is not None:
+            self.agent_engine.output_model = agent_output_model
