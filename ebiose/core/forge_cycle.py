@@ -99,7 +99,7 @@ class ForgeCycle:
     config: ForgeCycleConfig
     id: str = field(default_factory=lambda: f"forge-cycle-{uuid4()!s}")  # Changed Pydantic Field to dataclasses.field
 
-    cur_generation: int = -1
+    cur_generation: int = 0
 
     agents: dict[str, Agent] = field(default_factory=dict)
     agents_fitness: dict[str, float] = field(default_factory=dict)
@@ -140,14 +140,17 @@ class ForgeCycle:
 
     def add_agent(self, agent: Agent, source: str) -> None:
         try:
-            agent_id = EbioseAPIClient.add_agent_from_forge_cycle(
-                forge_cycle_id=self.id,
-                agent=agent,
-            )
-            agent.id = agent_id
-            self.agents[agent_id] = agent
+            if self.config.mode == "cloud" and source != "kept_from_previous_gen":
+                # TODO(xabier): improve condition to avoid pushing an agent twice
+                agent_id = EbioseAPIClient.add_agent_from_forge_cycle(
+                    forge_cycle_id=self.id,
+                    agent=agent,
+                )
+                agent.id = agent_id
+                agent.agent_engine.agent_id = agent_id  # Ensure agent's engine has the correct ID
+            self.agents[agent.id] = agent
             AgentAddedToPopulationEvent(
-                agent_id=agent_id,
+                agent_id=agent.id,
                 generation_number=self.cur_generation,
                 source=source,
                 agent = agent.model_dump(mode="json"),
@@ -189,7 +192,6 @@ class ForgeCycle:
         n_selected_agents = self.config.n_selected_agents_from_ecosystem
         selected_agents = []
         if self.config.mode == "cloud":
-            # TODO(xabier): remove this hack when select_agents working server side
             selected_agents = EbioseAPIClient.select_agents(
                 ecosystem_id=ecosystem.id,
                 nb_agents=n_selected_agents,
@@ -361,18 +363,20 @@ class ForgeCycle:
             logger.info(f"Budget left after initialization: {self.config.budget - total_cycle_cost} $")
 
             # running generation 0
-            self.cur_generation += 1
-            first_generation_cost = await self.run_generation()
-            total_cycle_cost += first_generation_cost
+            first_evaluation_cost, first_genetic_cost = await self.run_generation()
+            estimated_cost_to_complete_cycle = 2 * first_evaluation_cost + first_genetic_cost
+            total_cycle_cost += first_evaluation_cost + first_genetic_cost
 
             # running next generations until budget is reached
-            while self.config.budget - total_cycle_cost > first_generation_cost if self.config.mode == "cloud" else self.cur_generation < self.config.n_generations:
+            while self.config.budget - total_cycle_cost > estimated_cost_to_complete_cycle \
+                if self.config.mode == "cloud" \
+                else self.cur_generation < self.config.n_generations:
                 self.cur_generation += 1
-                total_cycle_cost += await self.run_generation()
-
+                evaluation_cost, genetic_cost = await self.run_generation()
+                total_cycle_cost += evaluation_cost + genetic_cost
 
             # Evaluate last offsprings before sorting all population by fitness
-            total_cycle_cost += await self._evaluate_population(self.cur_generation+1)
+            total_cycle_cost += await self._evaluate_population()
             # TODO(xabier): this is a hack to save last evaluation
             self.save_current_state(self.cur_generation+1)
 
@@ -423,7 +427,7 @@ class ForgeCycle:
                     winning_agents=list(selected_agents.values()),
                 )
 
-    async def run_generation(self) -> float:
+    async def run_generation(self) -> tuple[float, float]:
         logger.info(f"****** Running generation {self.cur_generation} ******")
         gen_start_time = time()
         GenerationRunStartedEvent(
@@ -440,13 +444,17 @@ class ForgeCycle:
 
         # Select agents for crossover and mutation
         # number of agents to be replaced
-        n_replaced = int(self.config.replacement_ratio * len(self.agents))
+        # n_replaced = int(self.config.replacement_ratio * len(self.agents))
+        n_replaced = int(self.config.n_agents_in_population * self.config.replacement_ratio)
         # number of agents to be kept
-        n_kept = len(self.agents) - n_replaced
+        n_kept = self.config.n_agents_in_population - n_replaced
         # we randomly select the agents that will be kept
         kept_agents = self.roulette_wheel_selection(n_kept)
 
         # Tournament selection for crossover
+        # TODO(xabier): remove
+        if n_replaced == 0 or n_replaced != 1:
+            print("Stop")
         logger.info("Starting crossover and mutation...")
         selected_parent_ids_for_crossover = self.tournament_selection(n_to_select=n_replaced)
         if selected_parent_ids_for_crossover is None or len(selected_parent_ids_for_crossover) == 0:
@@ -458,13 +466,13 @@ class ForgeCycle:
 
         # we finally add kept and offspring agents
         # Clear and repopulate agents and fitness, log 'kept_from_previous_gen' source
-        current_agents_fitness = self.agents_fitness.copy()
         self.agents.clear()
         self.agents_fitness.clear()
 
         for agent_id, agent_obj in kept_agents.items():
             self.add_agent(agent_obj, source="kept_from_previous_gen")
-            self.agents_fitness[agent_id] = current_agents_fitness[agent_id]
+            # avoiding to recompute fitness has to be handled by the forge
+            # self.agents_fitness[agent_id] = current_agents_fitness[agent_id]
 
 
         for offspring in offspring_agents:
@@ -477,9 +485,8 @@ class ForgeCycle:
             duration_seconds=time() - gen_start_time,
             population_size_after_generation=len(self.agents),
         ).log()
-
-        
-        return evaluation_cost + genetic_cost
+   
+        return evaluation_cost, genetic_cost
 
 
     async def _evaluate_population(self) -> float:
@@ -523,6 +530,12 @@ class ForgeCycle:
             total_evaluation_cost=total_cost_in_dollars,
             duration_seconds=time() - eval_start_time,
         ).log()
+
+        if len(self.agents) != len(self.agents_fitness):
+            print("stop")
+        if set(self.agents.keys()) != set(self.agents_fitness.keys()):
+            print("stop")
+
         return total_cost_in_dollars
 
 

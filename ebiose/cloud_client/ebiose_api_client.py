@@ -1,6 +1,7 @@
 
 import functools
 import json
+import random
 import re
 from typing import TYPE_CHECKING
 import uuid
@@ -207,7 +208,7 @@ class EbioseAPIClient:
     @classmethod
     @_handle_api_errors
     def add_agent_from_forge_cycle(
-        cls, forge_cycle_id: str, agent: "Agent"
+        cls, forge_cycle_id: str, agent: "Agent",
     ) -> None:
         """Post a single agent in a forge cycle."""
         
@@ -313,9 +314,10 @@ class EbioseAPIClient:
     @_handle_api_errors
     def select_agents(cls, ecosystem_id:str, nb_agents:int, forge_cycle_uuid: str) -> list["Agent"]:
         """Select agents from an ecosystem."""
+        # TODO(xabier): remove unused parameter ecosystem_id
         response = cls._client.select_agents_for_forge_cycle(
             forge_cycle_uuid=forge_cycle_uuid,
-            nb_agents= 100, #nb_agents, # TODO(xabier): fix when server side is ready (then should at least filter on agent_type==None)
+            nb_agents= 100, # nb_agents, # TODO(xabier): fix when server side is ready (then should at least filter on agent_type==None)
         )
         agents = []
         for r in response:
@@ -323,7 +325,8 @@ class EbioseAPIClient:
             if agent.agent_type is None:  # Filter out architect and genetic operator agents
                 agents.append(agent)
 
-        return agents[-nb_agents:]  # Return only the requested number of agents
+        # TODO(xabier): random choice should be handled server-side
+        return random.choices(agents, k=nb_agents) if len(agents) >= nb_agents else agents
     
     @classmethod
     @_handle_api_errors

@@ -28,6 +28,13 @@ async def architect_agent_task(
         genetic_operator_agent: Agent,
         forge_cycle_id: str | None = None,
     ) -> Agent | None:
+    # TODO(xabier): remove
+    # from ebiose.cloud_client.ebiose_api_client import get_sample_agent
+    # from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
+    # agent = get_sample_agent()
+    # agent.architect_agent_id = "agent-c6ef9d53-923b-459a-ab99-ebb2877517d8"
+    # agent.genetic_operator_agent_id = "agent-dff043b2-fa0f-4761-a1f0-5561bd58ed26"
+    # return agent
 
     response = None
     try:
@@ -40,6 +47,7 @@ async def architect_agent_task(
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
             forge_cycle_id= forge_cycle_id,
+            forge_description=forge.description,
         )
     except Exception as e:
         logger.debug(f"Architect agent {architect_agent.id} failed creating a valid agent for {forge.name}. Retrying once.")
@@ -52,6 +60,7 @@ async def architect_agent_task(
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
             forge_cycle_id=forge_cycle_id,
+            forge_description=forge.description,
         )
     return response
 
@@ -66,6 +75,13 @@ async def crossover_agent_task(
                 master_agent_id: str | None = None,
                 forge_cycle_id: str | None = None,
             ) -> Agent | None:
+    # TODO(xabier): remove
+    # from ebiose.cloud_client.ebiose_api_client import get_sample_agent
+    # from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
+    # agent = get_sample_agent()
+    # agent.architect_agent_id = "agent-c6ef9d53-923b-459a-ab99-ebb2877517d8"
+    # agent.genetic_operator_agent_id = "agent-dff043b2-fa0f-4761-a1f0-5561bd58ed26"
+    # return agent
 
     result = None
     try:
@@ -80,6 +96,7 @@ async def crossover_agent_task(
             master_agent_id=master_agent_id,
             forge_cycle_id=forge_cycle_id,
             architect_agent=architect_agent,
+            forge_description=forge.description,
         )
     except Exception as e:
         logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
@@ -92,6 +109,7 @@ async def crossover_agent_task(
             generated_agent_input=forge.agent_input_model,
             generated_agent_output=forge.agent_output_model,
             forge_cycle_id=forge_cycle_id,
+            forge_description=forge.description,
         )
 
     return result

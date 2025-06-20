@@ -24,7 +24,7 @@ class Agent(BaseModel):
     id: str = Field(default_factory=lambda: "agent-" + str(uuid.uuid4()))
     name: str
     agent_type: Literal["architect", "genetic_operator"] | None = None
-    description: str = Field(repr=False)
+    description: str | None = None
     architect_agent_id: str | None = None 
     genetic_operator_agent_id: str | None = None  #
     architect_agent: Agent | None = None  # Reference to the architect agent if this is a generated agent

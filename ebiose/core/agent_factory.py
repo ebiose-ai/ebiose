@@ -100,13 +100,14 @@ class AgentFactory:
         generated_agent_output: type[BaseModel] | None = None,
         generated_model_endpoint_id: str | None = None,
         forge_cycle_id: str | None = None,
+        forge_description: str | None = None,
     ) -> "Agent":
         from ebiose.core.agent import Agent # Local import
         from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
 
         output = await architect_agent.run(agent_input, master_agent_id=architect_agent.id, forge_cycle_id=forge_cycle_id)
         try:
-            agent_name = "TODO" # TODO(xabier): generate agent name
+            agent_name = forge_description
             agent_description = output.description
             agent_engine_configuration = {
                 "graph": output.model_dump(),
@@ -153,13 +154,14 @@ class AgentFactory:
         parent_ids: list[str] | None = None,
         master_agent_id: str | None = None,
         forge_cycle_id: str | None = None,
+        forge_description: str | None = None,
     ) -> tuple["Agent", "Agent"] | "Agent" :
         from ebiose.core.agent import Agent # Local import
         from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
         
         output = await crossover_agent.run(input_data, master_agent_id=master_agent_id, forge_cycle_id=forge_cycle_id)
         try:
-            agent_name = "TODO" # TODO(xabier): generate agent name
+            agent_name = forge_description
             agent_description = output.description
             agent_engine_configuration = {
                 "graph": output.model_dump(),
