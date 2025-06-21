@@ -83,7 +83,7 @@ class LangGraphEngine(GraphEngine):
         return self
 
     @observe(name="run_agent_engine")
-    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None) -> BaseModel | dict | None:
+    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None,  **kwargs: dict[str, any]) -> BaseModel | dict | None:
 
         final_state = await self.invoke_graph(agent_input, forge_cycle_id=forge_cycle_id)
 

@@ -72,8 +72,8 @@ class Agent(BaseModel):
         return self
 
     @observe(name="run_agent")
-    async def run(self, input_data: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None) -> any:
-        return await self.agent_engine.run(input_data, master_agent_id, forge_cycle_id)
+    async def run(self, input_data: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None, **kwargs: dict[str, any]) -> any:
+        return await self.agent_engine.run(input_data, master_agent_id, forge_cycle_id, **kwargs)
 
     def update_io_models(
         self,

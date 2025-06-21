@@ -55,7 +55,7 @@ class AgentForge(BaseModel):
         return value
 
     @abstractmethod
-    async def compute_fitness(self, agent: Agent, **kwargs: dict[str, any]) -> tuple(str, float):
+    async def compute_fitness(self, agent: Agent, **kwargs: dict[str, any]) -> tuple[str, float]:
         pass
 
     async def run_new_cycle(

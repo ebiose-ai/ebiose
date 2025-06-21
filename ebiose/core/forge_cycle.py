@@ -503,7 +503,7 @@ class ForgeCycle:
         tasks = []
         for agent in self.agents.values():
             task = asyncio.create_task(
-                self.forge.compute_fitness(agent,generation=self.cur_generation),
+                self.forge.compute_fitness(agent, generation=self.cur_generation, forge_cycle_id=self.id),
             )
             tasks.append(task)
 

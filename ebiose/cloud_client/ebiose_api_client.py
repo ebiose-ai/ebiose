@@ -304,7 +304,7 @@ class EbioseAPIClient:
 
         new_cycle_output = cls._client.start_new_forge_cycle(
             forge_uuid=forge_id,
-            data=forge_cycle_input, 
+            data=forge_cycle_input,
             override_key=override_key,
         )
 
