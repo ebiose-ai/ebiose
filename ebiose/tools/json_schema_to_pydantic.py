@@ -10,7 +10,6 @@ from pydantic import (  # Import Field for potential future use
 # --- Configuration ---
 _DEFS_KEY = "$defs" # Pydantic V2 uses $defs
 _RECURSION_DEPTH_LIMIT = 20 # Protection against infinite recursion
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # --- Type Mapping ---
 # Maps JSON schema types to Python types

@@ -7,6 +7,7 @@ from enum import Enum
 import requests
 from pydantic import BaseModel
 
+from loguru import logger
 
 # --- Custom Exceptions ---
 class EbioseCloudError(Exception):
@@ -240,7 +241,7 @@ class EbioseCloudClient:
         self.bearer_token = bearer_token
         self.timeout = timeout
         if not self.api_key and not self.bearer_token:
-            print("Warning: EbioseCloudClient initialized without API key or Bearer token.")
+            logger.debug("Warning: EbioseCloudClient initialized without API key or Bearer token.")
 
     def _request(self, method: str, endpoint: str, params: dict[str, any] | None = None, data: any = None, json_data: any = None) -> any:
         """Internal method to make an HTTP request."""
@@ -440,7 +441,7 @@ class EbioseAPIClient:
     def set_client_credentials(cls, base_url: str, api_key: str | None = None, bearer_token: str | None = None) -> None:
         """Sets the API client credentials."""
         cls._client = EbioseCloudClient(base_url=base_url, api_key=api_key, bearer_token=bearer_token)
-        print(f"EbioseCloudClient initialized for base URL: {base_url}")
+        logger.debug(f"EbioseCloudClient initialized for base URL: {base_url}")
 
     @classmethod
     def _get_client(cls) -> EbioseCloudClient:
@@ -453,15 +454,15 @@ class EbioseAPIClient:
     def _handle_request(cls, action_description: str, api_call, *args, **kwargs):
         """Generic request handler for the facade."""
         try:
-            print(f"\nAttempting to {action_description}...")
+            logger.debug(f"\nAttempting to {action_description}...")
             result = api_call(*args, **kwargs)
-            print(f"Successfully finished: {action_description}.")
+            logger.debug(f"Successfully finished: {action_description}.")
             return result
         except EbioseCloudError as e:
-            print(f"An API error occurred while {action_description}: {e}")
+            logger.debug(f"An API error occurred while {action_description}: {e}")
             raise
         except Exception as e:
-            print(f"An unexpected error occurred while {action_description}: {e}")
+            logger.debug(f"An unexpected error occurred while {action_description}: {e}")
             raise
 
     # --- ApiKey Facade ---
@@ -469,8 +470,6 @@ class EbioseAPIClient:
     def add_new_api_key(cls, data: ApiKeyInputModel) -> bool:
         return cls._handle_request("add new API key", cls._get_client().add_api_key, data=data)
     
-    # ... (other facade methods remain largely the same, so they are omitted for brevity but should be included)
-
     # --- Forge Facade (with new methods) ---
     @classmethod
     def list_all_forges(cls) -> list[ForgeOutputModel]:
@@ -534,9 +533,9 @@ class EbioseAPIClient:
         return cls._handle_request(f"send log entry to index '{data.index}'", cls._get_client().add_log_entry, data=data)
 
 if __name__ == "__main__":
-    print("Ebiose API Client (Python) - Example Usage")
-    print("Please configure EbioseAPIClient.set_client_credentials() before running examples.")
-    print("-" * 30)
+    logger.debug("Ebiose API Client (Python) - Example Usage")
+    logger.debug("Please configure EbioseAPIClient.set_client_credentials() before running examples.")
+    logger.debug("-" * 30)
 
     # Example of setting credentials (uncomment to use)
     # EbioseAPIClient.set_client_credentials(
@@ -549,13 +548,13 @@ if __name__ == "__main__":
     #         # Example: Log a message
     #         log_data = LogEntryInputModel(index="client_test", data="This is a test log from the updated client.")
     #         log_response = EbioseAPIClient.log_message(data=log_data)
-    #         print(f"Log response: {log_response.message}")
+    #         logger.debug(f"Log response: {log_response.message}")
 
     #         # Example: List users
     #         users = EbioseAPIClient._get_client().list_users()
-    #         print(f"Found {len(users)} users.")
+    #         logger.debug(f"Found {len(users)} users.")
 
     #     except EbioseCloudError as e:
-    #         print(f"An error occurred: {e}")
+    #         logger.debug(f"An error occurred: {e}")
     # else:
-    #     print("Client is not configured. Skipping API call examples.")
+    #     logger.debug("Client is not configured. Skipping API call examples.")

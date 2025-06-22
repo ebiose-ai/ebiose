@@ -54,8 +54,6 @@ class AgentEngine(BaseModel):
                 original_exception=e,
                 agent_identifier=self.agent_id,
             ) from e
-        finally:
-            print("Agent engine run completed.")
 
     @observe(name="run_agent")
     @abstractmethod
