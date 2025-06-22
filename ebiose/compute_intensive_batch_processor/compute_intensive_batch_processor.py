@@ -81,7 +81,6 @@ class ComputeIntensiveBatchProcessor:
 
 
 
-    # limit is in dollars
     @staticmethod
     def generate_token(limit: float, master_token: str) -> str:
         return ComputeIntensiveBatchProcessor._token_manager.generate_token(limit, master_token)

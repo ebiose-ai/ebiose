@@ -114,5 +114,3 @@ class MathLangGraphForge(AgentForge):
             return fitness/self.n_problems
 
         return fitness/len(self.data[mode])
-
-
