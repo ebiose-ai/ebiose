@@ -9,6 +9,10 @@ from __future__ import annotations
 from collections.abc import Sequence  # noqa: TC003
 from typing import Self
 
+# TODO(xabier): replace when langfuse is updated to >=3.0
+# from langfuse import observe, get_client
+# from langfuse.langchain import CallbackHandler
+
 from langfuse.decorators import langfuse_context, observe
 from langgraph.graph import StateGraph
 from langgraph.graph.graph import END, START, CompiledGraph
@@ -35,6 +39,9 @@ from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import EndNode, StartNode
 from ebiose.tools.json_schema_to_pydantic import create_pydantic_model_from_schema
 
+# TODO(xabier): replace when langfuse is updated to >=3.0
+# langfuse = get_client()
+# langfuse_handler = CallbackHandler()
 
 class LangGraphEngine(GraphEngine):
     engine_type: str = "langgraph_engine"
@@ -181,15 +188,19 @@ class LangGraphEngine(GraphEngine):
                     }
 
             if len(self.tags) > 0:
+                # TODO(xabier): replace when langfuse is updated to >=3.0
+                # langfuse.update_current_trace(
+                #     tags=self.tags,
+                # )
                 langfuse_context.update_current_trace(
                     tags=self.tags,
                 )
-            handler = langfuse_context.get_current_langchain_handler()
+            langfuse_handler = langfuse_context.get_current_langchain_handler()
             config = self._config(
                 shared_context_prompt=self.graph.shared_context_prompt, #.format(**agent_input.model_dump()),
                 model_endpoint_id=self.model_endpoint_id,
                 output_model=self.output_model,
-                callbacks = [handler],
+                callbacks = [langfuse_handler],
                 recursion_limit = self.recursion_limit,
                 forge_cycle_id=forge_cycle_id,
                 **node_config,

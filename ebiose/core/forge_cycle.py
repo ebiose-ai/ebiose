@@ -306,7 +306,7 @@ class ForgeCycle:
             self,
             ecosystem: Ecosystem | None, # Removed quotes from Ecosystem type hint
             lite_llm_api_key: str | None = None,
-        ) -> list[Agent]:
+        ) -> tuple[dict[str, Agent], dict[str, float]]:
 
         cycle_start_time = time()
         total_cycle_cost = 0.0
@@ -362,7 +362,8 @@ class ForgeCycle:
                     error_message="No agent was initialized",
                     duration_seconds=time() - cycle_start_time,
                 ).log()
-                return []
+                selected_agents, selected_fitness = {}, {}
+                return selected_agents, selected_fitness
 
             total_cycle_cost += initialization_cost
             logger.info(f"Budget left after initialization: {self.config.budget - total_cycle_cost} $")

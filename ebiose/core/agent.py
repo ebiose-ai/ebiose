@@ -10,7 +10,10 @@ import traceback
 import uuid
 from typing import Literal, Self
 
+# TODO(xabier): replace when langfuse is updated to >=3.0
+# from langfuse import observe
 from langfuse.decorators import observe
+
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 from pydantic.alias_generators import to_camel

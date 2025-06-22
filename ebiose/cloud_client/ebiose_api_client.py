@@ -5,6 +5,7 @@ import random
 import re
 from typing import TYPE_CHECKING
 import uuid
+from loguru import logger
 
 from ebiose.cloud_client.client import AgentEngineInputModel, AgentInputModel, AgentType, EbioseCloudClient, EbioseCloudError, EcosystemOutputModel, ForgeCycleInputModel, ForgeInputModel, LogEntryInputModel
 from ebiose.core.agent_factory import AgentFactory
@@ -19,11 +20,11 @@ from uuid import uuid4
 
 ES_INDEX = "test-pva4"
 
-def format_agent(agent: "Agent") -> AgentInputModel:
+def build_agent_input_model(agent: "Agent", forge_cycle_id: str) -> AgentInputModel:
     """Format the agent for the API."""
     agent_engine = AgentEngineInputModel(
         engineType=agent.agent_engine.engine_type,
-        configuration=agent.agent_engine.serialize_configuration(),
+        configuration=agent.agent_engine.model_dump_json(),
     )
     # TODO(xabier): make this more straightforward
     if agent.agent_type == "architect":
@@ -32,8 +33,8 @@ def format_agent(agent: "Agent") -> AgentInputModel:
         agent_type = AgentType(1)
     else:
         agent_type = AgentType(0)
+
     return AgentInputModel(
-        # uuid=agent.id,
         name=agent.name,
         description=agent.description,
         architectAgentUuid=agent.architect_agent_id,
@@ -41,33 +42,8 @@ def format_agent(agent: "Agent") -> AgentInputModel:
         agentEngine=agent_engine,
         descriptionEmbedding=agent.description_embedding,
         agentType=agent_type,
-    )
-
-def build_agent_input_model(agent: "Agent") -> AgentInputModel:
-    """Build the AgentInputModel from the Agent."""
-    agent_engine_input_model = AgentEngineInputModel(
-        engine_type=agent.agent_engine.engine_type,
-        configuration=agent.agent_engine.model_dump_json(),
-    )
-
-    agent_type = None
-    if agent.agent_type == "architect":
-        agent_type = AgentType(2)
-    elif agent.agent_type == "genetic_operator":
-        agent_type = AgentType(1)
-    else:
-        agent_type = AgentType(0)
-
-    return AgentInputModel(
-        uuid=agent.id, # TODO(gildas): add this field to the server side
-        name=agent.name,
-        description=agent.description,
-        agent_engine=agent_engine_input_model,
-        architect_agent_uuid=agent.architect_agent_id,
-        genetic_operator_agent_uuid=agent.genetic_operator_agent_id,
-        description_embedding=None,
-        agent_type=agent_type,
-        descriptionEmbedding=None,
+        parentAgentUuids= agent.parent_ids,
+        originForgeCycleUuid=forge_cycle_id,
     )
 
 class EbioseAPIClient:
@@ -129,7 +105,7 @@ class EbioseAPIClient:
                 if cls._client is None:
                     cls.set_client()
 
-                print(f"\nAttempting to {func.__name__.replace('_', ' ')}...")
+                logger.debug(f"\nAttempting to {func.__name__.replace('_', ' ')}...")
                 
                 # 1. Call the original method to get the raw API response
                 pascal_case_result = func(cls, *args, **kwargs)
@@ -142,13 +118,13 @@ class EbioseAPIClient:
                 return None
 
             except EbioseCloudError as e:
-                print(f"An API error occurred: {e}")
+                logger.debug(f"An API error occurred: {e}")
                 if e.response_text:
-                    print(f"Raw error response from server: {e.response_text}")
+                    logger.debug(f"Raw error response from server: {e.response_text}")
                 return None
 
             except Exception as e:
-                print(f"An unexpected error occurred: {e}")
+                logger.debug(f"An unexpected error occurred: {e}")
                 return None
         return wrapper
 
@@ -180,7 +156,7 @@ class EbioseAPIClient:
         if list_of_ecosystems:
             return list_of_ecosystems
         else:
-            print("No ecosystems were found.")
+            logger.debug("No ecosystems were found.")
             return []
 
     @classmethod
@@ -195,10 +171,10 @@ class EbioseAPIClient:
     def delete_agents(cls, ecosystem_id: str, agent_ids: list[str]) -> None:
         """Delete agents in an ecosystem."""
         if not agent_ids:
-            print("No agents to delete.")
+            logger.debug("No agents to delete.")
             return
         
-        print(f"Deleting agents with IDs: {agent_ids} from ecosystem {ecosystem_id}")
+        logger.debug(f"Deleting agents with IDs: {agent_ids} from ecosystem {ecosystem_id}")
         cls._client.delete_agents_from_ecosystem(
             ecosystem_uuid=ecosystem_id, 
             agent_uuids=agent_ids,
@@ -209,7 +185,9 @@ class EbioseAPIClient:
     def add_agents_from_forge_cycle(cls, forge_cycle_id: str, agents: list["Agent"]) -> None:
         """Post agents in a forge cycle."""
         
-        agents_data = [format_agent(agent) for agent in agents]
+        agents_data = [
+            build_agent_input_model(agent, forge_cycle_id=forge_cycle_id) for agent in agents
+        ]
         return cls._client.add_agents_during_forge_cycle(
             forge_cycle_uuid=forge_cycle_id, agents_data=agents_data,
         )
@@ -221,7 +199,7 @@ class EbioseAPIClient:
     ) -> None:
         """Post a single agent in a forge cycle."""
         
-        agent_data = format_agent(agent)
+        agent_data = build_agent_input_model(agent, forge_cycle_id=forge_cycle_id)
         agent_output_model = cls._client.add_agent_during_forge_cycle(
             forge_cycle_uuid=forge_cycle_id, data=agent_data,
         )
@@ -249,7 +227,7 @@ class EbioseAPIClient:
                 agents={agent.id: agent for agent in agents},
             )
         else:
-            print(f"No ecosystem found with UUID: {ecosystem_id}")
+            logger.debug(f"No ecosystem found with UUID: {ecosystem_id}")
             return None
 
 
@@ -257,7 +235,7 @@ class EbioseAPIClient:
     @_handle_api_errors
     def get_agents(cls, ecosystem_id: str) -> list["Agent"] | None:
         response = cls._client.list_agents_in_ecosystem(ecosystem_uuid=ecosystem_id)
-        print(f"response: {response}")
+        logger.debug(f"response: {response}")
         agents = []
         for r in response:
             agent = AgentFactory.load_agent_from_api(r)
@@ -351,7 +329,7 @@ class EbioseAPIClient:
     ) -> None:
         """End a forge cycle."""
         agents_data = [
-            build_agent_input_model(agent) for agent in winning_agents
+            build_agent_input_model(agent, forge_cycle_id=forge_cycle_uuid) for agent in winning_agents
         ]
         cls._client.end_forge_cycle(
             forge_cycle_uuid=forge_cycle_uuid,

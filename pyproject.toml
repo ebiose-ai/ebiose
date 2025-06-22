@@ -3,11 +3,7 @@ name = "ebiose"
 version = "0.1.0"
 description = "Ebiose core"
 readme = "README.md"
-<<<<<<< HEAD
 requires-python = ">=3.12"
-=======
-requires-python = ">=3.11,<4.0"
->>>>>>> 390acc1 (fix - liteLLM config and python version for poetry)
 dependencies = [
     "asyncio>=3.4.3",
     "elasticsearch>=9.0.2",
@@ -16,7 +12,7 @@ dependencies = [
     "langchain-community>=0.3.16",
     "langchain-core>=0.3.33",
     "langchain-openai>=0.3.3",
-    "langfuse>=2.58.2",
+    "langfuse>=2.60",
     "langgraph>=0.2.69",
     "litellm>=1.63.12",
     "loguru>=0.7.3",
