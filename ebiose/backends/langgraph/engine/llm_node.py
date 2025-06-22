@@ -62,7 +62,6 @@ class LangGraphLLMNode(LLMNode):
             shared_context_prompt = config["configurable"]["shared_context_prompt"]
             model_endpoint_id = config["configurable"]["model_endpoint_id"]
             agent_id = config["configurable"]["agent_id"]
-            forge_cycle_id = config["configurable"]["forge_cycle_id"]
 
             output_conditions = []
             if self.id in config["configurable"] and "output_conditions" in config["configurable"][self.id]:

@@ -12,6 +12,7 @@ from typing import Literal
 
 from loguru import logger
 
+from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
 from ebiose.llm_api.llm_api import (
     LLMApi,
 )
@@ -33,6 +34,7 @@ def main(
         train_csv_path=train_csv_path,
         test_csv_path=test_csv_path,
         n_problems=n_problems,
+        default_model_endpoint_id=model_endpoint_id,
     )
 
     # loading agent
@@ -45,7 +47,7 @@ def main(
     )
 
     # generating the compute token
-    LLMApi.initialize(mode=mode)
+    LangGraphLLMApi.initialize(mode=mode)
     
     # running evaluation on test set
     t0 = datetime.now(UTC)
@@ -57,7 +59,7 @@ def main(
     )
 
     # getting cost
-    cost = LLMApi.get_token_cost()
+    cost = LangGraphLLMApi.get_total_cost()
 
     logger.info(f"Evaluation of agent {agent.id} on test set took {datetime.now(UTC) - t0}")
     logger.info(f"Computed fitness is: {fitness}, for cost: {cost} $")
@@ -70,7 +72,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     # evaluation parameters
-    AGENT_JSON_FILE = "data/2025-05-10_23-03-32/generation=1/agents/agent-cfd14b99-0c6e-4837-9332-b04880cc790f.json"
+    AGENT_JSON_FILE = "data/2025-06-22_13-53-54/generation=1/agents/agent-ff27cdb8-972a-4e4e-bd47-533293130919.json"
     TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
     TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
     N_PROBLEMS = 2 # number of problems to evaluate on

@@ -29,11 +29,14 @@ class AgentFactory:
         from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
         from ebiose.core.agent import Agent # Local import
 
+        agent_id = agent_config.get("id")
+
         # creating engine
+        configuration = json.loads(agent_config["agent_engine"]["configuration"])
         agent_engine = AgentEngineFactory.create_engine(
             engine_type=agent_config["agent_engine"]["engine_type"],
-            configuration=agent_config["agent_engine"]["configuration"],
-            agent_id=agent_config["agent_engine"]["agent_id"],
+            configuration=configuration,
+            agent_id=agent_id, #agent_config["agent_engine"]["agent_id"],
             model_endpoint_id=model_endpoint_id,
         )
 
@@ -41,7 +44,7 @@ class AgentFactory:
         agent_config["agent_engine"] = agent_engine
         agent_config["architect_agent"] = None
         agent_config["genetic_operator_agent"] = None
-        agent_config["id"]=agent_engine.agent_id
+        # agent_config["id"]=agent_engine.agent_id
 
         return Agent.model_validate(agent_config)
 
@@ -63,13 +66,6 @@ class AgentFactory:
             agent_id=engine_configuration["agent_id"],
         )
 
-        # architect_agent = AgentFactory.load_agent_from_api(
-        #     response_dict.architectAgent,
-        # ) if response_dict.architectAgent is not None else None
-        # genetic_operator_agent = AgentFactory.load_agent_from_api(
-        #     response_dict.geneticOperatorAgent,
-        # ) if response_dict.geneticOperatorAgent is not None else None
-
         # TODO(xabier): remove when agent_type is implemented server-side
         agent_type = None
         if "architect" in response_dict.name:
@@ -80,14 +76,12 @@ class AgentFactory:
         return Agent(
             id=response_dict.uuid,
             name=response_dict.name,
-            agent_type=agent_type,  # TODO(xabier): remove when agent_type is implemented server-side
+            agent_type=agent_type,
             description=response_dict.description,
             architect_agent_id=response_dict.architectAgentUuid,
-            # architect_agent=architect_agent,  # TODO(xabier): replace with id
             genetic_operator_agent_id=response_dict.geneticOperatorAgentUuid,
-            # genetic_operator_agent=genetic_operator_agent,  # TODO(xabier): replace with id
             agent_engine=agent_engine,
-            parent_ids=response_dict.parentAgentUuids, #TODO(xabier): response_dict.parentIds or [],
+            parent_ids=response_dict.parentAgentUuids,
         )
 
     @staticmethod

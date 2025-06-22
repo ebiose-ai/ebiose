@@ -4,18 +4,16 @@ import datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-
-from elasticsearch import Elasticsearch
 from loguru import logger as _logger
 from pydantic import BaseModel, Field, computed_field
 
 from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
 
 if TYPE_CHECKING:
-    # from ebiose.core.forge_cycle import ForgeCycleConfig # Not directly used in event fields, config is passed as dict
-    from uuid import UUID # Moved UUID import for type checking
+    from uuid import UUID  # Moved UUID import for type checking
 
 event_logger = _logger
+
 
 def elastic_sink(message) -> None:  # noqa: ANN001
     record = message.record
@@ -35,7 +33,9 @@ def elastic_sink(message) -> None:  # noqa: ANN001
 
     EbioseAPIClient.log(message=log_doc)
 
+
 event_logger.add(elastic_sink, level="INFO")
+
 
 def init_logger(user_id: str | None, forge_id: str | UUID | None, forge_cycle_id: str | UUID) -> None:
     global event_logger
@@ -44,6 +44,7 @@ def init_logger(user_id: str | None, forge_id: str | UUID | None, forge_cycle_id
         forge_id=forge_id,
         forge_cycle_id=forge_cycle_id,
     )
+
 
 class BaseEvent(BaseModel):
     """Base class for all events in the system."""
@@ -66,7 +67,6 @@ class BaseEvent(BaseModel):
         log_message += self.model_dump_json(indent=2)
         if message_override:
             log_message = message_override
-        # log_message = message_override if message_override else f"Event: {self.event_name}"# for ForgeCycle {self.forge_cycle_id}"
         event_logger.bind(event_payload=self.to_dict()).info(log_message)
 
 
@@ -99,11 +99,13 @@ class ArchitectAgentTaskCreatedEvent(BaseEvent):
     architect_agent_id: str | None
     generation_number: int
 
+
 class AgentAddedToPopulationEvent(BaseEvent):
     agent_id: str
     generation_number: int
     source: str  # e.g., "newly_created_during_init", "from_ecosystem", "offspring", "kept_from_previous_gen"
     agent: dict[str, Any]  # Serialized Agent object if available
+
 
 class PopulationInitializationCompletedEvent(BaseEvent):
     num_agents_initialized: int

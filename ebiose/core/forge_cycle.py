@@ -153,7 +153,7 @@ class ForgeCycle:
                 agent_id=agent.id,
                 generation_number=self.cur_generation,
                 source=source,
-                agent = agent.model_dump(mode="json"),
+                agent = agent.model_dump(mode="json", exclude={"agent_engine", "description_embedding"}),
             ).log()
         except Exception as e:
             logger.debug(f"Error while adding an agent: {e!s}, {agent}")
@@ -330,7 +330,7 @@ class ForgeCycle:
 
         init_logger(
             user_id=user_id,
-            forge_id=None, # TODO(xabier): this should be set to the forge id
+            forge_id=forge_id,
             forge_cycle_id=self.id,
         )
 
@@ -538,9 +538,9 @@ class ForgeCycle:
         ).log()
 
         if len(self.agents) != len(self.agents_fitness):
-            print("stop")
+            logger.warning("Mismatch between number of agents and fitness values.")
         if set(self.agents.keys()) != set(self.agents_fitness.keys()):
-            print("stop")
+            logger.warning("Mismatch between agent IDs and fitness values.")
 
         return total_cost_in_dollars
 
@@ -647,13 +647,14 @@ class ForgeCycle:
             # No parents for crossover or mutation
             # TODO(xabier) should fallback to architect agents?
             return [], 0.0
-        
+
         # Single parent: fallback to mutation  
         if len(selected_parent_ids) == 1:
             parent_id = selected_parent_ids[0]
             parent = self.agents[parent_id]
             architect_agent = self.architect_agents.get(parent.architect_agent_id)
-            
+
+
             # Select mutation agent: embedded or random
             mut_agent_id = parent.genetic_operator_agent_id
             mut_agent = self.genetic_operator_agents[mut_agent_id]
@@ -757,7 +758,7 @@ class ForgeCycle:
                     generation_number=self.cur_generation,
                     parent_ids=offspring_agent.parent_ids, # TODO(xabier): get parent ids
                     genetic_operator_agent_id=offspring_agent.genetic_operator_agent_id,
-                    offspring_agent=offspring_agent.model_dump(mode="json"),
+                    offspring_agent=offspring_agent.model_dump(mode="json", exclude={"agent_engine", "description_embedding"}),
                 ).log()
 
         current_phase_cost = LangGraphLLMApi.get_total_cost(forge_cycle_id=self.id) - previous_cost

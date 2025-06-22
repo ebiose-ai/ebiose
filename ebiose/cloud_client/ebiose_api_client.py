@@ -49,6 +49,15 @@ def build_agent_input_model(agent: "Agent") -> AgentInputModel:
         engine_type=agent.agent_engine.engine_type,
         configuration=agent.agent_engine.model_dump_json(),
     )
+
+    agent_type = None
+    if agent.agent_type == "architect":
+        agent_type = AgentType(2)
+    elif agent.agent_type == "genetic_operator":
+        agent_type = AgentType(1)
+    else:
+        agent_type = AgentType(0)
+
     return AgentInputModel(
         uuid=agent.id, # TODO(gildas): add this field to the server side
         name=agent.name,
@@ -57,9 +66,9 @@ def build_agent_input_model(agent: "Agent") -> AgentInputModel:
         architect_agent_uuid=agent.architect_agent_id,
         genetic_operator_agent_uuid=agent.genetic_operator_agent_id,
         description_embedding=None,
-        # description_embedding=agent.description_embedding, # TODO(gildas): add this field as list of float to the server side
+        agent_type=agent_type,
+        descriptionEmbedding=None,
     )
-
 
 class EbioseAPIClient:
     _client: EbioseCloudClient | None = None
