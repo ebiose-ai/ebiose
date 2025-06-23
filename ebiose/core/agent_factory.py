@@ -58,12 +58,13 @@ class AgentFactory:
         from ebiose.core.agent import Agent # Local import
 
         engine_configuration = json.loads(response_dict.agentEngine.configuration)
+        agent_id = response_dict.uuid
         # creating engine
         agent_engine = AgentEngineFactory.create_engine(
             engine_type=response_dict.agentEngine.engineType,
             configuration=engine_configuration,
             model_endpoint_id=model_endpoint_id,
-            agent_id=engine_configuration["agent_id"],
+            agent_id=agent_id, # this ensures that there is not mismatch between the agent id and the engine agent id
         )
 
         # TODO(xabier): remove when agent_type is implemented server-side
@@ -74,7 +75,7 @@ class AgentFactory:
             agent_type = "genetic_operator"
 
         return Agent(
-            id=response_dict.uuid,
+            id=agent_id,
             name=response_dict.name,
             agent_type=agent_type,
             description=response_dict.description,

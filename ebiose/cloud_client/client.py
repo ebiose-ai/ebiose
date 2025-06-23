@@ -260,7 +260,7 @@ class EbioseCloudClient:
             if hasattr(BaseModel, 'model_dump'):
                 json_payload = json.loads(json.dumps(json_data, default=lambda o: o.model_dump(by_alias=True) if isinstance(o, BaseModel) else o))
             else:
-                 json_payload = json.loads(json.dumps(json_data, default=lambda o: o.dict(by_alias=True) if isinstance(o, BaseModel) else o))
+                json_payload = json.loads(json.dumps(json_data, default=lambda o: o.dict(by_alias=True) if isinstance(o, BaseModel) else o))
 
             response = requests.request(method, url, params=params, data=data, json=json_payload, headers=headers, timeout=self.timeout)
             response.raise_for_status()

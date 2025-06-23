@@ -24,7 +24,7 @@ def build_agent_input_model(agent: "Agent", forge_cycle_id: str) -> AgentInputMo
     """Format the agent for the API."""
     agent_engine = AgentEngineInputModel(
         engineType=agent.agent_engine.engine_type,
-        configuration=agent.agent_engine.model_dump_json(),
+        configuration=agent.agent_engine.serialize_configuration(),
     )
     # TODO(xabier): make this more straightforward
     if agent.agent_type == "architect":
@@ -182,6 +182,23 @@ class EbioseAPIClient:
 
     @classmethod
     @_handle_api_errors
+    def add_agents_to_ecosystem(
+        cls, agents: list["Agent"], ecosystem_id: str,
+    ) -> list[str]:
+        """Post agents in an ecosystem."""
+        
+        agents_data = [
+            build_agent_input_model(agent, forge_cycle_id=None) for agent in agents
+        ]
+        response = cls._client.add_agents_to_ecosystem(
+            ecosystem_uuid=ecosystem_id, agents_data=agents_data,
+        )
+        
+        # Return the UUIDs of the added agents
+        return [agent.uuid for agent in response]
+
+    @classmethod
+    @_handle_api_errors
     def add_agents_from_forge_cycle(cls, forge_cycle_id: str, agents: list["Agent"]) -> None:
         """Post agents in a forge cycle."""
         
@@ -233,12 +250,17 @@ class EbioseAPIClient:
 
     @classmethod
     @_handle_api_errors
-    def get_agents(cls, ecosystem_id: str) -> list["Agent"] | None:
+    def get_agents(cls, ecosystem_id: str, *, return_ids_only: bool) -> list["Agent"] | None:
         response = cls._client.list_agents_in_ecosystem(ecosystem_uuid=ecosystem_id)
-        logger.debug(f"response: {response}")
+        if return_ids_only:
+            return [r.uuid for r in response]
+
         agents = []
         for r in response:
-            agent = AgentFactory.load_agent_from_api(r)
+            try:
+                agent = AgentFactory.load_agent_from_api(r)
+            except Exception as e:
+                print(f"Error loading agent from API: {e!s}")
             agents.append(agent)
         return agents
 

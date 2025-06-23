@@ -40,7 +40,7 @@ class AgentEngineRunError(Exception):
 
 class AgentEngine(BaseModel):
     engine_type: str
-    agent_id: str
+    agent_id: str | None = None
     configuration: dict | None = None
 
     model_config = ConfigDict(

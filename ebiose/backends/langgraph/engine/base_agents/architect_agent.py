@@ -207,8 +207,6 @@ def init_architect_agent(
                 Edge(start_node_id=format_node.id, end_node_id=end_node.id),
             )
 
-        # TODO(xabier): the agent id should be deterministic considering the input of init_architect_agent 
-        # or in the end generated and managed by Ebiose's cloud backend.
         agent_id = "agent-54c2124d-a473-43e6-ae1c-24a217ff7607"
 
         agent_engine = LangGraphEngine(
