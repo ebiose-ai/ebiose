@@ -236,7 +236,7 @@ class EbioseAPIClient:
                 AgentFactory.load_agent_from_api(agent_data)
                 for agent_data in response.agents or []
             ]
-            # TODO(xabier): understand why this import is agneeded here
+            # TODO(xabier): understand why this import is needed here
             from ebiose.core.agent import Agent
             Ecosystem.model_rebuild()
             return Ecosystem(
@@ -336,12 +336,12 @@ class EbioseAPIClient:
 
         # TODO(xabier): random choice should be handled server-side
         return random.choices(agents, k=nb_agents) if len(agents) >= nb_agents else agents
-    
+
     @classmethod
     @_handle_api_errors
     def get_cost(cls, forge_cycle_uuid: str) -> float:
         return cls._client.get_spend(forge_cycle_uuid=forge_cycle_uuid)
-    
+
     @classmethod
     @_handle_api_errors
     def end_forge_cycle(

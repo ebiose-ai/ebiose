@@ -230,7 +230,6 @@ class LangGraphEngine(GraphEngine):
                 continue
             # We first retrieve the function that represents the node it does not depend
             # if we have a llm, a rag or whatnot
-            # TODO(xabier): can also use keyword arguments metadata, input and retry
             workflow.add_node(node_id, node.call_node)
 
         # add edges to the workflow

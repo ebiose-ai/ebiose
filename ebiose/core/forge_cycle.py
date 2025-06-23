@@ -450,7 +450,6 @@ class ForgeCycle:
 
         # Select agents for crossover and mutation
         # number of agents to be replaced
-        # n_replaced = int(self.config.replacement_ratio * len(self.agents))
         n_replaced = int(self.config.n_agents_in_population * self.config.replacement_ratio)
         # number of agents to be kept
         n_kept = self.config.n_agents_in_population - n_replaced
@@ -458,9 +457,6 @@ class ForgeCycle:
         kept_agents = self.roulette_wheel_selection(n_kept)
 
         # Tournament selection for crossover
-        # TODO(xabier): remove
-        if n_replaced == 0 or n_replaced != 1:
-            print("Stop")
         logger.info("Starting crossover and mutation...")
         selected_parent_ids_for_crossover = self.tournament_selection(n_to_select=n_replaced)
         if selected_parent_ids_for_crossover is None or len(selected_parent_ids_for_crossover) == 0:
@@ -757,7 +753,7 @@ class ForgeCycle:
                 OffspringCreatedEvent(
                     offspring_agent_id=offspring_agent.id,
                     generation_number=self.cur_generation,
-                    parent_ids=offspring_agent.parent_ids, # TODO(xabier): get parent ids
+                    parent_ids=offspring_agent.parent_ids,
                     genetic_operator_agent_id=offspring_agent.genetic_operator_agent_id,
                     offspring_agent=offspring_agent.model_dump(mode="json", exclude={"agent_engine", "description_embedding"}),
                 ).log()
