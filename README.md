@@ -36,12 +36,19 @@ This first beta version implements the foundations of our vision.
 - **Forges**: Isolated environments where architect agents create custom agents to solve specific problems
 - **LangGraph Compatibility**: Integration with the LangGraph ecosystem for agent orchestration
 
+With the latest release (June 2025):
+- **A shared centralized ecosystem**: Use Ebiose’s cloud to kickstart a forge cycle with curated agents from our shared ecosystem.
+The top-performing agents are automatically promoted and reintegrated, making the ecosystem stronger with every cycle. 👉 [\[Access the Ebiose cloud now.\]](https://app.ebiose.com/login)
+- **LiteLLM support**: Ebiose now integrates with [LiteLLM](https://www.litellm.ai/) to simplify the 
+management of your own LLMs.
+
+
 ### 🚨 Points of caution
 
 - **Proof of concept**: Don't expect complex or production-ready agents
 - **Initial architect agent to be improved**: The first implemented architect agent is still simple
-- **Empty ecosystems**: For now, your forges start with unpopulated ecosystems
 - **Early stage**: Be prepared to work through initial issues and contribute to improvements! 😇
+
 
 # 🚀 Quick start
 
@@ -77,6 +84,8 @@ the basics of Ebiose step by step, you may also install the project dependencies
 and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter notebook to understand the basics of Ebiose, step by step; follow the steps to install Ebiose [💻 Locally](#-locally).
 
 ### 🐳 With Docker
+
+> 🚨 Docker support for the new release is currently untested. See [Issue #26](https://github.com/ebiose-ai/ebiose/issues/26) for details.
 
 To build and run Ebiose using Docker, follow these steps:
 
@@ -148,6 +157,8 @@ Once agents are written to the save path, evaluate an agent by executing:
 uv run ./examples/math_forge/evaluate.py
 ```
 
+> 🚨 The command `uv run ./examples/math_forge/evaluate.py` won't work if using Ebiose's cloud. See [Issue #27](https://github.com/ebiose-ai/ebiose/issues/27) for details.
+
 > 🚨 You must change the path to the agent's JSON file by modifying the following variable:
 
 ```
@@ -165,20 +176,73 @@ Kick off your journey by implementing your own forge with the accompanying `comp
 
 # 🤖 Model APIs support
 
-As of today, Ebiose uses LangChain/LangGraph to implement agents. Using the different providers of LLMs, and ML models, has been made as easy as possible.
+As of today, Ebiose uses LangChain/LangGraph to implement agents. Using the different providers of LLMs, and ML models, has been made as easy as possible. 
 
-## Model endpoints
+Since June 2025, Ebiose has been integrated with LiteLLM and now offers its own cloud — making model management even easier.
 
-Models, for now LLMs, and in the future any other ML models, must be defined as
-[`ModelEndpoint`](ebiose/core/model_endpoint.py) instances. The most straightforward
-way to define the model endpoints to which you have access to is to create a
-`model_endpoints.yml` file by copy-paste-renaming the [`model_endpoints_template.yml]`(model_endpoints_template.yml)
-YAML file at the root of the project, and fill it with your secret credentials.
+## Ebiose Cloud
 
-## Main model endpoints
-We have implemented the most popular LLM APIs. For others, please refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/) and adapt 
-the [`LangGraphLLMApi` class](ebiose/backends/langgraph/llm_api.py) accordingly. Issues and pull requests are 
-welcomed.
+The fastest and easiest way to run your forge in just a few steps:
+
+### 1. Create your account  
+Sign up at [Ebiose Cloud](https://app.ebiose.com/login)
+
+### 2. Add your API key  
+Generate your Ebiose API key and add it to your `model_endpoints.yml` file:
+
+```yaml
+ebiose:
+  api_key: "your-ebiose-api-key"  # Replace with your Ebiose API key
+  api_base: "https://cloud.ebiose.com/"
+```
+### 3. Set your default model  
+Specify the model to use by default:
+```YAML
+default_endpoint_id: "azure/gpt-4o-mini"
+```
+
+### ✅ Supported models
+
+Ebiose Cloud currently supports the following models:
+
+- `azure/gpt-4o-mini`
+- `azure/gpt-4.1-mini`
+- `azure/gpt-4.1-nano`
+- `azure/gpt-4o`
+
+More models to come. Feel free to ask.
+
+## Using LiteLLM
+
+Ebiose integrates with [LiteLLM](https://www.litellm.ai/), either through the cloud or a self-hosted proxy.  
+Refer to the [LiteLLM documentation](https://docs.litellm.ai/docs/) to get started and generate your LiteLLM API key.
+
+Once you have your key, update the `model_endpoints.yml` file as follows:
+
+```yaml
+lite_llm:
+  use: true                 # Set to true to enable LiteLLM
+  use_proxy: false          # Set to true if using a self-hosted LiteLLM proxy
+  api_key: "your-litellm-api-key"         # Replace with your LiteLLM API key
+  api_base: "your-litellm-proxy-url"      # Optional: your LiteLLM proxy URL
+```
+
+Finally, define your LiteLLM endpoints using the appropriate model naming format:
+```YAML
+endpoints:
+  - endpoint_id: "azure/gpt-4o-mini"
+    provider: "Azure OpenAI"
+``` 
+
+## Using Your Own Access to LLM Providers
+You may also use your own credentials **without going through LiteLLM**.  
+To do so, define the model endpoints you want to use in the `model_endpoints.yml` file located at the root of the project.
+
+Fill in your secret credentials using the examples below.
+
+For other providers not listed here, refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/)  
+and adapt the [`LangGraphLLMApi` class](ebiose/backends/langgraph/llm_api.py) as needed.  
+Issues and pull requests are welcome!
 
 ### OpenAI
 
@@ -199,7 +263,7 @@ To use OpenAI LLMs on Azure, fill the `model_endpoints.yml` file at the root of 
 
 ```yaml
 endpoints:
-  - endpoint_id: "azure-gpt-4o-mini"
+  - endpoint_id: "azure/gpt-4o-mini"
     provider: "Azure OpenAI"
     api_key: "YOUR_AZURE_OPENAI_API_KEY"
     endpoint_url: "AZURE_OPENAI_ENDPOINT_URL"
@@ -302,6 +366,8 @@ Again, we wish to be compatible with every provider you are used to, so feel fre
 is compatible with your preferred provider [here](https://python.langchain.com/docs/integrations/providers/).
 
 # 🔍 Observability
+
+> 🚨 **Langfuse Version Warning**: Ebiose currently uses Langfuse version 2.x.x. Updating to Langfuse 3.x.x is planned but not yet implemented due to compatibility issues. See [Issue #28](https://github.com/ebiose-ai/ebiose/issues/28) for details.
 
 Ebiose uses Langfuse's `@observe` decorator to be able to observe nested agent's traces.
 LangFuse can be easily self-hosted.

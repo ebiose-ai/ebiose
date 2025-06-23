@@ -1,7 +1,7 @@
 # model_endpoints_template.yml
 # Rename this file to model_endpoints.yml 
 # and fill in the API keys and endpoint URLs for the models you want to use
-default_endpoint_id: "gpt-4o-mini"
+default_endpoint_id: "azure/gpt-4o-mini"
 
 # Ebiose cloud configuration
 # fill this with your Ebiose API key and base URL 
@@ -37,7 +37,7 @@ endpoints:
     api_key: "YOUR_OPENROUTER_API_KEY" # FILL IN YOUR OPENROUTER API KEY
 
   # Azure OpenAI endpoints
-  - endpoint_id: "azure-gpt-4o-mini"
+  - endpoint_id: "azure/gpt-4o-mini"
     provider: "Azure OpenAI"
     # api_key: "YOUR_AZURE_OPENAI_API_KEY" # fill in your Azure OpenAI API key
     # endpoint_url: "AZURE_OPENAI_ENDPOINT_URL" # fill in the Azure OpenAI endpoint URL
