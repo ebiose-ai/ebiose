@@ -185,7 +185,7 @@ Since June 2025, Ebiose has been integrated with LiteLLM and now offers its own 
 The fastest and easiest way to run your forge in just a few steps:
 
 ### 1. Create your account  
-Sign up at [Ebiose Cloud](https://app.ebiose.com/login)
+Sign up at [Ebiose Cloud](https://app.ebiose.com/login).
 
 ### 2. Add your API key  
 Generate your Ebiose API key and add it to your `model_endpoints.yml` file:
@@ -200,6 +200,9 @@ Specify the model to use by default:
 ```YAML
 default_endpoint_id: "azure/gpt-4o-mini"
 ```
+
+> 🚨 To run a forge cycle with Ebiose cloud, be sure to set it up
+using the dedicated [`CloudForgeCycleConfig` class](ebiose/core/forge_cycle.py#L87).
 
 ### ✅ Supported models
 
@@ -232,7 +235,11 @@ Finally, define your LiteLLM endpoints using the appropriate model naming format
 endpoints:
   - endpoint_id: "azure/gpt-4o-mini"
     provider: "Azure OpenAI"
-``` 
+```
+
+> 🚨 To run a forge cycle without Ebiose cloud, be sure to set it up using the dedicated [`LocalForgeCycleConfig` class](ebiose/core/forge_cycle.py#L01).
+
+> 🚨 The "local" mode for running forge cycles has not been fully tested. Use with caution and report any issues. See [Issue #29](https://github.com/ebiose-ai/ebiose/issues/29) for details.
 
 ## Using Your Own Access to LLM Providers
 You may also use your own credentials **without going through LiteLLM**.  
@@ -243,6 +250,10 @@ Fill in your secret credentials using the examples below.
 For other providers not listed here, refer to [LangChain's documentation](https://python.langchain.com/docs/integrations/providers/)  
 and adapt the [`LangGraphLLMApi` class](ebiose/backends/langgraph/llm_api.py) as needed.  
 Issues and pull requests are welcome!
+
+> 🚨 To run a forge cycle without Ebiose cloud, be sure to set it up using the dedicated [`LocalForgeCycleConfig` class](ebiose/core/forge_cycle.py#L01).
+
+> 🚨 The "local" mode for running forge cycles has not been fully tested. Use with caution and report any issues. See [Issue #29](https://github.com/ebiose-ai/ebiose/issues/29) for details.
 
 ### OpenAI
 

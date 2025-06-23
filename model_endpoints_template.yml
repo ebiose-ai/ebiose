@@ -13,6 +13,7 @@ ebiose:
 # If you have a valid Ebiose API key, don't modify the following section
 # If you have a cloud LiteLLM access, or your own LiteLLM proxy, fill this
 # and set accordingly use and use_proxy to true
+# Set up Config.mode="local"
 lite_llm:
   use: false # Set to true if you want to use your Lite LLM
   use_proxy: false # Set to true if you want to use your own Lite LLM proxy
