@@ -105,7 +105,7 @@ class EbioseAPIClient:
                 if cls._client is None:
                     cls.set_client()
 
-                logger.debug(f"\nAttempting to {func.__name__.replace('_', ' ')}...")
+                # logger.debug(f"\nAttempting to {func.__name__.replace('_', ' ')}...")
                 
                 # 1. Call the original method to get the raw API response
                 pascal_case_result = func(cls, *args, **kwargs)

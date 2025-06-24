@@ -454,9 +454,9 @@ class EbioseAPIClient:
     def _handle_request(cls, action_description: str, api_call, *args, **kwargs):
         """Generic request handler for the facade."""
         try:
-            logger.debug(f"\nAttempting to {action_description}...")
+            # logger.debug(f"\nAttempting to {action_description}...")
             result = api_call(*args, **kwargs)
-            logger.debug(f"Successfully finished: {action_description}.")
+            # logger.debug(f"Successfully finished: {action_description}.")
             return result
         except EbioseCloudError as e:
             logger.debug(f"An API error occurred while {action_description}: {e}")
