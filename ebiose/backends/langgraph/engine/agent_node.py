@@ -26,10 +26,7 @@ class LangGraphAgentNode(AgentNode):
         agent_input = self.agent.agent_engine.input_model.model_validate(
             state.model_dump(),
         )
-        response = await self.agent.run(
-            agent_input,
-            compute_token_id=config["configurable"]["compute_token"],
-        )
+        response = await self.agent.run(agent_input)
 
         # TODO(xabier): return also a tool message
         return response.model_dump()

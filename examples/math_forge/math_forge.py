@@ -13,6 +13,7 @@ from typing import Literal, Self
 from pydantic import BaseModel, Field, model_validator
 
 from ebiose.core.agent import Agent
+from ebiose.core.agent_engine import AgentEngineRunError
 from ebiose.core.agent_forge import AgentForge
 
 
@@ -69,7 +70,13 @@ class MathLangGraphForge(AgentForge):
         self.unpicked_problems[mode] = self.unpicked_problems[mode][self.n_problems:]
         return selected
 
-    async def compute_fitness(self, agent: Agent, compute_token_id: str, mode: Literal["train", "test"] = "train", **kwargs: dict[str, any]) -> float:  # noqa: C901
+    async def compute_fitness(
+            self, 
+            agent: Agent, 
+            forge_cycle_id: str | None = None, 
+            mode: Literal["train", "test"] = "train", 
+            **kwargs: dict[str, any],
+        ) -> float:  # noqa: C901
         if agent.agent_engine.engine_type != "langgraph_engine":
             self.fitness[agent.id] = {0 for _ in range(len(self.data))}
             return 0
@@ -89,20 +96,27 @@ class MathLangGraphForge(AgentForge):
                 agent_input = self.agent_input_model(
                     math_problem=self.data[mode][problem_id]["problem"],
                 )
-                tasks.append(agent.run(agent_input, compute_token_id))
+                tasks.append(
+                    agent.run(
+                        agent_input, 
+                        master_agent_id=agent.id,
+                        forge_cycle_id=forge_cycle_id, 
+                        **kwargs,
+                    ),
+                )
 
 
         # Gather results concurrently
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Compare solutions and calculate fitness
+        # Calculate fitness
         fitness = 0
         for idx, problem_id in enumerate(self.current_problem_ids):
             if agent.id not in self.fitness:
                 self.fitness[agent.id] = {}
             if isinstance(results[idx], int): # Cached result
                 fitness += results[idx]
-            elif results[idx] is None:
+            elif results[idx] is None or isinstance(results[idx], AgentEngineRunError):
                 self.fitness[agent.id][problem_id] = 0
             elif results[idx].solution == self.data[mode][problem_id]["solution"]:
                 self.fitness[agent.id][problem_id] = 1
@@ -111,6 +125,8 @@ class MathLangGraphForge(AgentForge):
                 self.fitness[agent.id][problem_id] = 0
 
         if self.n_problems is not None:
-            return fitness/self.n_problems
+            return agent.id, fitness/self.n_problems
 
-        return fitness/len(self.data[mode])
+        return agent.id, fitness/len(self.data[mode])
+
+

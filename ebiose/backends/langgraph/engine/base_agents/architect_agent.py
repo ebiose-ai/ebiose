@@ -5,8 +5,9 @@ This software is licensed under the MIT License. See LICENSE for details.
 """
 
 import random
+import uuid
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
@@ -22,19 +23,32 @@ class AgentInput(BaseModel):
     node_types: list = ["StartNode", "LLMNode", "EndNode"]
     max_llm_nodes: int = 10
     random_n_llm_nodes: bool = True
+    node_types_description: str | None = None
+    n_llm_nodes_constraint_string: str | None = None
 
-    @computed_field
-    @property
-    def node_types_description(self) -> str:
-        return get_node_types_docstrings(self.node_types)
+    # @computed_field
+    # @property
+    # def _node_types_description(self) -> str:
+    #     return get_node_types_docstrings(self.node_types)
 
-    @computed_field
-    @property
-    def n_llm_nodes_constraint_string(self) -> str:
-        if self.random_n_llm_nodes:
-                return f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, self.max_llm_nodes)} exactly."
-        return f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
+    # @computed_field
+    # @property
+    # def n_llm_nodes_constraint_string(self) -> str:
+    #     if self.random_n_llm_nodes:
+    #             return f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, self.max_llm_nodes)} exactly."
+    #     return f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
 
+    # def __init__(self, **data):
+    #     super().__init__(**data)
+    #     self._compute_derived_fields()
+
+    # def _compute_derived_fields(self):
+    #     """Helper method to compute the fields."""
+    #     self.node_types_description = get_node_types_docstrings(self.node_types)
+    #     if self.random_n_llm_nodes:
+    #         self.n_llm_nodes_constraint_string = f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, self.max_llm_nodes)} exactly."
+    #     else:
+    #         self.n_llm_nodes_constraint_string = f"Be careful : Do not exceed {self.max_llm_nodes} LLM nodes in the graph."
 
 
 class AgentOutput(Graph):
@@ -125,10 +139,9 @@ entire graph with the prompts under the following format:\n
 def init_architect_agent(
         model_endpoint_id: str | None,
         add_format_node: bool = True,  # noqa: FBT001, FBT002
-
     ) -> None:
+        from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
         from ebiose.core.agent import Agent
-        from ebiose.core.agent_engine_factory import AgentEngineFactory
 
         graph_outline_generation_node = LLMNode(
             id="graph_outline_generation",
@@ -140,15 +153,15 @@ def init_architect_agent(
 
         prompt_generation_prompt = PROMPT_GENERATION_PROMPT
         if add_format_node:
-            prompt_generation_prompt + "Generate the prompts now for each LLM node."
+            prompt_generation_prompt += "Generate the prompts now for each LLM node."
         else:
-            prompt_generation_prompt + "Generate the prompts and return the whole graph with prompts under the following format: \n {output_schema}"
+            prompt_generation_prompt += "Generate the prompts and return the whole graph with prompts under the following format: \n {output_schema}"
 
         prompt_generation_node = LLMNode(
             id="prompt_generation",
             name="Prompt Generation",
             purpose="Step 2: Generate the prompts for each LLM node",
-            prompt=PROMPT_GENERATION_PROMPT,
+            prompt=prompt_generation_prompt,
             temperature=0.7,
         )
 
@@ -194,22 +207,21 @@ def init_architect_agent(
                 Edge(start_node_id=format_node.id, end_node_id=end_node.id),
             )
 
-        agent_configuration = {"graph": graph}
+        agent_id = "agent-54c2124d-a473-43e6-ae1c-24a217ff7607"
 
-        agent_engine = AgentEngineFactory.create_engine(
-            "langgraph_engine",
-            agent_configuration,
+        agent_engine = LangGraphEngine(
+            agent_id=agent_id,
+            graph=graph,
             model_endpoint_id=model_endpoint_id,
             input_model=AgentInput,
             output_model=AgentOutput,
+            tags = ["architect_agent"],
         )
 
-        agent_engine.tags = ["architect_agent"]
-
         return Agent(
+            id=agent_id,
             name="architect_agent",
+            agent_type="architect",
             description="Architect agent that generate agents",
-            architect_agent=None,
-            genetic_operator_agent=None,
             agent_engine=agent_engine,
         )

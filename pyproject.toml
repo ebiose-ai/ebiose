@@ -5,37 +5,30 @@ description = "Ebiose core"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-  "asyncio>=3.4.3",
-  "langchain>=0.3.17",
-  "langchain-community>=0.3.16",
-  "langchain-core>=0.3.33",
-  "langgraph>=0.2.69",
-  "loguru>=0.7.3",
-  "nest-asyncio>=1.6.0",
-  "pydantic>=2.10.6",
-  "seaborn>=0.13.2",
-  "sortedcontainers>=2.4.0",
-  "tqdm>=4.67.1",
-  "langchain-openai>=0.3.3"
+    "asyncio>=3.4.3",
+    "elasticsearch>=9.0.2",
+    "ipykernel>=6.29.5",
+    "langchain>=0.3.17",
+    "langchain-community>=0.3.16",
+    "langchain-core>=0.3.33",
+    "langchain-openai>=0.3.3",
+    "langfuse>=2.60",
+    "langgraph>=0.2.69",
+    "litellm>=1.63.12",
+    "loguru>=0.7.3",
+    "nest-asyncio>=1.6.0",
+    "openapi-client",
+    "pydantic>=2.10.6",
+    "python-dotenv>=1.0.1",
+    "ruff>=0.9.6",
+    "seaborn>=0.13.2",
+    "sortedcontainers>=2.4.0",
 ]
-
-[project.optional-dependencies]
-google = ["langchain_google_genai"]
-ollama = ["langchain-ollama"]
-anthropic = ["langchain-anthropic"]
-huggingface = ["langchain-huggingface"]
-
-[dependency-groups]
-dev = [
-  "ipykernel>=6.29.5",
-  "python-dotenv>=1.0.1",
-  "ruff>=0.9.6",
-  "langfuse==2.60.2",
-]
-
+# generated ebiose cloud sdk
+# "openapi_client @ file://./ebiose/generated_cloud_sdk"
 [tool.ruff]
 line-length = 88
-exclude = ["./notebooks/"]
+exclude = ["./notebooks/", "./ebiose/generated_cloud_sdk/"]
 
 
 [tool.ruff.lint]
@@ -74,6 +67,9 @@ ban-relative-imports = "all"
 
 [tool.hatch.build.targets.wheel]
 packages = ["ebiose"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [build-system]
 requires = ["hatchling"]

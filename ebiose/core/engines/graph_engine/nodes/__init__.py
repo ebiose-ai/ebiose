@@ -1,5 +1,6 @@
 import importlib
 from functools import reduce
+import random
 
 from pydantic import BaseModel
 
@@ -58,3 +59,10 @@ def get_node_types_docstrings(node_types_names: list) -> str:
             if docstring:
                 docstrings_list.append(f"**{node_type_name}**:\n{docstring}\n")
     return "\n".join(docstrings_list)
+
+def get_n_llm_nodes_constraint_string(random_n_llm_nodes: bool, max_llm_nodes: int) -> str:  # noqa: FBT001
+    """Get the constraint string for the number of LLM nodes in the graph."""
+    if random_n_llm_nodes:
+        return f"Be careful : The number of LLM nodes in the graph must be of {random.randint(1, max_llm_nodes)} exactly."
+
+    return f"Be careful : Do not exceed {max_llm_nodes} LLM nodes in the graph."
