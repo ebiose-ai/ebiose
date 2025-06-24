@@ -77,13 +77,14 @@ This command will perform the following actions:
 
 There are two ways to start running Ebiose:
 
-- the most straightforward way is to use Docker: go to section
-[🐳 With Docker](#-with-docker);
+- ~~the most straightforward way is to use Docker: go to section
+[🐳 With Docker](#-with-docker);~~ 🚧 Docker support for the new release is currently untested. See [Issue #26](https://github.com/ebiose-ai/ebiose/issues/26) for details.
+
 - if you are not yet confortable with Ebiose and wish to understand
 the basics of Ebiose step by step, you may also install the project dependencies
 and go through the [`quickstart.ipynb`](notebooks/quickstart.ipynb) Jupyter notebook to understand the basics of Ebiose, step by step; follow the steps to install Ebiose [💻 Locally](#-locally).
 
-### 🐳 With Docker
+<!-- ### 🐳 With Docker
 
 > 🚨 Docker support for the new release is currently untested. See [Issue #26](https://github.com/ebiose-ai/ebiose/issues/26) for details.
 
@@ -113,7 +114,7 @@ To build and run Ebiose using Docker, follow these steps:
     make run
     ```
 
-    This command mounts the `model_endpoints.yml` file from your local directory into the container, allowing the application to access your API key without including it in the image. It also passes environment variables defined in the `.env` file to the container.
+    This command mounts the `model_endpoints.yml` file from your local directory into the container, allowing the application to access your API key without including it in the image. It also passes environment variables defined in the `.env` file to the container. -->
 
 ### 💻 Locally
 
@@ -145,13 +146,16 @@ The Jupyter notebook [`quickstart.ipynb`](notebooks/quickstart.ipynb) is the eas
 
 To go further, the `examples/` directory features a complete forge example designed to optimize agents that solve math problems. Check out [`examples/math_forge/math_forge.py`](math_forge/math_forge.py) for the implementation of the `MathLangGraphForge` forge.
 
+For demonstration purposes, the `run.py` script is configured to manage a forge cycle with only two agents per generation, using a tiny budget of $0.02. The cycle should take 1 to 2 minutes to consume the budget using the default model endpoint `gpt-4o-mini`. Each generated agent will be 
+evaluated on 5 math problems from GSM-8k test dataset.
+
 To run a cycle of the Math forge, execute the following command in your project directory:
 
 ```sh
 uv run ./examples/math_forge/run.py
 ```
 
-Once agents are written to the save path, evaluate an agent by executing:
+<!-- Once agents are written to the save path, evaluate an agent by executing:
 
 ```sh
 uv run ./examples/math_forge/evaluate.py
@@ -170,7 +174,7 @@ AGENT_JSON_FILE = Path("data/2025-02-28_17-49-05/generation=2/agents/agent-211c7
 ```
 N_PROBLEMS = 2 # number of problems to evaluate on
 BUDGET = 0.1 # budget for evaluation in dollars
-```
+``` -->
 
 Kick off your journey by implementing your own forge with the accompanying `compute_fitness` method! 🎉
 
@@ -182,7 +186,8 @@ Since June 2025, Ebiose has been integrated with LiteLLM and now offers its own 
 
 ## Ebiose Cloud
 
-The fastest and easiest way to run your forge in just a few steps:
+The fastest and easiest way to run your forge in just a few steps with 
+$10 free credits. 
 
 ### 1. Create your account  
 Sign up at [Ebiose Cloud](https://app.ebiose.com/login).
@@ -200,6 +205,9 @@ Specify the model to use by default:
 ```YAML
 default_endpoint_id: "azure/gpt-4o-mini"
 ```
+
+> 🚧 As of June 2025, the Ebiose web app only allows you to create an API key with $10 in free credits to experiment with running your own forges. More features coming soon.
+
 
 > 🚨 To run a forge cycle with Ebiose cloud, be sure to set it up
 using the dedicated [`CloudForgeCycleConfig` class](ebiose/core/forge_cycle.py#L87).

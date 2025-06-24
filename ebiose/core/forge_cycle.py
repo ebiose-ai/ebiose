@@ -368,7 +368,8 @@ class ForgeCycle:
             total_cycle_cost += initialization_cost
             logger.info(f"Budget left after initialization: {self.config.budget - total_cycle_cost} $")
 
-            # running generation 0
+            # running generation 1
+            self.cur_generation += 1
             first_evaluation_cost, first_genetic_cost = await self.run_generation()
             estimated_cost_to_complete_cycle = 2 * first_evaluation_cost + first_genetic_cost
             total_cycle_cost += first_evaluation_cost + first_genetic_cost
