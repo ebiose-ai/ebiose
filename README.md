@@ -10,7 +10,7 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/ebiose-ai/ebiose?style=for-the-badge&logo=github&logoColor=EFBF04&color=EFBF04)](https://star-history.com/#ebiose-ai/ebiose)
 [![License](https://img.shields.io/github/license/ebiose-ai/ebiose?style=for-the-badge&logo=gitbook&link=https%3A%2F%2Fgithub.com%2Febiose-ai%2Febiose%2Fblob%2Fmain%2FLICENSE)](/LICENSE)
 
-[![HackerNews](https://img.shields.io/badge/Live_on_Hacker_News-%E2%9A%A1-orange?logo=ycombinator&style=for-the-badge)]([/LICENSE](https://news.ycombinator.com/shownew))
+[![HackerNews](https://img.shields.io/badge/Live_on_Hacker_News-%E2%9A%A1-orange?logo=ycombinator&style=for-the-badge)](https://news.ycombinator.com/shownew)
 
 
 
@@ -23,6 +23,7 @@ Ebiose is a **distributed artificial intelligence factory**, an open source proj
 
 > "AI is set to reshape our world, but who gets to decide its form and for whose benefit? Instead of a future dictated by a few tech giants, what if we could build AI collectively and openly?"
 
+--- 
 <div align="center">
 
 ### ⏰ _July 2, 2025_ – **Ebiose** just hit **“Show HN”** 🚀 
@@ -37,7 +38,6 @@ If you believe in an open and democratic AI, your support there is critical:
 *Thank you for helping us kick‑start the community!*
 
 </div>
-
 
 **👀 Must read 👀**
 
