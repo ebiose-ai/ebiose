@@ -30,8 +30,8 @@ Ebiose is a **distributed artificial intelligence factory**, an open source proj
 We just posted **Ebiose** in the “Show HN” section.  
 If you believe in an open and democratic AI, your support there is critical:
 
-👉 Open the “Show HN” feed → <a href="https://news.ycombinator.com/shownew">[news.ycombinator.com/show](https://news.ycombinator.com/shownew)</a>  
-👉 Find the post **“Show HN: Ebiose – a distributed AI factory”**  
+👉 Open the “Show HN” feed → <a href="https://news.ycombinator.com/shownew">[news.ycombinator.com/shownew](https://news.ycombinator.com/shownew)</a>  
+👉 Find the post **“Show HN: Ebiose – A Darwin‑Style Playground for Self‑Evolving AI Agents”**  
 👉 Smash the ▲ up‑vote and drop a comment or question  
 
 *Thank you for helping us kick‑start the community!*
