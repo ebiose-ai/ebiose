@@ -1,56 +1,43 @@
-"""Copyright (c) 2024, Inria.
-
-Pre-release Version - DO NOT DISTRIBUTE
-This software is licensed under the MIT License. See LICENSE for details.
-"""
+"""Agent engine base classes with improved architecture."""
 
 from __future__ import annotations
 
-from abc import abstractmethod
-import traceback
-
-# TODO(xabier): replace when langfuse is updated to >=3.0
-# from langfuse import observe
-from langfuse.decorators import observe
+from abc import ABC, abstractmethod
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
+from ebiose.core.models.exceptions import AgentEngineRunError
 
-class AgentEngineRunError(Exception):
-    """Custom exception for errors during agent run."""
-    def __init__(self, message:str, original_exception: Exception | None=None, agent_identifier:str | None=None) -> None:
-        super().__init__(message)
-        self.original_exception = original_exception
-        self.agent_identifier = agent_identifier
 
-    def __str__(self) -> str:
-        error_msg = "AgentRunError"
-        if self.agent_identifier:
-            error_msg += f" (Agent: {self.agent_identifier})"
-        error_msg += f": {super().__str__()}"
-        if self.original_exception:
-            orig_traceback = traceback.format_exception(
-                type(self.original_exception),
-                self.original_exception,
-                self.original_exception.__traceback__,
-            )
-            error_msg += f"\n--- Caused by ---\n{''.join(orig_traceback)}"
-        return error_msg
+class AgentEngine(BaseModel, ABC):
+    """Base class for all agent engines."""
 
-class AgentEngine(BaseModel):
     engine_type: str
     agent_id: str | None = None
-    configuration: dict | None = None
+    configuration: dict[str, Any] | None = None
 
     model_config = ConfigDict(
         alias_generator=to_camel,
-        populate_by_name=True, # Allows initializing with snake_case names
+        populate_by_name=True,
     )
 
-    async def run(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None, **kwargs: dict[str, any]) -> any:
+    async def run(
+        self,
+        agent_input: BaseModel,
+        master_agent_id: str,
+        forge_cycle_id: str | None = None,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        """Run the agent engine."""
         try:
-            return await self._run_implementation(agent_input, master_agent_id, forge_cycle_id, **kwargs)
+            return await self._run_implementation(
+                agent_input,
+                master_agent_id,
+                forge_cycle_id,
+                **kwargs,
+            )
         except Exception as e:
             raise AgentEngineRunError(
                 message="Error during agent engine run",
@@ -58,7 +45,13 @@ class AgentEngine(BaseModel):
                 agent_identifier=self.agent_id,
             ) from e
 
-    @observe(name="run_agent")
     @abstractmethod
-    async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None, **kwargs: dict[str, any]) -> any:
+    async def _run_implementation(
+        self,
+        agent_input: BaseModel,
+        master_agent_id: str,
+        forge_cycle_id: str | None = None,
+        **kwargs: dict[str, Any],
+    ) -> Any:
+        """Implementation of the agent engine run method."""
         pass

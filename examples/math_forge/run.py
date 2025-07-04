@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 from ebiose.core.forge_cycle import CloudForgeCycleConfig
 from examples.math_forge.math_forge import MathLangGraphForge
-from examples.math_forge.math_forge import MathLangGraphForge
+
 
 def main(
         train_csv_path: str,
@@ -54,9 +54,7 @@ def main(
     forge.display_results(best_agents, best_finess)
 
 if __name__ == "__main__":
-
     # loading dotenv
-    from dotenv import load_dotenv
     load_dotenv()
 
     # the path where results will be saved

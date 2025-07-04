@@ -7,11 +7,10 @@ This software is licensed under the MIT License. See LICENSE for details.
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING, ClassVar
 
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import BaseModel
 
 from ebiose.backends.langgraph.engine.base_agents.architect_agent import (
     init_architect_agent,
@@ -72,12 +71,3 @@ class GraphUtils:
         if cls._mutation_agent is None:
             cls._mutation_agent = init_mutation_agent(model_endpoint_id)
         return cls._mutation_agent
-
-
-
-
-def get_placeholders(text: str) -> list[str]:
-    """Find placeholders like {math_problem} in prompts and return them with {}."""
-    pattern = r"\{([^{}]+)\}"
-    return re.findall(pattern, text)
-

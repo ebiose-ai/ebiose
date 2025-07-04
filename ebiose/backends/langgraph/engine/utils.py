@@ -10,10 +10,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel  # noqa: TC002
 
-from ebiose.core.engines.graph_engine.utils import GraphUtils
-
 if TYPE_CHECKING:
-
     from ebiose.core.engines.graph_engine.edge import Edge
 
 from langgraph.graph.graph import END
@@ -65,6 +62,9 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
             condition = state.condition
         else:
             # call the routing agent
+            # Lazy import to avoid circular dependency
+            from ebiose.core.engines.graph_engine.utils import GraphUtils
+            
             model_endpoint_id = config["configurable"]["model_endpoint_id"]
             master_agent_id = config["configurable"]["agent_id"]
             forge_cycle_id = config["configurable"]["forge_cycle_id"]

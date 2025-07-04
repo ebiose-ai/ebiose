@@ -19,15 +19,12 @@ if get_ipython() is not None:
 from loguru import logger
 from pydantic import BaseModel, Field, field_validator
 
-from ebiose.core.agent import Agent
-from ebiose.core.forge_cycle import (
-    ForgeCycle,
-    ForgeCycleConfig,
-)
+from ebiose.core.models.agent_models import Agent
 from ebiose.tools.embedding_helper import generate_embeddings
 
 if TYPE_CHECKING:
     from ebiose.core.ecosystem import Ecosystem
+    from ebiose.core.forge_cycle import ForgeCycleConfig
 
 
 class AgentForge(BaseModel):
@@ -55,28 +52,36 @@ class AgentForge(BaseModel):
         return value
 
     @abstractmethod
-    async def compute_fitness(self, agent: Agent, **kwargs: dict[str, any]) -> tuple[str, float]:
+    async def compute_fitness(
+        self, agent: Agent, **kwargs: dict[str, any]
+    ) -> tuple[str, float]:
         pass
 
     async def run_new_cycle(
-            self,
-            config: ForgeCycleConfig,
-            ecosystem: Ecosystem | None = None,
-        ) -> list[Agent]:
+        self,
+        config: ForgeCycleConfig,
+        ecosystem: Ecosystem | None = None,
+    ) -> list[Agent]:
+        # Lazy import to avoid circular dependency
+        from ebiose.core.forge_cycle import ForgeCycle
 
         cycle = ForgeCycle(forge=self, config=config)
 
         return await cycle.execute_a_cycle(ecosystem)
 
-
-
-    def display_results(self, agents: dict[str, Agent], agents_fitness: dict[str, float]) -> None:
-        sorted_fitness = dict(sorted(agents_fitness.items(), key=lambda item: item[1], reverse=True))
+    def display_results(
+        self, agents: dict[str, Agent], agents_fitness: dict[str, float]
+    ) -> None:
+        sorted_fitness = dict(
+            sorted(agents_fitness.items(), key=lambda item: item[1], reverse=True)
+        )
         if get_ipython() is None:
             for agent_id, fitness_value in sorted_fitness.items():
                 agent = agents[agent_id]
                 mermaid_str = agent.agent_engine.graph.to_mermaid_str(orientation="LR")
-                logger.info(f"Agent ID: {agent_id}, fitness: {fitness_value} \n{mermaid_str}")
+                logger.info(
+                    f"Agent ID: {agent_id}, fitness: {fitness_value} \n{mermaid_str}"
+                )
         else:
             markdown_str = ""
             for agent_id, fitness_value in sorted_fitness.items():
@@ -85,7 +90,9 @@ class AgentForge(BaseModel):
                 markdown_str += f"# Agent ID: {agent_id}\n"
                 markdown_str += f"## Fitness: {fitness_value}\n"
                 markdown_str += "```mermaid \n"
-                markdown_str += f"{agent.agent_engine.graph.to_mermaid_str(orientation='LR')} \n"
+                markdown_str += (
+                    f"{agent.agent_engine.graph.to_mermaid_str(orientation='LR')} \n"
+                )
                 markdown_str += "``` \n"
                 markdown_str += "## Prompts:\n"
                 markdown_str += f"##### Shared context prompt\n{agent.agent_engine.graph.shared_context_prompt}\n"

@@ -7,17 +7,17 @@ This software is licensed under the MIT License. See LICENSE for details.
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
 import uuid
+from typing import TYPE_CHECKING
 
 from loguru import logger
 
-from ebiose.cloud_client.client import AgentOutputModel
+from ebiose.core.models.api_models import AgentOutputModel
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
-    from ebiose.core.agent import Agent
-    from ebiose.core.agent_engine_factory import AgentEngineFactory
+
+    from ebiose.core.models.agent_models import Agent
 
 
 class AgentFactory:
@@ -25,9 +25,9 @@ class AgentFactory:
     def load_agent(
         agent_config: dict,
         model_endpoint_id: str | None = None,
-    ) -> "Agent":
-        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
-        from ebiose.core.agent import Agent # Local import
+    ) -> Agent:
+        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.core.models.agent_models import Agent
 
         agent_id = agent_config.get("id")
 
@@ -36,7 +36,7 @@ class AgentFactory:
         agent_engine = AgentEngineFactory.create_engine(
             engine_type=agent_config["agent_engine"]["engine_type"],
             configuration=configuration,
-            agent_id=agent_id, #agent_config["agent_engine"]["agent_id"],
+            agent_id=agent_id,
             model_endpoint_id=model_endpoint_id,
         )
 
@@ -44,18 +44,16 @@ class AgentFactory:
         agent_config["agent_engine"] = agent_engine
         agent_config["architect_agent"] = None
         agent_config["genetic_operator_agent"] = None
-        # agent_config["id"]=agent_engine.agent_id
 
         return Agent.model_validate(agent_config)
-
 
     @staticmethod
     def load_agent_from_api(
         response_dict: AgentOutputModel,
         model_endpoint_id: str | None = None,
-    ) -> "Agent":
-        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
-        from ebiose.core.agent import Agent # Local import
+    ) -> Agent:
+        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.core.models.agent_models import Agent
 
         engine_configuration = json.loads(response_dict.agentEngine.configuration)
         agent_id = response_dict.uuid
@@ -64,7 +62,7 @@ class AgentFactory:
             engine_type=response_dict.agentEngine.engineType,
             configuration=engine_configuration,
             model_endpoint_id=model_endpoint_id,
-            agent_id=agent_id, # this ensures that there is not mismatch between the agent id and the engine agent id
+            agent_id=agent_id,  # this ensures that there is not mismatch between the agent id and the engine agent id
         )
 
         # TODO(xabier): remove when agent_type is implemented server-side
@@ -96,18 +94,26 @@ class AgentFactory:
         generated_model_endpoint_id: str | None = None,
         forge_cycle_id: str | None = None,
         forge_description: str | None = None,
-    ) -> "Agent":
-        from ebiose.core.agent import Agent # Local import
-        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
+    ) -> Agent:
+        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.core.models.agent_models import Agent
 
-        output = await architect_agent.run(agent_input, master_agent_id=architect_agent.id, forge_cycle_id=forge_cycle_id)
+        output = await architect_agent.run(
+            agent_input,
+            master_agent_id=architect_agent.id,
+            forge_cycle_id=forge_cycle_id,
+        )
         try:
             agent_name = forge_description
             agent_description = output.description
             agent_engine_configuration = {
                 "graph": output.model_dump(),
-                "input_model": generated_agent_input.model_json_schema() if generated_agent_input is not None else {},
-                "output_model": generated_agent_output.model_json_schema() if generated_agent_output is not None else {},
+                "input_model": generated_agent_input.model_json_schema()
+                if generated_agent_input is not None
+                else {},
+                "output_model": generated_agent_output.model_json_schema()
+                if generated_agent_output is not None
+                else {},
             }
             agent_id = "agent-" + str(uuid.uuid4())
 
@@ -136,7 +142,6 @@ class AgentFactory:
 
         return new_agent
 
-
     @staticmethod
     async def crossover_agents(
         crossover_agent: Agent,
@@ -150,18 +155,24 @@ class AgentFactory:
         master_agent_id: str | None = None,
         forge_cycle_id: str | None = None,
         forge_description: str | None = None,
-    ) -> tuple["Agent", "Agent"] | "Agent" :
-        from ebiose.core.agent import Agent # Local import
-        from ebiose.core.agent_engine_factory import AgentEngineFactory # Local import
-        
-        output = await crossover_agent.run(input_data, master_agent_id=master_agent_id, forge_cycle_id=forge_cycle_id)
+    ) -> tuple[Agent, Agent] | Agent:
+        from ebiose.core.agent_engine_factory import AgentEngineFactory
+        from ebiose.core.models.agent_models import Agent
+
+        output = await crossover_agent.run(
+            input_data, master_agent_id=master_agent_id, forge_cycle_id=forge_cycle_id
+        )
         try:
             agent_name = forge_description
             agent_description = output.description
             agent_engine_configuration = {
                 "graph": output.model_dump(),
-                "input_model": generated_agent_input.model_json_schema() if generated_agent_input is not None else {},
-                "output_model": generated_agent_output.model_json_schema() if generated_agent_output is not None else {},
+                "input_model": generated_agent_input.model_json_schema()
+                if generated_agent_input is not None
+                else {},
+                "output_model": generated_agent_output.model_json_schema()
+                if generated_agent_output is not None
+                else {},
             }
             agent_id = "agent-" + str(uuid.uuid4())
             generated_agent_engine = AgentEngineFactory.create_engine(

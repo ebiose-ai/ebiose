@@ -2,224 +2,41 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from enum import Enum
 
 import requests
+from loguru import logger
 from pydantic import BaseModel
 
-from loguru import logger
-
-# --- Custom Exceptions ---
-class EbioseCloudError(Exception):
-    """Base exception for EbioseCloud API errors."""
-
-    def __init__(self, message, status_code: int | None = None, response_text: str | None = None):
-        super().__init__(message)
-        self.status_code = status_code
-        self.response_text = response_text
-
-    def __str__(self):
-        return f"{super().__str__()} (Status Code: {self.status_code}, Response: {self.response_text or 'N/A'})"
-
-
-class EbioseCloudHTTPError(EbioseCloudError):
-    """Exception for HTTP errors (4xx, 5xx)."""
-
-
-class EbioseCloudAuthError(EbioseCloudError):
-    """Exception for authentication-related errors."""
-
-
-# --- Enums ---
-class Role(int, Enum):
-    """Enum for User Roles."""
-    USER = 1
-    ADMIN = 2
-
-class AgentType(int, Enum):
-    """Enum for Agent Types."""
-    STANDARD = 0
-    GENETIC_OPERATOR = 1
-    ARCHITECT = 2
-
-# --- Pydantic Models (Updated based on swagger.json) ---
-
-class AgentEngineInputModel(BaseModel):
-    """Input model for agent engine configuration."""
-    engineType: str | None = None
-    configuration: str | None = None
-
-class AgentEngineOutputModel(BaseModel):
-    """Output model for agent engine configuration."""
-    engineType: str | None = None
-    configuration: str | None = None
-
-class ApiKeyInputModel(BaseModel):
-    """Input model for creating or updating an API key."""
-    userUuid: str | None = None
-    expirationDate: datetime
-
-class SelfApiKeyInputModel(BaseModel):
-    """Input model for creating a new API key for the current user."""
-    expirationDate: datetime
-
-class EcosystemInputModel(BaseModel):
-    """Input model for creating or updating an ecosystem."""
-    communityCreditsAvailable: float
-
-class ForgeCycleInputModel(BaseModel):
-    """Input model for starting a new forge cycle."""
-    nAgentsInPopulation: int
-    nSelectedAgentsFromEcosystem: int
-    nBestAgentsToReturn: int
-    replacementRatio: float
-    tournamentSizeRatio: float
-    localResultsPath: str | None = None
-    budget: float
-
-class ForgeInputModel(BaseModel):
-    """Input model for creating or updating a forge."""
-    name: str | None = None
-    description: str | None = None
-    ecosystemUuid: str | None = None
-
-class LogEntryInputModel(BaseModel):
-    """Input model for creating a new log entry."""
-    index: str
-    data: str
-
-class SelfUserInputModel(BaseModel):
-    """Input model for the current user updating their own profile."""
-    firstname: str | None = None
-    lastname: str | None = None
-    email: str | None = None
-    githubId: str | None = None
-    password: str | None = None
-
-class SignupInputModel(BaseModel):
-    """Input model for new user registration."""
-    firstname: str | None = None
-    lastname: str | None = None
-    email: str | None = None
-    githubId: str | None = None
-    password: str | None = None
-
-class UserInputModel(BaseModel):
-    """Input model for creating or updating a user (admin operation)."""
-    role: Role
-    firstname: str | None = None
-    lastname: str | None = None
-    email: str | None = None
-    githubId: str | None = None
-    creditsLimit: float
-    password: str | None = None
-
-class UserOutputModel(BaseModel):
-    """Output model representing a user's data."""
-    uuid: str | None = None
-    role: Role
-    firstname: str | None = None
-    lastname: str | None = None
-    email: str | None = None
-    githubId: str | None = None
-    apiKeys: list[ApiKeyOutputModel] | None = None
-    creditsLimit: float
-    creditsUsed: float
-    availableCredits: float
-
-class ApiKeyOutputModel(BaseModel):
-    """Output model representing an API key."""
-    uuid: str | None = None
-    key: str | None = None
-    createdAt: datetime
-    expirationDate: datetime
-    user: UserOutputModel | None = None
-
-class AgentInputModel(BaseModel):
-    """Input model for creating or updating an agent."""
-    name: str | None = None
-    description: str | None = None
-    architectAgentUuid: str | None = None
-    geneticOperatorAgentUuid: str | None = None
-    agentEngine: AgentEngineInputModel | None = None
-    descriptionEmbedding: list[float] | None = None
-    parentAgentUuids: list[str] | None = None
-    originForgeCycleUuid: str | None = None # New field
-    agentType: AgentType
-
-class AgentOutputModel(BaseModel):
-    """Output model representing an agent."""
-    uuid: str | None = None
-    name: str | None = None
-    description: str | None = None
-    ecosystem: EcosystemOutputModel | None = None
-    architectAgentUuid: str | None = None
-    geneticOperatorAgentUuid: str | None = None
-    agentEngine: AgentEngineOutputModel | None = None
-    descriptionEmbedding: list[float] | None = None
-    computeBankInDollars: float
-    parentAgentUuids: list[str] | None = None
-    childAgentUuids: list[str] | None = None
-    originForgeCycle: ForgeCycleOutputModel | None = None # New field
-    agentType: AgentType
-
-class EcosystemOutputModel(BaseModel):
-    """Output model representing an ecosystem."""
-    uuid: str | None = None
-    communityCreditsAvailable: float
-    agents: list[AgentOutputModel] | None = None
-
-class ForgeCycleOutputModel(BaseModel):
-    """Output model representing a forge cycle's state. Updated structure."""
-    uuid: str | None = None
-    forge: ForgeOutputModel
-    liteLLMKey: str | None = None
-    nAgentsInPopulation: int
-    nSelectedAgentsFromEcosystem: int
-    nBestAgentsToReturn: int
-    replacementRatio: float
-    tournamentSizeRatio: float
-    localResultsPath: str | None = None
-    budget: float
-    spentBudget: float # New field
-    isRunning: bool
-    generatedAgentsCount: int | None = None # New field
-
-class ForgeOutputModel(BaseModel):
-    """Output model representing a forge."""
-    uuid: str | None = None
-    name: str | None = None
-    description: str | None = None
-    forgeCycles: list[ForgeCycleOutputModel] | None = None
-
-class LoginOutputModel(BaseModel):
-    """Output model for a successful login."""
-    user: UserOutputModel
-    token: str | None = None
-
-class NewCycleOutputModel(BaseModel):
-    """Output model after starting a new forge cycle."""
-    liteLLMKey: str | None = None
-    forgeCycleUuid: str | None = None
-    baseUrl: str | None = None
-
-class LogEntryOutputModel(BaseModel):
-    """Output model for a log entry response."""
-    id: str | None = None
-    index: str | None = None
-    success: bool
-    message: str | None = None
-
-
-# Rebuild models to resolve forward references
-# This is crucial for Pydantic to correctly link models defined with string type hints.
-UserOutputModel.model_rebuild()
-ApiKeyOutputModel.model_rebuild()
-AgentOutputModel.model_rebuild()
-EcosystemOutputModel.model_rebuild()
-ForgeCycleOutputModel.model_rebuild()
-ForgeOutputModel.model_rebuild()
-LoginOutputModel.model_rebuild()
+# Import models from the new centralized location
+from ebiose.core.models.api_models import (
+    AgentEngineInputModel,
+    AgentEngineOutputModel,
+    AgentInputModel,
+    AgentOutputModel,
+    ApiKeyInputModel,
+    ApiKeyOutputModel,
+    EcosystemInputModel,
+    EcosystemOutputModel,
+    ForgeCycleInputModel,
+    ForgeCycleOutputModel,
+    ForgeInputModel,
+    ForgeOutputModel,
+    LogEntryInputModel,
+    LogEntryOutputModel,
+    LoginOutputModel,
+    NewCycleOutputModel,
+    SelfApiKeyInputModel,
+    SelfUserInputModel,
+    SignupInputModel,
+    UserInputModel,
+    UserOutputModel,
+)
+from ebiose.core.models.enums import AgentType, Role
+from ebiose.core.models.exceptions import (
+    EbioseCloudAuthError,
+    EbioseCloudError,
+    EbioseCloudHTTPError,
+)
 
 
 # --- Core API Client ---

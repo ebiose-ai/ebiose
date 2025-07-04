@@ -78,7 +78,7 @@ Create the offspring graph now and return it into the same format as its parents
 """
 
 def init_crossover_agent(model_endpoint_id: str | None) -> None:
-    from ebiose.core.agent import Agent
+    from ebiose.core.models.agent_models import Agent
     from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
     crossover_node = LLMNode(

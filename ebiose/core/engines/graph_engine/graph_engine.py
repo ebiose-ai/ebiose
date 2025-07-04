@@ -18,7 +18,7 @@ from pydantic import (
     model_validator,
 )
 
-from ebiose.core.agent_engine import AgentEngine
+from ebiose.core.models.agent_models import AgentEngine
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.tools.json_schema_to_pydantic import create_pydantic_model_from_schema
 

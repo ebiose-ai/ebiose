@@ -32,7 +32,7 @@ class AgentOutput(BaseModel):
     output_condition: str | None = None
 
 def init_routing_agent(model_endpoint_id: str) -> None:
-        from ebiose.core.agent import Agent
+        from ebiose.core.models.agent_models import Agent
         from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
         shared_context_prompt = SHARED_CONTEXT_PROMPT

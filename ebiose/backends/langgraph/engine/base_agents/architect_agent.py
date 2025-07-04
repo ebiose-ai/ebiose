@@ -9,6 +9,8 @@ import uuid
 
 from pydantic import BaseModel, Field, computed_field
 
+from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
+from ebiose.core.models.agent_models import Agent
 from ebiose.core.engines.graph_engine.edge import Edge
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.nodes import (
@@ -141,7 +143,6 @@ def init_architect_agent(
         add_format_node: bool = True,  # noqa: FBT001, FBT002
     ) -> None:
         from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
-        from ebiose.core.agent import Agent
 
         graph_outline_generation_node = LLMNode(
             id="graph_outline_generation",

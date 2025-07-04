@@ -25,7 +25,7 @@ The message is:
 """
 
 def init_structured_output_agent(output_model: type[BaseModel], model_endpoint_id: str) -> None:
-        from ebiose.core.agent import Agent
+        from ebiose.core.models.agent_models import Agent
         from ebiose.backends.langgraph.engine.langgraph_engine import LangGraphEngine
 
         class AgentInput(BaseModel):

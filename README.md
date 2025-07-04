@@ -137,6 +137,38 @@ For more detailed instructions or troubleshooting tips, refer to the [official u
 
 > 💡 Pro Tip: You may need to add the root of the repository to your `PYTHONPATH` environment variable. Alternatively, use a `.env` file to do so.
 
+#### 🔧 VS Code Setup with uv
+
+This project is pre-configured to work seamlessly with VS Code and uv. The configuration includes:
+
+**📁 Pre-configured Tasks**
+- `install dependencies` - Install all dependencies with `uv sync`
+- `run math forge example` - Run the math forge example with `uv run`
+- `run tests` - Execute tests with `uv run pytest`
+- `lint with ruff` - Run linting with `uv run ruff check`
+- `format with ruff` - Format code with `uv run ruff format`
+- `add package` - Add new packages with `uv add`
+- `remove package` - Remove packages with `uv remove`
+- `start jupyter server` - Start Jupyter Lab with `uv run jupyter lab`
+
+**🐞 Debug Configurations**
+- Debug current Python file using the uv environment
+- Debug the math forge example directly
+- Debug Python modules and tests
+
+**⚙️ Recommended Setup**
+1. Open the project in VS Code
+2. Install the recommended extensions when prompted (Python, Ruff, Jupyter)
+3. Run the "install dependencies" task (`Ctrl+Shift+P` → `Tasks: Run Task`)
+4. The Python interpreter should automatically be set to `.venv/bin/python`
+
+**🚀 Quick Commands**
+- `Ctrl+Shift+P` → `Tasks: Run Task` → Select any task
+- `F5` → Debug current file or use debug configurations
+- `Ctrl+Shift+`` → Open terminal (uv environment automatically activated)
+
+All tasks use `uv run` to ensure consistent environment usage across development workflows.
+
 #### 🔍 Understand forges and forge cycles
 
 The Jupyter notebook [`quickstart.ipynb`](notebooks/quickstart.ipynb) is the easiest way to understand the basics and start experimenting with Ebiose. This notebook lets you try out **architect agents** and **forges** on your very own challenges. 🤓

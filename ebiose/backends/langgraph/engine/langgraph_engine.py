@@ -32,7 +32,7 @@ from ebiose.backends.langgraph.engine.llm_node import LangGraphLLMNode
 from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineConfig,
 )
-from ebiose.backends.langgraph.engine.utils import GraphUtils, get_path
+from ebiose.backends.langgraph.engine.utils import get_path
 from ebiose.core.engines.graph_engine.graph import Graph
 from ebiose.core.engines.graph_engine.graph_engine import GraphEngine
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
@@ -91,7 +91,9 @@ class LangGraphEngine(GraphEngine):
 
     @observe(name="run_agent_engine")
     async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None,  **kwargs: dict[str, any]) -> BaseModel | dict | None:
-
+        # Lazy import to avoid circular dependency
+        from ebiose.core.engines.graph_engine.utils import GraphUtils
+        
         final_state = await self.invoke_graph(agent_input, forge_cycle_id=forge_cycle_id)
 
         if "output" in final_state and final_state["output"] is not None:
