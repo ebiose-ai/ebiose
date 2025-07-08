@@ -14,18 +14,17 @@ from dotenv import load_dotenv
 
 from ebiose.core.forge_cycle import CloudForgeCycleConfig
 from examples.math_forge.math_forge import MathLangGraphForge
-from examples.math_forge.math_forge import MathLangGraphForge
+
 
 def main(
-        train_csv_path: str,
-        test_csv_path: str,
-        n_problems: int,
-        budget: float,
-        save_path: Path,
-        default_model_endpoint_id: str | None = None,
-        mode: Literal["cloud", "local"] = "cloud",
-    ) -> None:
-
+    train_csv_path: str,
+    test_csv_path: str,
+    n_problems: int,
+    budget: float,
+    save_path: Path,
+    default_model_endpoint_id: str | None = None,
+    mode: Literal["cloud", "local"] = "cloud",
+) -> None:
     forge = MathLangGraphForge(
         train_csv_path=train_csv_path,
         test_csv_path=test_csv_path,
@@ -53,10 +52,11 @@ def main(
 
     forge.display_results(best_agents, best_finess)
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # loading dotenv
     from dotenv import load_dotenv
+
     load_dotenv()
 
     # the path where results will be saved
@@ -66,11 +66,13 @@ if __name__ == "__main__":
         SAVE_PATH.mkdir(parents=True)
 
     # run parameters
-    BUDGET = 0.1 # budget in dollars
-    N_PROBLEMS = 5 # number of problems to evaluate on, per generation
-    TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
-    TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
-    DEFAULT_MODEL_ENDPOINT_ID = None # set if you want to use a specific model endpoint for generated agents
+    BUDGET = 0.1  # budget in dollars
+    N_PROBLEMS = 5  # number of problems to evaluate on, per generation
+    TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv"  # the train dataset
+    TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv"  # the test dataset
+    DEFAULT_MODEL_ENDPOINT_ID = (
+        None  # set if you want to use a specific model endpoint for generated agents
+    )
 
     # running the forge cycle
     main(

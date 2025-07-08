@@ -1,0 +1,48 @@
+---
+title: Getting Started
+---
+
+This guide will walk you through setting up your environment and running your first Ebiose forge cycle.
+
+## Installation
+
+First, clone the repository:
+
+```bash
+git clone git@github.com:ebiose-ai/ebiose.git && cd ebiose
+```
+
+Ebiose uses [uv](https://docs.astral.sh/uv/) as a packaging and dependency manager. Make sure you have `uv` installed. You can find installation instructions [here](https://docs.astral.sh/uv/getting-started/installation/).
+
+Once `uv` is installed, run the following command to install the project dependencies:
+
+```bash
+uv sync
+```
+
+## Initialization
+
+Next, initialize the project:
+
+```bash
+make init
+```
+
+This command will:
+
+- Create a `model_endpoints.yml` file from the template. You'll need to edit this file to add your API keys.
+- Create a `.env` file from the `.env.example`.
+
+## Running Your First Forge Cycle
+
+The easiest way to get started is to run the `math_forge` example. This example is designed to evolve agents that can solve math problems.
+
+To run a cycle of the `math_forge`, execute the following command:
+
+```bash
+uv run ./examples/math_forge/run.py
+```
+
+This will start a forge cycle with a small budget. You should see the agents evolving and their fitness scores improving over time.
+
+Congratulations! You've just run your first Ebiose forge cycle.
