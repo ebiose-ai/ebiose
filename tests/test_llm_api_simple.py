@@ -12,8 +12,8 @@ def test_initialization_logic():
     """Test the initialization logic by examining the source code."""
     
     # Read the LLMApi source
-    llm_api_path = Path(__file__).parent / "ebiose" / "llm_api" / "llm_api.py"
-    langgraph_api_path = Path(__file__).parent / "ebiose" / "backends" / "langgraph" / "llm_api.py"
+    llm_api_path = Path(__file__).parent.parent / "ebiose" / "llm_api" / "llm_api.py"
+    langgraph_api_path = Path(__file__).parent.parent / "ebiose" / "backends" / "langgraph" / "llm_api.py"
     
     with open(llm_api_path, 'r', encoding='utf-8') as f:
         llm_api_content = f.read()

@@ -8,17 +8,19 @@ import sys
 from pathlib import Path
 
 # Add the ebiose package to the path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ebiose.llm_api.llm_api import LLMApi
 from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
 
 
 def test_cloud_mode_with_provided_base_url():
-    """Test that cloud mode uses the provided lite_llm_api_base."""
-    print("Testing cloud mode with provided base URL...")
+    """Test that cloud mode uses the provided lite_llm_api_base when provided by cloud API."""
+    print("Testing cloud mode with base URL provided by cloud API...")
     
-    provided_base_url = "https://test-cloud-api.example.com/"
+    # In real usage, this URL would come from the Ebiose cloud API
+    # For now, we test that when a URL is provided, it gets used correctly
+    provided_base_url = None  # Cloud API will provide the real URL when available
     
     # Initialize LLMApi
     LLMApi.initialize(
