@@ -11,6 +11,7 @@ from typing import ClassVar, Literal
 from pydantic import BaseModel
 
 from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
+from ebiose.core.model_endpoint import ModelEndpoints
 
 
 class LLMAPIConfig(BaseModel):
@@ -30,13 +31,23 @@ class LLMApi:
         cls,
         mode: Literal["local", "cloud"], 
         lite_llm_api_key: str | None = None, 
+        lite_llm_api_base: str | None = None,
         llm_api_config: LLMAPIConfig | None = None,
     ) -> LLMApi:
         cls.mode = mode
-        # TODO(xabier): check where to decleare api key and base
         cls.lite_llm_api_key = lite_llm_api_key
-        #TODO(xabier): remove this hardcoded value
-        cls.lite_llm_api_base = "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
+        
+        # Set lite_llm_api_base based on mode and available configuration
+        if lite_llm_api_base is not None:
+            # Use provided base URL (typically from cloud API)
+            cls.lite_llm_api_base = lite_llm_api_base
+        elif mode == "local" and ModelEndpoints.use_lite_llm():
+            # Use local configuration from model_endpoints.yml
+            _, configured_base = ModelEndpoints.get_lite_llm_config()
+            cls.lite_llm_api_base = configured_base
+        else:
+            # Keep as None - no LiteLLM base URL available
+            cls.lite_llm_api_base = None
 
         if llm_api_config is not None:
             cls._llm_api_config = llm_api_config
