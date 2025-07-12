@@ -65,8 +65,18 @@ class LangGraphLLMApi(LLMApi):
     ) -> LangGraphLLMApi:
         cls.mode = mode
         cls.lite_llm_api_key = lite_llm_api_key
-        cls.lite_llm_api_base = lite_llm_api_base
-        cls.lite_llm_api_base = "https://ebiose-litellm.livelysmoke-ef8b125f.francecentral.azurecontainerapps.io/"
+        
+        # Set lite_llm_api_base based on mode and available configuration
+        if lite_llm_api_base is not None:
+            # Use provided base URL (typically from cloud API)
+            cls.lite_llm_api_base = lite_llm_api_base
+        elif mode == "local" and ModelEndpoints.use_lite_llm():
+            # Use local configuration from model_endpoints.yml
+            _, configured_base = ModelEndpoints.get_lite_llm_config()
+            cls.lite_llm_api_base = configured_base
+        else:
+            # Keep as None - no LiteLLM base URL available
+            cls.lite_llm_api_base = None
 
         if llm_api_config is not None:
             cls._llm_api_config = llm_api_config

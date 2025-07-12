@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
 from ebiose.core.model_endpoint import ModelEndpoints
 
+
 if TYPE_CHECKING:
     from langchain_core.messages import AnyMessage
 
