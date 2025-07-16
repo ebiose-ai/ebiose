@@ -16,10 +16,10 @@ from ebiose.core.engines.graph_engine.utils import GraphUtils
 from ebiose.core.model_endpoint import ModelEndpoints
 from ebiose.tools.embedding_helper import embedding_distance
 
-
 if TYPE_CHECKING:
-    from ebiose.core.agent_forge import AgentForge
+    from ebiose.core.agent_forge import AgentForge  # noqa: I001
     from ebiose.core.agent import Agent
+
 
 class Ecosystem(BaseModel):
     id: str = Field(default_factory=lambda: f"forge-cycle-{uuid4()!s}")
@@ -31,29 +31,41 @@ class Ecosystem(BaseModel):
     model_endpoint_ids: ClassVar[list[str]] = []
 
     @classmethod
-    def new(cls, initial_agents: list["Agent"] | None = None) -> Ecosystem:
-
-        initial_architect_agents = [GraphUtils.get_architect_agent(ModelEndpoints.get_default_model_endpoint_id())]
+    def new(cls, initial_agents: list["Agent"] | None = None) -> Ecosystem:  # noqa: UP037
+        initial_architect_agents = [
+            GraphUtils.get_architect_agent(
+                ModelEndpoints.get_default_meta_agent_endpoint_id(),
+            ),
+        ]
         initial_genetic_operator_agents = [
-            GraphUtils.get_crossover_agent(ModelEndpoints.get_default_model_endpoint_id()),
-            GraphUtils.get_mutation_agent(ModelEndpoints.get_default_model_endpoint_id()),
+            GraphUtils.get_crossover_agent(
+                ModelEndpoints.get_default_meta_agent_endpoint_id(),
+            ),
+            GraphUtils.get_mutation_agent(
+                ModelEndpoints.get_default_meta_agent_endpoint_id(),
+            ),
         ]
         # TODO(xabier): fix this import to avoid circular dependency
-        from ebiose.core.agent import Agent
+        from ebiose.core.agent import Agent  # noqa: F401
+
         cls.model_rebuild()
         return cls(
             initial_architect_agents=initial_architect_agents,
             initial_genetic_operator_agents=initial_genetic_operator_agents,
-            agents = initial_agents if initial_agents is not None else [],
+            agents=initial_agents if initial_agents is not None else [],
         )
 
-    def get_agent(self, agent_id: str) -> "Agent" | None:
+    def get_agent(self, agent_id: str) -> "Agent" | None:  # noqa: UP037
         for agent in self.agents.values():
             if agent.id == agent_id:
                 return agent
         return None
 
-    async def select_agents_for_forge(self, forge: AgentForge, n_agents: int) -> list["Agent"]:
+    async def select_agents_for_forge(
+        self,
+        forge: AgentForge,
+        n_agents: int,
+    ) -> list["Agent"]:  # noqa: UP037
         self.add_forge(forge)
         if n_agents <= 0:
             return []
@@ -70,14 +82,25 @@ class Ecosystem(BaseModel):
         self.forge_list.append(forge)
         # Initialize SortedList with existing agents and their distances
         self.agent_forge_distances[forge.id] = SortedList(
-            [(agent, embedding_distance(agent.description_embedding, forge.description_embedding))
-             for agent in self.agents.values()],
+            [
+                (
+                    agent,
+                    embedding_distance(
+                        agent.description_embedding,
+                        forge.description_embedding,
+                    ),
+                )
+                for agent in self.agents.values()
+            ],
             key=lambda x: x[1],
         )
 
-    def _add_new_born_agent(self, new_agent: "Agent") -> None:
+    def _add_new_born_agent(self, new_agent: "Agent") -> None:  # noqa: UP037
         for forge in self.forge_list:
-            distance = embedding_distance(new_agent.description_embedding, forge.description_embedding)
+            distance = embedding_distance(
+                new_agent.description_embedding,
+                forge.description_embedding,
+            )
             self.agent_forge_distances[forge.id].add((new_agent, distance))
 
         self.agents[new_agent.id] = new_agent

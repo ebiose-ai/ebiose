@@ -1,7 +1,9 @@
 # model_endpoints_template.yml
 # Rename this file to model_endpoints.yml 
 # and fill in the API keys and endpoint URLs for the models you want to use
-default_endpoint_id: "azure/gpt-4o-mini"
+default_agent_endpoint_id: "azure/gpt-4o-mini"
+default_meta_agent_endpoint_id: "azure/gpt-4o-mini"
+default_utility_agent_endpoint_id: "azure/gpt-4o-mini"
 
 # Ebiose cloud configuration
 # fill this with your Ebiose API key and base URL 
@@ -47,24 +49,16 @@ endpoints:
 
   - endpoint_id: "azure/gpt-4.1-mini"
     provider: "Azure OpenAI"
-    # api_key: "5watVOFDoaKrwDecKP1l23gsspDyO8Bykhg4x0hKv8Z8H98rZSSFJQQJ99BDACHYHv6XJ3w3AAAAACOGkmg7"
-    # endpoint_url: "https://aihubebiose5126286601.cognitiveservices.azure.com/"
+    # api_key: "your_azure_openai_api_key" # fill in your Azure OpenAI API key
+    # endpoint_url: "https://your-azure-openai-endpoint-url/" # fill in the Azure OpenAI endpoint URL
     # api_version: "2025-01-01-preview"
     # deployment_name: "gpt-4.1-mini"
   
   - endpoint_id: "azure/gpt-4.1-nano"
     provider: "Azure OpenAI"
-    # api_key: "5watVOFDoaKrwDecKP1l23gsspDyO8Bykhg4x0hKv8Z8H98rZSSFJQQJ99BDACHYHv6XJ3w3AAAAACOGkmg7"
-    # endpoint_url: "https://aihubebiose5126286601.cognitiveservices.azure.com/"
-    # api_version: "2025-01-01-preview"
-    # deployment_name: "gpt-4.1-nano"
 
   - endpoint_id: "azure/gpt-4o"
     provider: "Azure OpenAI"
-    # api_key: "5watVOFDoaKrwDecKP1l23gsspDyO8Bykhg4x0hKv8Z8H98rZSSFJQQJ99BDACHYHv6XJ3w3AAAAACOGkmg7"
-    # endpoint_url: "https://aihubebiose5126286601.cognitiveservices.azure.com/"
-    # api_version: "2025-01-01-preview"
-    # deployment_name: "gpt-4o"
   
   # Azure ML endpoints
   # - endpoint_id: "llama3-8b"

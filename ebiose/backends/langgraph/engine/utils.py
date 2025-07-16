@@ -13,7 +13,6 @@ from pydantic import BaseModel  # noqa: TC002
 from ebiose.core.engines.graph_engine.utils import GraphUtils
 
 if TYPE_CHECKING:
-
     from ebiose.core.engines.graph_engine.edge import Edge
 
 from langgraph.graph.graph import END
@@ -43,7 +42,6 @@ class EdgeConditionError(ValueError):
         super().__init__(message)
 
 
-
 def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
     """Decide in which node to go next depending on the condition.
 
@@ -61,14 +59,18 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
 
     async def path(state: BaseModel, config: dict[str, any]) -> str:
         condition = None
-        if "condition" in state.model_fields and state.condition is not None and len(state.condition) > 0:
+        if (
+            "condition" in state.model_fields
+            and state.condition is not None
+            and len(state.condition) > 0
+        ):
             condition = state.condition
         else:
             # call the routing agent
-            model_endpoint_id = config["configurable"]["model_endpoint_id"]
+            # model_endpoint_id = config["configurable"]["model_endpoint_id"]
             master_agent_id = config["configurable"]["agent_id"]
-            forge_cycle_id = config["configurable"]["forge_cycle_id"]
-            routing_agent = GraphUtils.get_routing_agent(model_endpoint_id)
+            forge_cycle_id = config["configurable"].get("forge_cycle_id", None)
+            routing_agent = GraphUtils.get_routing_agent()
             routing_agent_input = routing_agent.agent_engine.input_model(
                 last_message=state.messages[-1],
                 possible_output=[edge.condition for edge in conditional_edges],
@@ -84,8 +86,11 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
             if edge.condition == condition:
                 return edge.end_node_id if edge.end_node_id != end_node_id else END
 
-        message = f"No condition found in the last {start_node_id} response." \
-            if condition is None else f"No edge found with the condition {condition}."
+        message = (
+            f"No condition found in the last {start_node_id} response."
+            if condition is None
+            else f"No edge found with the condition {condition}."
+        )
         raise ValueError(message)
 
     # Unlike LangGraph's documentation indicates, the path_map is required
