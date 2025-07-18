@@ -47,24 +47,14 @@ endpoints:
 
   - endpoint_id: "azure/gpt-4.1-mini"
     provider: "Azure OpenAI"
-    # api_key: "5watVOFDoaKrwDecKP1l23gsspDyO8Bykhg4x0hKv8Z8H98rZSSFJQQJ99BDACHYHv6XJ3w3AAAAACOGkmg7"
-    # endpoint_url: "https://aihubebiose5126286601.cognitiveservices.azure.com/"
-    # api_version: "2025-01-01-preview"
-    # deployment_name: "gpt-4.1-mini"
+    # api_key: "YOUR_AZURE_OPENAI_API_KEY"
+    # endpoint_url: "YOUR_AZURE_OPENAI_ENDPOINT_URL"
   
   - endpoint_id: "azure/gpt-4.1-nano"
     provider: "Azure OpenAI"
-    # api_key: "5watVOFDoaKrwDecKP1l23gsspDyO8Bykhg4x0hKv8Z8H98rZSSFJQQJ99BDACHYHv6XJ3w3AAAAACOGkmg7"
-    # endpoint_url: "https://aihubebiose5126286601.cognitiveservices.azure.com/"
-    # api_version: "2025-01-01-preview"
-    # deployment_name: "gpt-4.1-nano"
 
   - endpoint_id: "azure/gpt-4o"
     provider: "Azure OpenAI"
-    # api_key: "5watVOFDoaKrwDecKP1l23gsspDyO8Bykhg4x0hKv8Z8H98rZSSFJQQJ99BDACHYHv6XJ3w3AAAAACOGkmg7"
-    # endpoint_url: "https://aihubebiose5126286601.cognitiveservices.azure.com/"
-    # api_version: "2025-01-01-preview"
-    # deployment_name: "gpt-4o"
   
   # Azure ML endpoints
   # - endpoint_id: "llama3-8b"
