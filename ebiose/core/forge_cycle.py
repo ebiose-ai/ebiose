@@ -193,7 +193,6 @@ class ForgeCycle:
         selected_agents = []
         if self.config.mode == "cloud":
             selected_agents = EbioseAPIClient.select_agents(
-                ecosystem_id=ecosystem.id,
                 nb_agents=n_selected_agents,
                 forge_cycle_uuid=self.id,
             )

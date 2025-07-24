@@ -321,9 +321,8 @@ class EbioseAPIClient:
 
     @classmethod
     @_handle_api_errors
-    def select_agents(cls, ecosystem_id:str, nb_agents:int, forge_cycle_uuid: str) -> list["Agent"]:
+    def select_agents(cls, nb_agents: int, forge_cycle_uuid: str) -> list["Agent"]:
         """Select agents from an ecosystem."""
-        # TODO(xabier): remove unused parameter ecosystem_id
         response = cls._client.select_agents_for_forge_cycle(
             forge_cycle_uuid=forge_cycle_uuid,
             nb_agents= 100, # nb_agents, # TODO(xabier): fix when server side is ready (then should at least filter on agent_type==None)
