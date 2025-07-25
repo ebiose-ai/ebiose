@@ -15,22 +15,8 @@ if TYPE_CHECKING:
 class LLMApiFactory:
     """Factory for creating and managing LLM API instances."""
     
-    _current_implementation: type[LLMApi] | None = None
-    
-    @classmethod
-    def register_implementation(cls, implementation: type[LLMApi]) -> None:
-        """Register the concrete LLM API implementation to use."""
-        cls._current_implementation = implementation
-    
-    @classmethod
-    def get_api(cls) -> type[LLMApi]:
-        """Get the current LLM API implementation."""
-        if cls._current_implementation is None:
-            # Default to LangGraph implementation
-            from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
-            cls._current_implementation = LangGraphLLMApi
-        return cls._current_implementation
-    
+    _api: LLMApi | None = None
+
     @classmethod
     def initialize(
         cls,
@@ -38,11 +24,18 @@ class LLMApiFactory:
         lite_llm_api_key: str | None = None, 
         lite_llm_api_base: str | None = None,
         llm_api_config: LLMAPIConfig | None = None,
-    ) -> LLMApi:
-        """Initialize the LLM API with the current implementation."""
+    ) -> type[LLMApi]:
+        """Initialize the LLM API and store the instance."""
         api = cls.get_api()
-        return api.initialize(mode, lite_llm_api_key, lite_llm_api_base, llm_api_config)
-    
+        cls._api = api.initialize(mode, lite_llm_api_key, lite_llm_api_base, llm_api_config)
+        return type(cls._api)
+
+    @classmethod
+    def get_api(cls) -> LLMApi:
+        if cls._api is None:
+            raise RuntimeError("LLM API not initialized.")
+        return cls._api
+
     @classmethod
     def get_total_cost(cls, forge_cycle_id: str | None = None) -> float:
         """Get the total cost spent on the agents."""
