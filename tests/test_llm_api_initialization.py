@@ -10,7 +10,7 @@ from pathlib import Path
 # Add the ebiose package to the path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ebiose.llm_api.llm_api import LLMApi
+from ebiose.core.llm_api import LLMApi
 from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
 
 

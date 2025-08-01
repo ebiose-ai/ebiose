@@ -23,7 +23,7 @@ from openai import RateLimitError
 from pydantic import BaseModel
 
 from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
-
+from ebiose.core.llm_api import LLMApi, LLMAPIConfig
 from ebiose.core.model_endpoint import ModelEndpoints
 from litellm.cost_calculator import cost_per_token, completion_cost
 
@@ -53,18 +53,8 @@ class LangGraphLLMApiError(Exception):
             error_msg += f"\n--- Caused by ---\n{''.join(orig_traceback)}"
         return error_msg
 
-class LLMAPIConfig(BaseModel):
-    request_timeout_in_minutes: float = 2.0
-    max_retries: int = 1
 
-class LangGraphLLMApi:
-    _llm_api_config: LLMAPIConfig = LLMAPIConfig()
-    mode: Literal["local", "cloud"] = "cloud"
-    lite_llm_api_key: str | None = None
-    lite_llm_api_base: str | None = None
-    _cost_per_agent: ClassVar[dict[str, float]] = {}
-    total_cost: ClassVar[float] = 0.0
-
+class LangGraphLLMApi(LLMApi):
     @classmethod
     def initialize(
         cls,
@@ -93,42 +83,13 @@ class LangGraphLLMApi:
 
         return cls
 
-    # @classmethod
-    # def update_total_cost(cls, new_cost: float | None = None) -> None:
-    #     """Update the total cost and the cost for a specific agent."""
-    #     if new_cost is None:
-    #         cls.total_cost = new_cost
-
     @classmethod
-    def get_agents_total_cost(cls) -> float:
-        """Get the total cost spent on each agent."""
-        return sum(cls._cost_per_agent.values())
-
-    @classmethod
-    def get_total_cost(cls, forge_cycle_id: str) -> float:
-        """Get the total cost spent on the agents."""
-        if cls.mode == "cloud":
+    def get_total_cost(cls, forge_cycle_id: str | None = None) -> float:
+        """Override to add cloud mode support."""
+        if cls.mode == "cloud" and forge_cycle_id is not None:
             # If in cloud mode, get the total cost from the API
             cls.total_cost = EbioseAPIClient.get_cost(forge_cycle_uuid=forge_cycle_id)
-        return cls.get_agents_total_cost()
-
-    @classmethod
-    def add_agent_cost(cls, agent_id: str, cost: float) -> None:
-        """Add the cost for a specific agent."""
-        if agent_id in cls._cost_per_agent:
-            cls._cost_per_agent[agent_id] += cost
-        else:
-            cls._cost_per_agent[agent_id] = cost
-
-    @classmethod
-    def get_agent_cost(cls, agent_id: str) -> float:
-        """Get the cost spent on a specific agent."""
-        return cls._cost_per_agent.get(agent_id, 0.0)
-    
-    # @classmethod
-    # def reset_cost_per_agent(cls) -> None:
-    #     """Reset the cost per agent."""
-    #     cls.cost_per_agent = {}
+        return super().get_total_cost(forge_cycle_id)
 
     @classmethod
     def _get_llm(cls, model_endpoint_id: str, temperature: float, max_tokens: int) -> AzureChatOpenAI:
