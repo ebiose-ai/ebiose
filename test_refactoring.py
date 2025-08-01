@@ -2,7 +2,7 @@
 
 from ebiose.core.llm_api_factory import LLMApiFactory
 from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
-from ebiose.llm_api.llm_api import LLMApi
+from ebiose.core.llm_api import LLMApi
 
 def test_refactoring():
     """Test that the refactoring works correctly."""

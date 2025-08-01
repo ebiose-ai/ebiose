@@ -23,7 +23,7 @@ from openai import RateLimitError
 from pydantic import BaseModel
 
 from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
-from ebiose.llm_api.llm_api import LLMApi, LLMAPIConfig
+from ebiose.core.llm_api import LLMApi, LLMAPIConfig
 from ebiose.core.model_endpoint import ModelEndpoints
 from litellm.cost_calculator import cost_per_token, completion_cost
 
@@ -89,7 +89,7 @@ class LangGraphLLMApi(LLMApi):
         if cls.mode == "cloud" and forge_cycle_id is not None:
             # If in cloud mode, get the total cost from the API
             cls.total_cost = EbioseAPIClient.get_cost(forge_cycle_uuid=forge_cycle_id)
-        return cls.get_agents_total_cost()
+        return super().get_total_cost(forge_cycle_id)
 
     @classmethod
     def _get_llm(cls, model_endpoint_id: str, temperature: float, max_tokens: int) -> AzureChatOpenAI:

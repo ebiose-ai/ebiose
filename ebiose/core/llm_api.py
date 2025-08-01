@@ -30,7 +30,7 @@ class LLMApi(ABC):
     lite_llm_api_base: str | None = None
     _cost_per_agent: ClassVar[dict[str, float]] = {}
     total_cost: ClassVar[float] = 0.0
-    _forge_cycle_costs: ClassVar[dict[str, float]] = {}  # Add this line
+    _forge_cycle_costs: ClassVar[dict[str, float]] = {}
 
     @classmethod
     def initialize(
@@ -79,6 +79,11 @@ class LLMApi(ABC):
         return cls.total_cost
 
     @classmethod
+    def get_agent_cost(cls, agent_id: str) -> float:
+        """Get the cost spent on a specific agent."""
+        return cls._cost_per_agent.get(agent_id, 0.0)
+
+    @classmethod
     @abstractmethod
     async def process_llm_call(
         cls,
@@ -101,15 +106,7 @@ class LLMApi(ABC):
             cls._cost_per_agent[agent_id] = cost
         cls.update_total_cost(sum(cls._cost_per_agent.values()))
 
-
-    @classmethod
-    def get_agent_cost(cls, agent_id: str) -> float:
-        """Get the cost spent on a specific agent."""
-        return cls._cost_per_agent.get(agent_id, 0.0)
-    
-
     @classmethod
     def add_forge_cycle_cost(cls, forge_cycle_id: str, cost: float) -> None:
         """Add or update the cost for a specific forge cycle."""
         cls._forge_cycle_costs[forge_cycle_id] = cost
-
