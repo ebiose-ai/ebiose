@@ -12,8 +12,8 @@ from typing import Literal
 
 from loguru import logger
 
-from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
-from ebiose.llm_api.llm_api import (
+from ebiose.core.llm_api_factory import LLMApiFactory
+from ebiose.core.llm_api import (
     LLMApi,
 )
 from ebiose.core.agent_factory import AgentFactory
@@ -47,7 +47,7 @@ def main(
     )
 
     # generating the compute token
-    LangGraphLLMApi.initialize(mode=mode)
+    llm_api = LLMApiFactory.initialize(mode=mode)
     
     # running evaluation on test set
     t0 = datetime.now(UTC)
@@ -59,7 +59,7 @@ def main(
     )
 
     # getting cost
-    cost = LangGraphLLMApi.get_total_cost()
+    cost = llm_api.get_total_cost()
 
     logger.info(f"Evaluation of agent {agent.id} on test set took {datetime.now(UTC) - t0}")
     logger.info(f"Computed fitness is: {fitness}, for cost: {cost} $")
