@@ -383,6 +383,12 @@ class ForgeCycle:
             else None,
         )
 
+        self.llm_api = LLMApiFactory.initialize(
+            mode=self.config.mode,
+            lite_llm_api_key=lite_llm_api_key,
+            lite_llm_api_base=lite_llm_api_base,
+        )
+
         remaining_budget, initial_budget = self.get_budget_info()
         ForgeCycleStartedEvent(
             forge_name=self.forge.name,
@@ -397,11 +403,7 @@ class ForgeCycle:
             from ebiose.core.ecosystem import Ecosystem
             ecosystem = Ecosystem.new()
 
-        self.llm_api = LLMApiFactory.initialize(
-            mode=self.config.mode,
-            lite_llm_api_key=lite_llm_api_key,
-            lite_llm_api_base=lite_llm_api_base,
-        )
+        
 
         try:
             t0 = time()

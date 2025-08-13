@@ -1,7 +1,7 @@
 # model_endpoints_template.yml
 # Rename this file to model_endpoints.yml 
 # and fill in the API keys and endpoint URLs for the models you want to use
-default_endpoint_id: "azure/gpt-4o-mini"
+default_agent_endpoint_id: "azure/gpt-4o-mini"
 default_meta_agent_endpoint_id: "azure/gpt-4o-mini"
 default_utility_agent_endpoint_id: "azure/gpt-4o-mini"
 
