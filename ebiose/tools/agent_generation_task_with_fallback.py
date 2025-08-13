@@ -99,7 +99,10 @@ async def crossover_agent_task(
             forge_description=forge.description,
         )
     except Exception as e:
-        logger.debug(f"Error while generating offspring from {[parent1.id, parent2.id]}. Falling back to architect agent.")
+        parent_ids = [parent1.id]
+        if parent2 is not None:
+            parent_ids.append(parent2.id)
+        logger.debug(f"Error while generating offspring from {parent_ids}. Falling back to architect agent.")
         result = await AgentFactory.generate_agent(
             architect_agent,
             architect_agent.agent_engine.input_model(forge_description=forge.description),

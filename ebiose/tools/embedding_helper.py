@@ -7,8 +7,8 @@ This software is licensed under the MIT License. See LICENSE for details.
 import numpy as np
 
 
+fake = True
 def generate_embeddings(text: str) -> np.ndarray:
-    fake = True
     if fake:
         return generate_fake_embedding()
     return generate_embeddings_impl(text)
