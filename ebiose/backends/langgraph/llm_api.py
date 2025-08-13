@@ -169,7 +169,7 @@ class LangGraphLLMApi(LLMApi):
                 max_tokens=max_tokens,
             )
 
-        if model_endpoint.provider == "AzureML":
+        if model_endpoint.provider == "Azure AI":
             return AzureMLChatOnlineEndpoint(
                 endpoint_url=model_endpoint.endpoint_url.get_secret_value(),
                 endpoint_api_type=AzureMLEndpointApiType.serverless,

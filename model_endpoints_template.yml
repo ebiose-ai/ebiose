@@ -2,6 +2,8 @@
 # Rename this file to model_endpoints.yml 
 # and fill in the API keys and endpoint URLs for the models you want to use
 default_endpoint_id: "azure/gpt-4o-mini"
+default_meta_agent_endpoint_id: "azure/gpt-4o-mini"
+default_utility_agent_endpoint_id: "azure/gpt-4o-mini"
 
 # Ebiose cloud configuration
 # fill this with your Ebiose API key and base URL 
@@ -56,11 +58,11 @@ endpoints:
   - endpoint_id: "azure/gpt-4o"
     provider: "Azure OpenAI"
   
-  # Azure ML endpoints
+  # Azure AI endpoints
   # - endpoint_id: "llama3-8b"
-  #   provider: "Azure ML"
-  #   api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure ML API key
-    # endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure ML endpoint URL
+  #   provider: "Azure AI"
+  #   api_key: "YOUR_AZURE_ML_API_KEY" # fill in your Azure AI API key
+    # endpoint_url: "AZURE_ENDPOINT_URL" # fill in the Azure AI endpoint URL
 
   # Anthropic endpoints
   # - endpoint_id: "claude-3-sonnet-20240229"

@@ -309,7 +309,7 @@ endpoints:
     deployment_name: "DEPLOYMENT_NAME"
 ```
 
-### Azure ML LLMs
+### Azure AI LLMs
 
 To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the root
 of the project, with, for example:
@@ -317,7 +317,7 @@ of the project, with, for example:
 ```yaml
 endpoints:
   - endpoint_id: "llama3-8b"
-    provider: "Azure ML"
+    provider: "Azure AI"
     api_key: "YOUR_AZURE_ML_API_KEY"
     endpoint_url: "AZURE_ENDPOINT_URL"
 ```
