@@ -30,7 +30,6 @@ class LLMApi(ABC):
     lite_llm_api_base: str | None = None
     _cost_per_agent: ClassVar[dict[str, float]] = {}
     total_cost: ClassVar[float] = 0.0
-    _forge_cycle_costs: ClassVar[dict[str, float]] = {}
 
     @classmethod
     def initialize(
@@ -73,9 +72,10 @@ class LLMApi(ABC):
 
     @classmethod
     def get_total_cost(cls, forge_cycle_id: str | None = None) -> float:
-        """Get the total cost spent on the agents, optionally for a forge cycle."""
-        if forge_cycle_id is not None:
-            return cls._forge_cycle_costs.get(forge_cycle_id, 0.0)
+        """Override to add cloud mode support."""
+        if cls.mode == "cloud" and forge_cycle_id is not None:
+            # If in cloud mode, get the total cost from the API
+            return EbioseAPIClient.get_cost(forge_cycle_uuid=forge_cycle_id)
         return cls.total_cost
 
     @classmethod
@@ -106,7 +106,3 @@ class LLMApi(ABC):
             cls._cost_per_agent[agent_id] = cost
         cls.update_total_cost(sum(cls._cost_per_agent.values()))
 
-    @classmethod
-    def add_forge_cycle_cost(cls, forge_cycle_id: str, cost: float) -> None:
-        """Add or update the cost for a specific forge cycle."""
-        cls._forge_cycle_costs[forge_cycle_id] = cost

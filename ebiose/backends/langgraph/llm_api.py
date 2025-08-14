@@ -84,14 +84,6 @@ class LangGraphLLMApi(LLMApi):
         return cls
 
     @classmethod
-    def get_total_cost(cls, forge_cycle_id: str | None = None) -> float:
-        """Override to add cloud mode support."""
-        if cls.mode == "cloud" and forge_cycle_id is not None:
-            # If in cloud mode, get the total cost from the API
-            cls.total_cost = EbioseAPIClient.get_cost(forge_cycle_uuid=forge_cycle_id)
-        return super().get_total_cost(forge_cycle_id)
-
-    @classmethod
     def _get_llm(cls, model_endpoint_id: str, temperature: float, max_tokens: int) -> AzureChatOpenAI:
         """Get the LLM model from the model endpoint id.
 

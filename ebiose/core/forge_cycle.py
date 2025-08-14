@@ -163,6 +163,7 @@ class ForgeCycle:
                 )
                 agent.id = agent_id
                 agent.agent_engine.agent_id = agent_id  # Ensure agent's engine has the correct ID
+            self.agents[agent.id] = agent
             remaining_budget, initial_budget = self.get_budget_info()
             AgentAddedToPopulationEvent(
                 agent_id=agent.id,
@@ -301,7 +302,7 @@ class ForgeCycle:
                 continue
             self.add_agent(new_agent, source="newly_created_during_init")
 
-        initialization_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id)
+        initialization_cost = self.llm_api.get_total_cost()
         remaining_budget, initial_budget = self.get_budget_info()
         PopulationInitializationCompletedEvent(
             num_agents_initialized=len(self.agents),
@@ -471,7 +472,7 @@ class ForgeCycle:
         else:
             logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
             if self.config.mode == "cloud":
-                logger.info(f"Budget left at final: {self.config.budget - self.llm_api.get_total_cost(forge_cycle_id=self.id)} $")
+                logger.info(f"Budget left at final: {self.config.budget - self.llm_api.get_total_cost()} $")
             logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
             selected_agents = {
@@ -624,7 +625,7 @@ class ForgeCycle:
         remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionStartedEvent(
             generation_number=self.cur_generation,
-            method="roulette_wheel_selection",
+            method="roulette_wheel",
             num_to_select=n_to_select,
             remaining_budget=remaining_budget,
             initial_budget=initial_budget,
@@ -635,7 +636,7 @@ class ForgeCycle:
             remaining_budget, initial_budget = self.get_budget_info()
             AgentSelectionCompletedEvent(
                 generation_number=self.cur_generation,
-                method="roulette_wheel_selection",  # Added missing field
+                method="roulette_wheel",  # Added missing field
                 num_selected=0,
                 selected_agent_ids=[],
                 remaining_budget=remaining_budget,
@@ -659,7 +660,7 @@ class ForgeCycle:
         remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionCompletedEvent(
             generation_number=self.cur_generation,
-            method="roulette_wheel_selection",  # Added missing field
+            method="roulette_wheel",  # Added missing field
             num_selected=len(selected_agents),
             selected_agent_ids=list(selected_agents.keys()),
             remaining_budget=remaining_budget,
@@ -675,7 +676,7 @@ class ForgeCycle:
         remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionStartedEvent(
             generation_number=self.cur_generation,
-            method="tournament_selection",
+            method="tournament",
             num_to_select=n_to_select,
             remaining_budget=remaining_budget,
             initial_budget=initial_budget,
@@ -686,7 +687,7 @@ class ForgeCycle:
             remaining_budget, initial_budget = self.get_budget_info()
             AgentSelectionCompletedEvent(
                 generation_number=self.cur_generation,
-                method="tournament_selection",  # Added missing field
+                method="tournament",  # Added missing field
                 num_selected=0,
                 selected_agent_ids=[],
                 remaining_budget=remaining_budget,
@@ -716,7 +717,7 @@ class ForgeCycle:
         remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionCompletedEvent(
             generation_number=self.cur_generation,
-            method="tournament_selection",  # Added missing field
+            method="tournament",  # Added missing field
             num_selected=len(selected_ids),
             selected_agent_ids=selected_ids,
             remaining_budget=remaining_budget,
@@ -734,7 +735,7 @@ class ForgeCycle:
         ).log()
 
         crossover_start_time = time()
-        previous_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id)
+        previous_cost = self.llm_api.get_total_cost()
         offsprings = []
         tasks = []
 
@@ -862,7 +863,7 @@ class ForgeCycle:
                     initial_budget=initial_budget,
                 ).log()
 
-        current_phase_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id) - previous_cost
+        current_phase_cost = self.llm_api.get_total_cost() - previous_cost
         remaining_budget, initial_budget = self.get_budget_info()
         CrossoverAndMutationCompletedEvent(
             generation_number=self.cur_generation,
