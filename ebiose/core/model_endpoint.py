@@ -68,7 +68,7 @@ class ModelEndpoints:
 
     @staticmethod
     def get_default_meta_agent_endpoint_id() -> str:
-        if ModelEndpoints._default_agent_endpoint_id is None:
+        if ModelEndpoints._default_meta_agent_endpoint_id is None:
             ModelEndpoints.load_model_endpoints()
         if ModelEndpoints._default_meta_agent_endpoint_id is None:
             return ModelEndpoints.get_default_model_endpoint_id()
