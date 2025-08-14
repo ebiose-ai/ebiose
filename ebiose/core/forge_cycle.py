@@ -42,6 +42,7 @@ from ebiose.core.events import (
     PopulationInitializationStartedEvent,
     init_logger,
 )
+from ebiose.core.model_endpoint import ModelEndpoints
 
 if get_ipython() is not None:
     pass
@@ -140,6 +141,18 @@ class ForgeCycle:
             with Path.open(agent_file_path, "w") as agent_file:
                 agent_file.write(json_str)
 
+    def get_budget_info(self) -> tuple[float | None, float | None]:
+        """Get current budget information for events.
+
+        Returns:
+            tuple: (remaining_budget, initial_budget) or (None, None) if not in cloud mode
+        """
+        if self.config.mode == "cloud" and hasattr(self.config, "budget"):
+            total_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id)
+            remaining_budget = self.config.budget - total_cost
+            return remaining_budget, self.config.budget
+        return None, None
+
     def add_agent(self, agent: Agent, source: str) -> None:
         try:
             if self.config.mode == "cloud" and source != "kept_from_previous_gen":
@@ -151,11 +164,17 @@ class ForgeCycle:
                 agent.id = agent_id
                 agent.agent_engine.agent_id = agent_id  # Ensure agent's engine has the correct ID
             self.agents[agent.id] = agent
+            remaining_budget, initial_budget = self.get_budget_info()
             AgentAddedToPopulationEvent(
                 agent_id=agent.id,
                 generation_number=self.cur_generation,
                 source=source,
-                agent = agent.model_dump(mode="json", exclude={"agent_engine", "description_embedding"}),
+                agent=agent.model_dump(
+                    mode="json",
+                    exclude={"agent_engine", "description_embedding"},
+                ),
+                remaining_budget=remaining_budget,
+                initial_budget=initial_budget,
             ).log()
         except Exception as e:
             logger.debug(f"Error while adding an agent: {e!s}, {agent}")
@@ -182,9 +201,12 @@ class ForgeCycle:
 
     async def initialize_population(self, ecosystem: Ecosystem) -> None: # Removed quotes from Ecosystem type hint
         logger.info("****** Initializing agents population ******")
+        remaining_budget, initial_budget = self.get_budget_info()
         PopulationInitializationStartedEvent(
             n_agents_to_initialize=self.config.n_agents_in_population,
             n_selected_from_ecosystem=self.config.n_selected_agents_from_ecosystem,
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         init_pop_start_time = time()
 
@@ -200,7 +222,7 @@ class ForgeCycle:
             )
             for selected_agent in selected_agents:
                 selected_agent.update_io_models(
-                    agent_input_model= self.forge.agent_input_model,
+                    agent_input_model=self.forge.agent_input_model,
                     agent_output_model=self.forge.agent_output_model,
                 )
             self.load_meta_agents_from_ecosystem(ecosystem)
@@ -227,9 +249,12 @@ class ForgeCycle:
                     genetic_operator_agent=genetic_operator_agent,
                     forge_cycle_id=self.id,
                 )
+                remaining_budget, initial_budget = self.get_budget_info()
                 ArchitectAgentTaskCreatedEvent(
                     architect_agent_id=architect_agent.id,
                     generation_number=self.cur_generation,
+                    remaining_budget=remaining_budget,
+                    initial_budget=initial_budget,
                 ).log()
                 tasks.append(task)
         else:
@@ -258,9 +283,12 @@ class ForgeCycle:
                         genetic_operator_agent=genetic_operator_agent,
                         forge_cycle_id=self.id,
                     )
+                    remaining_budget, initial_budget = self.get_budget_info()
                     ArchitectAgentTaskCreatedEvent(
                         architect_agent_id=architect_agent.id,
                         generation_number=self.cur_generation,
+                        remaining_budget=remaining_budget,
+                        initial_budget=initial_budget,
                     ).log()
                     tasks.append(task)
 
@@ -274,11 +302,14 @@ class ForgeCycle:
                 continue
             self.add_agent(new_agent, source="newly_created_during_init")
 
-        initialization_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id)
+        initialization_cost = self.llm_api.get_total_cost()
+        remaining_budget, initial_budget = self.get_budget_info()
         PopulationInitializationCompletedEvent(
             num_agents_initialized=len(self.agents),
             initialization_cost=initialization_cost,
             duration_seconds=time() - init_pop_start_time,
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
 
         return initialization_cost
@@ -293,6 +324,7 @@ class ForgeCycle:
         # if agent.agent_type is None
         # }
 
+        meta_agent_endpoint_id = ModelEndpoints.get_default_meta_agent_endpoint_id()
         self.architect_agents = {
             _id: agent for _id, agent in ecosystem.agents.items()
             if agent.agent_type == "architect"
@@ -301,6 +333,20 @@ class ForgeCycle:
             _id: agent for _id, agent in ecosystem.agents.items()
             if agent.agent_type == "genetic_operator"
         }
+
+        for agent in self.architect_agents.values():
+            agent.agent_engine.tags = ["architect_agent"]
+
+        for agent in self.genetic_operator_agents.values():
+            agent.agent_engine.tags = ["genetic_operator_agent"]
+
+        if meta_agent_endpoint_id is not None:
+            # Set the model endpoint ID for each meta agent
+            for agent in self.architect_agents.values():
+                agent.agent_engine.model_endpoint_id = meta_agent_endpoint_id
+            for agent in self.genetic_operator_agents.values():
+                agent.agent_engine.model_endpoint_id = meta_agent_endpoint_id
+
 
 
     async def execute_a_cycle(
@@ -333,12 +379,24 @@ class ForgeCycle:
             user_id=user_id,
             forge_id=forge_id,
             forge_cycle_id=self.id,
+            initial_budget=self.config.budget
+            if self.config.mode == "cloud" and hasattr(self.config, "budget")
+            else None,
         )
 
+        self.llm_api = LLMApiFactory.initialize(
+            mode=self.config.mode,
+            lite_llm_api_key=lite_llm_api_key,
+            lite_llm_api_base=lite_llm_api_base,
+        )
+
+        remaining_budget, initial_budget = self.get_budget_info()
         ForgeCycleStartedEvent(
             forge_name=self.forge.name,
             forge_description=self.forge.description,
             config=self.config.model_dump(mode="json"),
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
 
         if ecosystem is None :
@@ -346,11 +404,7 @@ class ForgeCycle:
             from ebiose.core.ecosystem import Ecosystem
             ecosystem = Ecosystem.new()
 
-        self.llm_api = LLMApiFactory.initialize(
-            mode=self.config.mode,
-            lite_llm_api_key=lite_llm_api_key,
-            lite_llm_api_base=lite_llm_api_base,
-        )
+        
 
         try:
             t0 = time()
@@ -359,9 +413,12 @@ class ForgeCycle:
             # cancel run if no agent was initialized
             if len(self.agents) == 0:
                 logger.info("No agent was initialized. Exiting cycle. Check the logs for more information.")
+                remaining_budget, initial_budget = self.get_budget_info()
                 ForgeCycleFailedEvent(
                     error_message="No agent was initialized",
                     duration_seconds=time() - cycle_start_time,
+                    remaining_budget=remaining_budget,
+                    initial_budget=initial_budget,
                 ).log()
                 selected_agents, selected_fitness = {}, {}
                 return selected_agents, selected_fitness
@@ -404,26 +461,31 @@ class ForgeCycle:
         except Exception as e:
             logger.error(f"Error during cycle execution: {e!s}")
             logger.info("Cycle execution failed. Cleaning up...")
+            remaining_budget, initial_budget = self.get_budget_info()
             ForgeCycleFailedEvent(
                 error_message=str(e),
                 duration_seconds=time() - cycle_start_time,
+                remaining_budget=remaining_budget,
+                initial_budget=initial_budget,
             ).log()
             selected_agents, selected_fitness = {}, {}
         else:
             logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
             if self.config.mode == "cloud":
-                logger.info(f"Budget left at final: {self.config.budget - self.llm_api.get_total_cost(forge_cycle_id=self.id)} $")
+                logger.info(f"Budget left at final: {self.config.budget - self.llm_api.get_total_cost()} $")
             logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
             selected_agents = {
                 agent.id: agent for agent in sorted_agents[:self.config.n_best_agents_to_return]
             }
             selected_fitness = {agent_id: self.agents_fitness[agent_id] for agent_id in selected_agents}
+            remaining_budget, initial_budget = self.get_budget_info()
             ForgeCycleEndedEvent(
                 duration_seconds=time() - cycle_start_time,
                 total_cost=total_cycle_cost,
                 num_best_agents=len(selected_agents),
-                budget_left=self.config.budget - total_cycle_cost if self.config.mode == "cloud" else None,
+                remaining_budget=remaining_budget,
+                initial_budget=initial_budget,
             ).log()
             return selected_agents, selected_fitness
 
@@ -438,9 +500,12 @@ class ForgeCycle:
     async def run_generation(self) -> tuple[float, float]:
         logger.info(f"****** Running generation {self.cur_generation} ******")
         gen_start_time = time()
+        remaining_budget, initial_budget = self.get_budget_info()
         GenerationRunStartedEvent(
             generation_number=self.cur_generation,
             current_population_size=len(self.agents),
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         # Evaluate current population asynchronously
         logger.info(f"Evaluating current population of {len(self.agents)} agents...")
@@ -483,20 +548,26 @@ class ForgeCycle:
             self.add_agent(offspring, source="offspring")
 
         logger.info(f"Generation {self.cur_generation} completed in {human_readable_duration(t0)} with a total cost of TODO $")
+        remaining_budget, initial_budget = self.get_budget_info()
         GenerationRunCompletedEvent(
             generation_number=self.cur_generation,
             generation_total_cost=evaluation_cost + genetic_cost,
             duration_seconds=time() - gen_start_time,
             population_size_after_generation=len(self.agents),
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
    
         return evaluation_cost, genetic_cost
 
 
     async def _evaluate_population(self) -> float:
+        remaining_budget, initial_budget = self.get_budget_info()
         PopulationEvaluationStartedEvent(
             generation_number=self.cur_generation,
             num_agents_to_evaluate=len(self.agents),
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         eval_start_time = time()
         tasks = []
@@ -516,11 +587,14 @@ class ForgeCycle:
             self.agents_fitness[agent_id] = fitness
             current_agent_cost = self.llm_api.get_agent_cost(agent_id)
             total_cost_in_dollars += current_agent_cost
+            remaining_budget, initial_budget = self.get_budget_info()
             AgentEvaluationCompletedEvent(
                 agent_id=agent_id,
                 generation_number=self.cur_generation,
                 fitness=fitness,
                 evaluation_cost=current_agent_cost,
+                remaining_budget=remaining_budget,
+                initial_budget=initial_budget,
             ).log()
 
             if update_first_generation_costs:
@@ -530,10 +604,13 @@ class ForgeCycle:
 
             logger.debug(f"Agent {agent_id} fitness: {fitness}, cost: {current_agent_cost}")
 
+        remaining_budget, initial_budget = self.get_budget_info()
         PopulationEvaluationCompletedEvent(
             generation_number=self.cur_generation,
             total_evaluation_cost=total_cost_in_dollars,
             duration_seconds=time() - eval_start_time,
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
 
         if len(self.agents) != len(self.agents_fitness):
@@ -545,20 +622,25 @@ class ForgeCycle:
 
 
     def roulette_wheel_selection(self, n_to_select: int) -> dict[str, Agent]:
+        remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionStartedEvent(
-            forge_cycle_id=self.id,
             generation_number=self.cur_generation,
-            method="roulette_wheel_selection",
+            method="roulette_wheel",
             num_to_select=n_to_select,
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         selected_agents = {}
         if not self.agents_fitness:
             logger.warning("No fitness values available for roulette wheel selection.")
+            remaining_budget, initial_budget = self.get_budget_info()
             AgentSelectionCompletedEvent(
                 generation_number=self.cur_generation,
-                method="roulette_wheel_selection", # Added missing field
+                method="roulette_wheel",  # Added missing field
                 num_selected=0,
                 selected_agent_ids=[],
+                remaining_budget=remaining_budget,
+                initial_budget=initial_budget,
             ).log()
             return selected_agents
 
@@ -575,11 +657,14 @@ class ForgeCycle:
                     break
 
         logger.debug(f"Selected {len(selected_agents)} agents using roulette wheel selection: {list(selected_agents.keys())}")
+        remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionCompletedEvent(
             generation_number=self.cur_generation,
-            method="roulette_wheel_selection", # Added missing field
+            method="roulette_wheel",  # Added missing field
             num_selected=len(selected_agents),
             selected_agent_ids=list(selected_agents.keys()),
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         return selected_agents
 
@@ -588,19 +673,25 @@ class ForgeCycle:
         # 2. the best agents of each tournament are selected
         # 3. amongst them, x% are randomly selected to replace the parents of the next generation
         # 4. the others are kept
+        remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionStartedEvent(
             generation_number=self.cur_generation,
-            method="tournament_selection",
+            method="tournament",
             num_to_select=n_to_select,
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         selected_ids = []
         if not self.agents:
             logger.warning("No agents available for tournament selection.")
+            remaining_budget, initial_budget = self.get_budget_info()
             AgentSelectionCompletedEvent(
                 generation_number=self.cur_generation,
-                method="tournament_selection", # Added missing field
+                method="tournament",  # Added missing field
                 num_selected=0,
                 selected_agent_ids=[],
+                remaining_budget=remaining_budget,
+                initial_budget=initial_budget,
             ).log()
             return selected_ids
 
@@ -623,22 +714,28 @@ class ForgeCycle:
         selected_ids = random.choices(winning_agent_ids, k=n_to_select)
 
         logger.debug(f"Selected {len(selected_ids)} agents using tournament selection: {selected_ids}")
+        remaining_budget, initial_budget = self.get_budget_info()
         AgentSelectionCompletedEvent(
             generation_number=self.cur_generation,
-            method="tournament_selection", # Added missing field
+            method="tournament",  # Added missing field
             num_selected=len(selected_ids),
             selected_agent_ids=selected_ids,
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         return selected_ids
 
     async def crossover_and_mutate(self, selected_parent_ids: list[str]) -> tuple[list[Agent], float]:
+        remaining_budget, initial_budget = self.get_budget_info()
         CrossoverAndMutationStartedEvent(
             generation_number=self.cur_generation,
             num_parents=len(selected_parent_ids),
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
 
         crossover_start_time = time()
-        previous_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id)
+        previous_cost = self.llm_api.get_total_cost()
         offsprings = []
         tasks = []
 
@@ -752,20 +849,29 @@ class ForgeCycle:
         for offspring_agent in results:
             if offspring_agent is not None:
                 offsprings.append(offspring_agent)
+                remaining_budget, initial_budget = self.get_budget_info()
                 OffspringCreatedEvent(
                     offspring_agent_id=offspring_agent.id,
                     generation_number=self.cur_generation,
                     parent_ids=offspring_agent.parent_ids,
                     genetic_operator_agent_id=offspring_agent.genetic_operator_agent_id,
-                    offspring_agent=offspring_agent.model_dump(mode="json", exclude={"agent_engine", "description_embedding"}),
+                    offspring_agent=offspring_agent.model_dump(
+                        mode="json",
+                        exclude={"agent_engine", "description_embedding"},
+                    ),
+                    remaining_budget=remaining_budget,
+                    initial_budget=initial_budget,
                 ).log()
 
-        current_phase_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id) - previous_cost
+        current_phase_cost = self.llm_api.get_total_cost() - previous_cost
+        remaining_budget, initial_budget = self.get_budget_info()
         CrossoverAndMutationCompletedEvent(
             generation_number=self.cur_generation,
             num_offsprings_generated=len(offsprings),
             duration_seconds=time() - crossover_start_time,
-            cost=current_phase_cost, # This needs accurate calculation
+            cost=current_phase_cost,  # This needs accurate calculation
+            remaining_budget=remaining_budget,
+            initial_budget=initial_budget,
         ).log()
         return offsprings, current_phase_cost
 

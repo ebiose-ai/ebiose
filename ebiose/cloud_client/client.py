@@ -83,6 +83,12 @@ class ForgeInputModel(BaseModel):
     description: str | None = None
     ecosystemUuid: str | None = None
 
+class ForgeCycleSpendOutputModel(BaseModel):
+    """Output model for the total spend of a forge cycle."""
+    budget: float
+    spentBudget: float
+    remainingBudget: float
+
 class LogEntryInputModel(BaseModel):
     """Input model for creating a new log entry."""
     index: str
@@ -387,9 +393,9 @@ class EbioseCloudClient:
     def end_forge_cycle(self, forge_cycle_uuid: str, agents_data: list[AgentInputModel]) -> None:
         self._request("POST", f"/forges/cycles/{forge_cycle_uuid}/end", json_data=agents_data)
 
-    def get_spend(self, forge_cycle_uuid: str) -> float:
-        return self._request("GET", f"/forges/cycles/{forge_cycle_uuid}/spend")
-    
+    def get_spend(self, forge_cycle_uuid: str) -> ForgeCycleSpendOutputModel:
+        return ForgeCycleSpendOutputModel(**self._request("GET", f"/forges/cycles/{forge_cycle_uuid}/spend"))
+
     def select_agents_for_forge_cycle(self, forge_cycle_uuid: str, nb_agents: int) -> list[AgentOutputModel]:
         return [AgentOutputModel(**item) for item in self._request("GET", f"/forges/cycles/{forge_cycle_uuid}/select-agents", params={"nbAgents": nb_agents})]
 
@@ -500,7 +506,7 @@ class EbioseAPIClient:
         return cls._handle_request(f"end forge cycle {forge_cycle_uuid}", cls._get_client().end_forge_cycle, forge_cycle_uuid=forge_cycle_uuid, agents_data=agents_data)
 
     @classmethod
-    def get_forge_cycle_spend(cls, forge_cycle_uuid: str) -> float:
+    def get_forge_cycle_spend(cls, forge_cycle_uuid: str) -> ForgeCycleSpendOutputModel:
         return cls._handle_request(f"get spend for forge cycle {forge_cycle_uuid}", cls._get_client().get_spend, forge_cycle_uuid=forge_cycle_uuid)
     
     @classmethod

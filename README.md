@@ -120,7 +120,7 @@ To build and run Ebiose using Docker, follow these steps:
 4. Ensure you have created and filled in the `model_endpoints.yml` file with your OpenAI API key. A basic `model_endpoints.yml` file looks like this:
 
     ```yaml
-    default_endpoint_id: "gpt-4o-mini"
+    default_agent_endpoint_id: "gpt-4o-mini"
     endpoints:
     - endpoint_id: "gpt-4o-mini"
       provider: "OpenAI"
@@ -222,7 +222,7 @@ ebiose:
 ### 3. Set your default model  
 Specify the model to use by default:
 ```YAML
-default_endpoint_id: "azure/gpt-4o-mini"
+default_agent_endpoint_id: "azure/gpt-4o-mini"
 ```
 
 > 🚧 As of June 2025, the Ebiose web app only allows you to create an API key with $10 in free credits to experiment with running your own forges. More features coming soon.
@@ -288,7 +288,7 @@ To use OpenAI LLMs, fill the `model_endpoints.yml` file at the root of the proje
 with, for example:
 
 ```yaml
-default_endpoint_id: "gpt-4o-mini"
+default_agent_endpoint_id: "gpt-4o-mini"
 endpoints:
   - endpoint_id: "gpt-4o-mini"
     provider: "OpenAI"
@@ -309,7 +309,7 @@ endpoints:
     deployment_name: "DEPLOYMENT_NAME"
 ```
 
-### Azure ML LLMs
+### Azure AI LLMs
 
 To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the root
 of the project, with, for example:
@@ -317,7 +317,7 @@ of the project, with, for example:
 ```yaml
 endpoints:
   - endpoint_id: "llama3-8b"
-    provider: "Azure ML"
+    provider: "Azure AI"
     api_key: "YOUR_AZURE_ML_API_KEY"
     endpoint_url: "AZURE_ENDPOINT_URL"
 ```

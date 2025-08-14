@@ -339,7 +339,11 @@ class EbioseAPIClient:
     @classmethod
     @_handle_api_errors
     def get_cost(cls, forge_cycle_uuid: str) -> float:
-        return cls._client.get_spend(forge_cycle_uuid=forge_cycle_uuid)
+        forge_cycle_spend_output = cls._client.get_spend(forge_cycle_uuid=forge_cycle_uuid)
+        if forge_cycle_spend_output is None:
+            logger.debug(f"No spend data found for forge cycle {forge_cycle_uuid}")
+            return 0.0
+        return forge_cycle_spend_output.spentBudget
 
     @classmethod
     @_handle_api_errors
