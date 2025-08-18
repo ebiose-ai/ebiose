@@ -82,11 +82,19 @@ class LangGraphLLMNode(LLMNode):
                 )
             else:
                 shared_context_prompt += "\nInput: " + state.input.model_dump_json()
-            prompts = [
-                SystemMessage(
-                    shared_context_prompt + f"\nYour are the {self.name} node.",
-                ),
-            ]
+            prompts = []
+            if "anthropic" in model_endpoint_id:
+                prompts.append(
+                    HumanMessage(
+                        shared_context_prompt + f"\nYour are the {self.name} node.",
+                    ),
+                )
+            else:
+                prompts.append(
+                    SystemMessage(
+                        shared_context_prompt + f"\nYour are the {self.name} node.",
+                    ),
+                )
             prompts += state.messages
 
             human_prompt = ""

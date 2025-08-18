@@ -404,7 +404,7 @@ class ForgeCycle:
             from ebiose.core.ecosystem import Ecosystem
             ecosystem = Ecosystem.new()
 
-        
+
 
         try:
             t0 = time()
