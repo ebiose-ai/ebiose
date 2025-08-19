@@ -13,8 +13,8 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from loguru import logger
 from pydantic import BaseModel, Field, computed_field
 
-from ebiose.backends.langgraph.llm_api import (
-    LangGraphLLMApi,
+from ebiose.llm_api.langchain import (
+    LangChainLLMApi,
 )
 from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineInputState,

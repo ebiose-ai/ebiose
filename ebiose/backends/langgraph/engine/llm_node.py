@@ -11,8 +11,9 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from ebiose.backends.langgraph.llm_api import (
-    LangGraphLLMApi,
+from ebiose.core.llm_api_factory import LLMApiFactory
+from ebiose.llm_api.langchain import (
+    LangChainLLMApi,
 )
 from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineInputState,
@@ -105,7 +106,7 @@ class LangGraphLLMNode(LLMNode):
             prompts.append(HumanMessage(human_prompt))
 
             # instantiate model
-            response = await LangGraphLLMApi.process_llm_call(
+            response = await LLMApiFactory.get_llm_api().process_llm_call(
                 model_endpoint_id=model_endpoint_id,
                 agent_id=agent_id,
                 messages=prompts,

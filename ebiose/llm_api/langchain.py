@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from langchain_core.messages import AnyMessage
 
 
-class LangGraphLLMApiError(Exception):
+class LangChainLLMApiError(Exception):
     """Custom exception for errors during LLM calls."""
     def __init__(self, message:str, original_exception: Exception | None=None, llm_identifier:str | None=None) -> None:
         super().__init__(message)
@@ -40,7 +40,7 @@ class LangGraphLLMApiError(Exception):
         self.llm_identifier = llm_identifier
 
     def __str__(self) -> str:
-        error_msg = f"LangGraphLLMApiError"
+        error_msg = f"LangChainLLMApiError"
         if self.llm_identifier:
             error_msg += f" (LLM: {self.llm_identifier})"
         error_msg += f": {super().__str__()}"
@@ -54,7 +54,7 @@ class LangGraphLLMApiError(Exception):
         return error_msg
 
 
-class LangGraphLLMApi(LLMApi):
+class LangChainLLMApi(LLMApi):
     @classmethod
     def initialize(
         cls,
@@ -62,7 +62,7 @@ class LangGraphLLMApi(LLMApi):
         lite_llm_api_key: str | None = None, 
         lite_llm_api_base: str | None = None,
         llm_api_config: LLMAPIConfig | None = None,
-    ) -> LangGraphLLMApi:
+    ) -> LangChainLLMApi:
         cls.mode = mode
         cls.lite_llm_api_key = lite_llm_api_key
         
@@ -279,6 +279,6 @@ class LangGraphLLMApi(LLMApi):
         except Exception as e:
             logger.debug(f"Error when calling {model_endpoint_id}: {e!s}")
             msg = "Failed during call to an LLM API"
-            raise LangGraphLLMApiError(msg, e, model_endpoint_id) from e
+            raise LangChainLLMApiError(msg, e, model_endpoint_id) from e
         else:
             return response

@@ -388,6 +388,7 @@ class ForgeCycle:
             mode=self.config.mode,
             lite_llm_api_key=lite_llm_api_key,
             lite_llm_api_base=lite_llm_api_base,
+            llm_api_type="ebiose", # TODO(xabier): or, "langgraph" - to be decided based on the backend used
         )
 
         remaining_budget, initial_budget = self.get_budget_info()

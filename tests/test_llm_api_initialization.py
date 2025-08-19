@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ebiose.core.llm_api import LLMApi
-from ebiose.backends.langgraph.llm_api import LangGraphLLMApi
+from ebiose.llm_api.langchain import LangChainLLMApi
 
 
 def test_cloud_mode_with_provided_base_url():
@@ -33,14 +33,14 @@ def test_cloud_mode_with_provided_base_url():
         f"Expected {provided_base_url}, got {LLMApi.lite_llm_api_base}"
     
     # Initialize LangGraphLLMApi
-    LangGraphLLMApi.initialize(
+    LangChainLLMApi.initialize(
         mode="cloud",
         lite_llm_api_key="test-key",
         lite_llm_api_base=provided_base_url
     )
     
-    assert LangGraphLLMApi.lite_llm_api_base == provided_base_url, \
-        f"Expected {provided_base_url}, got {LangGraphLLMApi.lite_llm_api_base}"
+    assert LangChainLLMApi.lite_llm_api_base == provided_base_url, \
+        f"Expected {provided_base_url}, got {LangChainLLMApi.lite_llm_api_base}"
     
     print("✓ Cloud mode with provided base URL works correctly")
 
@@ -60,14 +60,14 @@ def test_cloud_mode_without_base_url():
         f"Expected None, got {LLMApi.lite_llm_api_base}"
     
     # Initialize LangGraphLLMApi
-    LangGraphLLMApi.initialize(
+    LangChainLLMApi.initialize(
         mode="cloud",
         lite_llm_api_key="test-key",
         lite_llm_api_base=None
     )
     
-    assert LangGraphLLMApi.lite_llm_api_base is None, \
-        f"Expected None, got {LangGraphLLMApi.lite_llm_api_base}"
+    assert LangChainLLMApi.lite_llm_api_base is None, \
+        f"Expected None, got {LangChainLLMApi.lite_llm_api_base}"
     
     print("✓ Cloud mode without base URL works correctly")
 
@@ -88,13 +88,13 @@ def test_local_mode():
     print(f"LLMApi.lite_llm_api_base: {LLMApi.lite_llm_api_base}")
     
     # Initialize LangGraphLLMApi
-    LangGraphLLMApi.initialize(
+    LangChainLLMApi.initialize(
         mode="local",
         lite_llm_api_key="test-key",
         lite_llm_api_base=None
     )
     
-    print(f"LangGraphLLMApi.lite_llm_api_base: {LangGraphLLMApi.lite_llm_api_base}")
+    print(f"LangGraphLLMApi.lite_llm_api_base: {LangChainLLMApi.lite_llm_api_base}")
     
     print("✓ Local mode works correctly")
 
@@ -122,13 +122,13 @@ def test_no_hardcoded_urls():
         assert LLMApi.lite_llm_api_base != old_hardcoded_url, \
             f"Found hardcoded URL in LLMApi for case {case}"
         
-        LangGraphLLMApi.initialize(
+        LangChainLLMApi.initialize(
             mode=case["mode"],
             lite_llm_api_key="test-key",
             lite_llm_api_base=case["lite_llm_api_base"]
         )
         
-        assert LangGraphLLMApi.lite_llm_api_base != old_hardcoded_url, \
+        assert LangChainLLMApi.lite_llm_api_base != old_hardcoded_url, \
             f"Found hardcoded URL in LangGraphLLMApi for case {case}"
     
     print("✓ No hardcoded URLs found")
