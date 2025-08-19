@@ -186,8 +186,6 @@ cython_debug/
 data/*
 # Model endpoint YAML
 model_endpoints.yml
-# ebiose own graph engine
-ebiose/backends/ebiose/*
 
 # macOS files
 .DS_Store
