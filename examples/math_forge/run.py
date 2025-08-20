@@ -65,7 +65,7 @@ if __name__ == "__main__":
         SAVE_PATH.mkdir(parents=True)
 
     # run parameters
-    BUDGET = 0.05 # budget in dollars
+    BUDGET = 0.025 # budget in dollars
     N_PROBLEMS = 2 # number of problems to evaluate on, per generation
     TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
     TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
