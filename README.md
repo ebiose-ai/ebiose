@@ -10,6 +10,10 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/ebiose-ai/ebiose?style=for-the-badge&logo=github&logoColor=EFBF04&color=EFBF04)](https://star-history.com/#ebiose-ai/ebiose)
 [![License](https://img.shields.io/github/license/ebiose-ai/ebiose?style=for-the-badge&logo=gitbook&link=https%3A%2F%2Fgithub.com%2Febiose-ai%2Febiose%2Fblob%2Fmain%2FLICENSE)](/LICENSE)
 
+[![HackerNews](https://img.shields.io/badge/Live_on_Hacker_News-%E2%9A%A1-orange?logo=ycombinator&style=for-the-badge)](https://news.ycombinator.com/shownew)
+
+
+
 <i>Copyright © 2025 Inria</i></h4>
 
   </h3>
@@ -17,11 +21,27 @@
 
 Ebiose is a **distributed artificial intelligence factory**, an open source project from the Inria’s incubator (French lab). Our vision: enabling humans and agents to collaborate in building tomorrow's AI in an open and democratic way.
 
-> "AI can just as easily become the weapon of a surveillance capitalism dystopia as the foundation of a democratic renaissance."
+> "AI is set to reshape our world, but who gets to decide its form and for whose benefit? Instead of a future dictated by a few tech giants, what if we could build AI collectively and openly?"
+
+--- 
+<div align="center">
+
+### ⏰ _July 2, 2025_ – **Ebiose** just hit **“Show HN”** 🚀 
+
+We just posted **Ebiose** in the “Show HN” section.  
+If you believe in an open and democratic AI, your support there is critical:
+
+👉 Open the “Show HN” feed → <a href="https://news.ycombinator.com/shownew">[news.ycombinator.com/shownew](https://news.ycombinator.com/shownew)</a>  
+👉 Find the post **“Show HN: Ebiose – A Darwin‑Style Playground for Self‑Evolving AI Agents”**  
+👉 Smash the ▲ up‑vote and drop a comment or question  
+
+*Thank you for helping us kick‑start the community!*
+
+</div>
 
 **👀 Must read 👀**
 
-- [Founding blog post](https://bit.ly/ebiose-blog-post) *(10 min)*
+- [Founding blog post](https://ebiose.com/blog/ai-for-all-and-by-all) *(10 min)*
 - [Glossary](GLOSSARY.md) *(3 min)*
 
 ## 🧪 Current status: Beta 0.1
@@ -100,7 +120,7 @@ To build and run Ebiose using Docker, follow these steps:
 4. Ensure you have created and filled in the `model_endpoints.yml` file with your OpenAI API key. A basic `model_endpoints.yml` file looks like this:
 
     ```yaml
-    default_endpoint_id: "gpt-4o-mini"
+    default_agent_endpoint_id: "gpt-4o-mini"
     endpoints:
     - endpoint_id: "gpt-4o-mini"
       provider: "OpenAI"
@@ -202,7 +222,7 @@ ebiose:
 ### 3. Set your default model  
 Specify the model to use by default:
 ```YAML
-default_endpoint_id: "azure/gpt-4o-mini"
+default_agent_endpoint_id: "azure/gpt-4o-mini"
 ```
 
 > 🚧 As of June 2025, the Ebiose web app only allows you to create an API key with $10 in free credits to experiment with running your own forges. More features coming soon.
@@ -268,7 +288,7 @@ To use OpenAI LLMs, fill the `model_endpoints.yml` file at the root of the proje
 with, for example:
 
 ```yaml
-default_endpoint_id: "gpt-4o-mini"
+default_agent_endpoint_id: "gpt-4o-mini"
 endpoints:
   - endpoint_id: "gpt-4o-mini"
     provider: "OpenAI"
@@ -289,7 +309,7 @@ endpoints:
     deployment_name: "DEPLOYMENT_NAME"
 ```
 
-### Azure ML LLMs
+### Azure AI LLMs
 
 To use other LLMs hosted on Azure fill the `model_endpoints.yml` file at the root
 of the project, with, for example:
@@ -297,7 +317,7 @@ of the project, with, for example:
 ```yaml
 endpoints:
   - endpoint_id: "llama3-8b"
-    provider: "Azure ML"
+    provider: "Azure AI"
     api_key: "YOUR_AZURE_ML_API_KEY"
     endpoint_url: "AZURE_ENDPOINT_URL"
 ```

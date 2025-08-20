@@ -65,10 +65,9 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
             condition = state.condition
         else:
             # call the routing agent
-            model_endpoint_id = config["configurable"]["model_endpoint_id"]
             master_agent_id = config["configurable"]["agent_id"]
-            forge_cycle_id = config["configurable"]["forge_cycle_id"]
-            routing_agent = GraphUtils.get_routing_agent(model_endpoint_id)
+            forge_cycle_id = config["configurable"].get("forge_cycle_id", None)
+            routing_agent = GraphUtils.get_routing_agent()
             routing_agent_input = routing_agent.agent_engine.input_model(
                 last_message=state.messages[-1],
                 possible_output=[edge.condition for edge in conditional_edges],

@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 
 from ebiose.core.forge_cycle import CloudForgeCycleConfig
 from examples.math_forge.math_forge import MathLangGraphForge
-from examples.math_forge.math_forge import MathLangGraphForge
 
 def main(
         train_csv_path: str,
@@ -66,8 +65,8 @@ if __name__ == "__main__":
         SAVE_PATH.mkdir(parents=True)
 
     # run parameters
-    BUDGET = 0.1 # budget in dollars
-    N_PROBLEMS = 5 # number of problems to evaluate on, per generation
+    BUDGET = 0.05 # budget in dollars
+    N_PROBLEMS = 2 # number of problems to evaluate on, per generation
     TRAIN_CSV_PATH = "./examples/math_forge/gsm8k_train.csv" # the train dataset
     TEST_CSV_PATH = "./examples/math_forge/gsm8k_test.csv" # the test dataset
     DEFAULT_MODEL_ENDPOINT_ID = None # set if you want to use a specific model endpoint for generated agents
