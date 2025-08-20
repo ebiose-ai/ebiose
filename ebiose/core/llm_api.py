@@ -63,12 +63,7 @@ class LLMApi(ABC):
     def update_total_cost(cls, new_cost: float | None = None) -> None:
         """Update the total cost and the cost for a specific agent."""
         if new_cost is not None:
-            cls.total_cost = new_cost
-
-    @classmethod
-    def get_agents_total_cost(cls) -> float:
-        """Get the total cost spent on each agent."""
-        return sum(cls._cost_per_agent.values())
+            cls.total_cost += new_cost
 
     @classmethod
     def get_total_cost(cls, forge_cycle_id: str | None = None) -> float:
@@ -104,5 +99,5 @@ class LLMApi(ABC):
             cls._cost_per_agent[agent_id] += cost
         else:
             cls._cost_per_agent[agent_id] = cost
-        cls.update_total_cost(sum(cls._cost_per_agent.values()))
+        cls.update_total_cost(new_cost=cost)
 
