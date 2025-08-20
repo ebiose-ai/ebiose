@@ -60,7 +60,6 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
         raise NodesCoherenceError(start_node_id)
     start_node_id = start_node_id.pop()
 
-    # async def path(state: BaseModel, config: dict[str, any]) -> str:
     async def path(state: BaseModel, runtime: Runtime[BaseModel]) -> str:
 
         condition = None

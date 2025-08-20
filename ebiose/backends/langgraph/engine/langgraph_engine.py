@@ -197,7 +197,7 @@ class LangGraphEngine(GraphEngine):
             }
             
             context = self._context(
-                shared_context_prompt=self.graph.shared_context_prompt, #.format(**agent_input.model_dump()),
+                shared_context_prompt=self.graph.shared_context_prompt,
                 model_endpoint_id=self.model_endpoint_id,
                 output_model=self.output_model,
                 recursion_limit = self.recursion_limit,
