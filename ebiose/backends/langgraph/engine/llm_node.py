@@ -50,20 +50,6 @@ class LangGraphLLMNodeError(Exception):
             error_msg += f"\n--- Caused by ---\n{''.join(orig_traceback)}"
         return error_msg
 
-class LLMNodeContext(BaseModel):
-    shared_context_prompt: str = Field(
-        default="",
-        description="A shared context prompt that is used by all nodes in the graph.",
-    )
-    model_endpoint_id: str = Field(
-        default="",
-        description="The ID of the model endpoint to use for LLM calls.",
-    )
-    agent_id: str = Field(
-        default="",
-        description="The ID of the agent that owns this node.",
-    )
-
 class LangGraphLLMNode(LLMNode):
     temperature: float
     tools: list = Field(default_factory=list)

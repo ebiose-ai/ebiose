@@ -141,6 +141,7 @@ class LangGraphEngine(GraphEngine):
         fields = {
             "agent_id": (str, Field(default=self.agent_id)),
             "forge_cycle_id": (str | None, Field(default=None)),
+            "extra_config": (dict, Field(default_factory=dict)),
         }
         for node in self.graph.nodes:
             if isinstance(node, LLMNode):
@@ -184,16 +185,18 @@ class LangGraphEngine(GraphEngine):
                     node_config[node.id] = {
                         "output_conditions": [edge.condition for edge in outgoing_conditional_edges],
                     }
-
-            # if len(self.tags) > 0:
-            #     langfuse_client = get_client()
-            #     langfuse_client.update_current_trace(
-            #         tags=self.tags,
-            #     )
             
-            # Note: get_current_langchain_handler is not available in langfuse 3.x
-            # Using empty callbacks list for now - this may need adjustment based on requirements
             langfuse_handler = CallbackHandler()
+            config = {
+                "callbacks": [langfuse_handler],
+                "metadata": {
+                    "langfuse_session_id": str(self.agent_id),
+                    "langfuse_tags": self.tags,
+                    "agent_id": self.agent_id,
+                    "forge_cycle_id": forge_cycle_id,
+                },
+            }
+            
             context = self._context(
                 shared_context_prompt=self.graph.shared_context_prompt, #.format(**agent_input.model_dump()),
                 model_endpoint_id=self.model_endpoint_id,
@@ -202,17 +205,7 @@ class LangGraphEngine(GraphEngine):
                 forge_cycle_id=forge_cycle_id,
                 **node_config,
             )
-            config = {
-                "callbacks": [langfuse_handler],
-                # these special fields decorate the ROOT trace created by the handler
-                "metadata": {
-                    # "langfuse_user_id": "ops-bot",
-                    "langfuse_session_id": str(self.agent_id),
-                    "langfuse_tags": self.tags,
-                    "agent_id": self.agent_id,
-                    "forge_cycle_id": forge_cycle_id,
-                },
-            }
+            
 
             return await compiled_graph.ainvoke(
                 initial_state,

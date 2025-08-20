@@ -101,7 +101,6 @@ class LangGraphLLMApi(LLMApi):
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
         if cls.mode == "cloud":
-            from langfuse.langchain import CallbackHandler
             return ChatOpenAI(
                 openai_api_key=cls.lite_llm_api_key,
                 openai_api_base=cls.lite_llm_api_base,
@@ -230,13 +229,14 @@ class LangGraphLLMApi(LLMApi):
         """
         if tools is None:
             tools = []
+
         llm = cls._get_llm(model_endpoint_id, temperature, max_tokens)
 
         # Add tools
         if tools:
             llm = llm.bind_tools(tools=tools)
 
-        # Call LLM
+        # Call LLM 
         return await llm.with_retry(
             retry_if_exception_type=(RateLimitError,),  # APITimeoutError
             wait_exponential_jitter=True,
