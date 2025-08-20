@@ -21,7 +21,7 @@ from ebiose.backends.langgraph.engine.states import (
 from ebiose.core.engines.graph_engine.nodes import get_n_llm_nodes_constraint_string, get_node_types_docstrings
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.utils import get_placeholders
-
+from langgraph.runtime import Runtime
 
 class InputState(LangGraphEngineInputState):
     pass
@@ -50,22 +50,39 @@ class LangGraphLLMNodeError(Exception):
             error_msg += f"\n--- Caused by ---\n{''.join(orig_traceback)}"
         return error_msg
 
+class LLMNodeContext(BaseModel):
+    shared_context_prompt: str = Field(
+        default="",
+        description="A shared context prompt that is used by all nodes in the graph.",
+    )
+    model_endpoint_id: str = Field(
+        default="",
+        description="The ID of the model endpoint to use for LLM calls.",
+    )
+    agent_id: str = Field(
+        default="",
+        description="The ID of the agent that owns this node.",
+    )
+
 class LangGraphLLMNode(LLMNode):
     temperature: float
     tools: list = Field(default_factory=list)
     input_state_model: type[BaseModel] = InputState
     output_state_model: type[BaseModel] = OutputState
 
-    async def call_node(self, state: InputState, config: dict) -> OutputState:
+    async def call_node(self, state: InputState, runtime: Runtime[BaseModel]) -> OutputState:
+
         try:
             # All nodes have access to the shared context prompt
-            shared_context_prompt = config["configurable"]["shared_context_prompt"]
-            model_endpoint_id = config["configurable"]["model_endpoint_id"]
-            agent_id = config["configurable"]["agent_id"]
+            shared_context_prompt = runtime.context.shared_context_prompt
+            model_endpoint_id = runtime.context.model_endpoint_id
+            agent_id = runtime.context.agent_id
 
             output_conditions = []
-            if self.id in config["configurable"] and "output_conditions" in config["configurable"][self.id]:
-                output_conditions = config["configurable"][self.id]["output_conditions"]
+            if hasattr(runtime.context, self.id):
+                node_context = getattr(runtime.context, self.id)
+                if "output_conditions" in node_context:
+                    output_conditions = node_context["output_conditions"]
 
             placeholders = get_placeholders(shared_context_prompt)
             # TODO(xabier): this is a temporary solution to generate missing fields for achitect agents
@@ -92,7 +109,7 @@ class LangGraphLLMNode(LLMNode):
             human_prompt = ""
             if len(state.error_message) == 0:
                 human_prompt = self.prompt.format(
-                    output_schema=config["configurable"]["output_model"].schema_json(indent=2),
+                    output_schema=runtime.context.output_model.schema_json(indent=2),
                     **state.input.model_dump(),
                 )
             else:

@@ -101,6 +101,7 @@ class LangGraphLLMApi(LLMApi):
         model_endpoint = ModelEndpoints.get_model_endpoint(model_endpoint_id)
 
         if cls.mode == "cloud":
+            from langfuse.langchain import CallbackHandler
             return ChatOpenAI(
                 openai_api_key=cls.lite_llm_api_key,
                 openai_api_base=cls.lite_llm_api_base,

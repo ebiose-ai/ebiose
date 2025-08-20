@@ -33,11 +33,11 @@ class LangGraphEngineOutputState(BaseModel):
 class LangGraphEngineState(LangGraphEngineInputState, LangGraphEngineOutputState):
     pass
 
-class LangGraphEngineConfig(BaseModel):
+class LangGraphEngineContext(BaseModel):
     model_endpoint_id: str = Field(..., description="The id of the model endpoint to use")
     output_model: type[BaseModel] | None = Field(default=None, serialization_exclude=True)
     shared_context_prompt: str
-    callbacks: list
+    # callbacks: list
     recursion_limit: int = Field(default=15)
     tags: list[str] = Field(default_factory=list)
     agent_id: str

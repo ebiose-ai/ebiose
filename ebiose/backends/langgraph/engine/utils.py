@@ -11,12 +11,13 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel  # noqa: TC002
 
 from ebiose.core.engines.graph_engine.utils import GraphUtils
+from langgraph.runtime import Runtime
 
 if TYPE_CHECKING:
 
     from ebiose.core.engines.graph_engine.edge import Edge
 
-from langgraph.graph.graph import END
+from langgraph.graph import END
 
 
 class UnsupportedModelError(ValueError):
@@ -59,14 +60,18 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
         raise NodesCoherenceError(start_node_id)
     start_node_id = start_node_id.pop()
 
-    async def path(state: BaseModel, config: dict[str, any]) -> str:
+    # async def path(state: BaseModel, config: dict[str, any]) -> str:
+    async def path(state: BaseModel, runtime: Runtime[BaseModel]) -> str:
+
         condition = None
         if "condition" in state.model_fields and state.condition is not None and len(state.condition) > 0:
             condition = state.condition
         else:
             # call the routing agent
-            master_agent_id = config["configurable"]["agent_id"]
-            forge_cycle_id = config["configurable"].get("forge_cycle_id", None)
+            model_endpoint_id = runtime.context.model_endpoint_id
+            master_agent_id = runtime.context.agent_id
+            forge_cycle_id = runtime.context.forge_cycle_id
+
             routing_agent = GraphUtils.get_routing_agent()
             routing_agent_input = routing_agent.agent_engine.input_model(
                 last_message=state.messages[-1],
