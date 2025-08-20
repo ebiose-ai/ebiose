@@ -21,6 +21,8 @@ from ebiose.core.engines.graph_engine.nodes.pydantic_validator_node import (
     PydanticValidatorNode,
 )
 
+from langgraph.runtime import Runtime
+
 
 class InputState(LangGraphEngineInputState):
     output_model: type[BaseModel] | None = Field(None, exclude=True)
@@ -67,7 +69,7 @@ class LangGraphPydanticValidatorNode(PydanticValidatorNode):
 
         return messages
 
-    async def call_node(self, state: InputState | dict, config: BaseModel | None = None) -> OutputState:
+    async def call_node(self, state: InputState | dict, runtime: Runtime[BaseModel]) -> OutputState:
         try:
             tool_messages = []
             for message in reversed(state.messages):
@@ -76,7 +78,7 @@ class LangGraphPydanticValidatorNode(PydanticValidatorNode):
                 else:
                     break
 
-            output_model = config["configurable"]["output_model"]
+            output_model = runtime.context.output_model
             tool_contents = [
                 ast.literal_eval(tool_message.content) for tool_message in tool_messages
             ]

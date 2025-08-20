@@ -9,13 +9,12 @@ from __future__ import annotations
 from collections.abc import Sequence  # noqa: TC003
 from typing import Self
 
-# TODO(xabier): replace when langfuse is updated to >=3.0
-# from langfuse import observe, get_client
-# from langfuse.langchain import CallbackHandler
-
-from langfuse.decorators import langfuse_context, observe
+from langfuse import observe, get_client
+from langfuse import Langfuse
+from langfuse.langchain import CallbackHandler
 from langgraph.graph import StateGraph
-from langgraph.graph.graph import END, START, CompiledGraph
+from langgraph.graph import END, START
+from langgraph.pregel import Pregel
 from loguru import logger
 from pydantic import (
     BaseModel,
@@ -30,7 +29,7 @@ from pydantic import (
 
 from ebiose.backends.langgraph.engine.llm_node import LangGraphLLMNode
 from ebiose.backends.langgraph.engine.states import (
-    LangGraphEngineConfig,
+    LangGraphEngineContext,
 )
 from ebiose.backends.langgraph.engine.utils import GraphUtils, get_path
 from ebiose.core.engines.graph_engine.graph import Graph
@@ -50,9 +49,9 @@ class LangGraphEngine(GraphEngine):
     # TODO(xabier): remove tags, should now use agent_type instead
     tags: Sequence[str] = ["agent"]
 
-    _compiled_graph: CompiledGraph | None = PrivateAttr(None)
+    _compiled_graph: Pregel | None = PrivateAttr(None)
     _state: type[BaseModel] | None = PrivateAttr(None)
-    _config: BaseModel | None = PrivateAttr(None)
+    _context: BaseModel | None = PrivateAttr(None)
 
 
     @model_validator(mode="after")
@@ -134,10 +133,10 @@ class LangGraphEngine(GraphEngine):
 
         self._state = type("State", tuple(base_classes), {})
 
-    def _build_config(self, forge_cycle_id: str|None = None) -> BaseModel:
-        """Build dynamically the config of the agent with the nodes of the graph."""
-        if self._config is not None:
-            return self._config
+    def _build_context(self, forge_cycle_id: str | None = None) -> BaseModel:
+        """Build dynamically the context of the agent with the nodes of the graph."""
+        if self._context is not None:
+            return self._context
 
         fields = {
             "agent_id": (str, Field(default=self.agent_id)),
@@ -148,15 +147,15 @@ class LangGraphEngine(GraphEngine):
                 fields[node.id] = (dict, {})
 
         # Use create_model to dynamically create the Config model
-        self._config = create_model(
+        self._context = create_model(
             "Config",
-            __base__=LangGraphEngineConfig,
+            __base__=LangGraphEngineContext,
             **fields,
         )
 
-        return self._config
+        return self._context
 
-
+    @observe(name="invoke_graph")
     async def invoke_graph(
             self,
             agent_input: BaseModel,
@@ -185,42 +184,51 @@ class LangGraphEngine(GraphEngine):
                     node_config[node.id] = {
                         "output_conditions": [edge.condition for edge in outgoing_conditional_edges],
                     }
-
-            if len(self.tags) > 0:
-                # TODO(xabier): replace when langfuse is updated to >=3.0
-                # langfuse.update_current_trace(
-                #     tags=self.tags,
-                # )
-                langfuse_context.update_current_trace(
-                    tags=self.tags,
-                )
-            langfuse_handler = langfuse_context.get_current_langchain_handler()
-            config = self._config(
-                shared_context_prompt=self.graph.shared_context_prompt, #.format(**agent_input.model_dump()),
+            
+            langfuse_handler = CallbackHandler()
+            config = {
+                "callbacks": [langfuse_handler],
+                "metadata": {
+                    "langfuse_session_id": str(self.agent_id),
+                    "langfuse_tags": self.tags,
+                    "agent_id": self.agent_id,
+                    "forge_cycle_id": forge_cycle_id,
+                },
+            }
+            
+            context = self._context(
+                shared_context_prompt=self.graph.shared_context_prompt,
                 model_endpoint_id=self.model_endpoint_id,
                 output_model=self.output_model,
-                callbacks = [langfuse_handler],
                 recursion_limit = self.recursion_limit,
                 forge_cycle_id=forge_cycle_id,
                 **node_config,
             )
+            
 
             return await compiled_graph.ainvoke(
                 initial_state,
-                config=config.model_dump(),
+                config=config,
+                context=context.model_dump(),
             )
 
-    async def _compile_graph(self, forge_cycle_id: str | None=None) -> CompiledGraph:
+    async def _compile_graph(self, forge_cycle_id: str | None=None) -> Pregel:
             """Compile the agent into a runnable graph."""
             if self._compiled_graph is None:
                 self._build_state()
-                self._build_config(forge_cycle_id=forge_cycle_id)
+                self._build_context(forge_cycle_id=forge_cycle_id)
                 self._compiled_graph = await self.__to_compiled_graph()
             return self._compiled_graph
 
     def __to_workflow(self) -> StateGraph:
 
-        workflow = StateGraph(self._state, self._config)
+        workflow = StateGraph(
+            state_schema=self._state, 
+            context_schema=self._context,
+            # TODO(xabier): test the use of input_model and output_model as I/O schemas
+            # input_schema=self.input_model,
+            # output_schema=self.output_model,
+        )
 
         # add nodes to the workflow
         nodes_dict = {node.id: node for node in self.graph.nodes}
@@ -275,6 +283,6 @@ class LangGraphEngine(GraphEngine):
 
         return workflow
 
-    async def __to_compiled_graph(self) -> CompiledGraph:
+    async def __to_compiled_graph(self) -> Pregel:
         """Compile an agent into a runnable graph."""
         return self.__to_workflow().compile()

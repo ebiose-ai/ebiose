@@ -25,7 +25,7 @@ from pydantic import BaseModel
 from ebiose.cloud_client.ebiose_api_client import EbioseAPIClient
 from ebiose.core.llm_api import LLMApi, LLMAPIConfig
 from ebiose.core.model_endpoint import ModelEndpoints
-from litellm.cost_calculator import cost_per_token, completion_cost
+from litellm.cost_calculator import cost_per_token
 
 
 if TYPE_CHECKING:
@@ -229,13 +229,14 @@ class LangGraphLLMApi(LLMApi):
         """
         if tools is None:
             tools = []
+
         llm = cls._get_llm(model_endpoint_id, temperature, max_tokens)
 
         # Add tools
         if tools:
             llm = llm.bind_tools(tools=tools)
 
-        # Call LLM
+        # Call LLM 
         return await llm.with_retry(
             retry_if_exception_type=(RateLimitError,),  # APITimeoutError
             wait_exponential_jitter=True,
@@ -262,13 +263,8 @@ class LangGraphLLMApi(LLMApi):
             completion_tokens = response.response_metadata["token_usage"].get("completion_tokens", 0)
             prompt_tokens = response.response_metadata["token_usage"].get("prompt_tokens", 0)
 
-            model = (
-                "azure/" + model_endpoint_id[len("azure-"):]
-                if model_endpoint_id.startswith("azure-")
-                else model_endpoint_id
-            )
             cost = cost_per_token(
-                model=model,
+                model=model_endpoint_id,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
             )

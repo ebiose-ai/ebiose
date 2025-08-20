@@ -20,6 +20,7 @@ from ebiose.backends.langgraph.engine.states import (
     LangGraphEngineInputState,
     LangGraphEngineOutputState,
 )
+from langgraph.runtime import Runtime
 from ebiose.core.engines.graph_engine.nodes.llm_node import LLMNode
 from ebiose.core.engines.graph_engine.nodes.node import BaseNode
 from ebiose.core.engines.graph_engine.utils import get_placeholders
@@ -48,7 +49,7 @@ class LangGraphToolNode(BaseNode):
         """Returns a dictionary mapping tool names to their respective Tool objects."""
         return {tool.name: tool for tool in self.tools}
 
-    async def call_node(self, state: InputState, config: dict) -> OutputState:
+    async def call_node(self, state: InputState, runtime: Runtime[BaseModel]) -> OutputState:
         try:
             outputs = []
             for tool_call in state["messages"][-1].tool_calls:

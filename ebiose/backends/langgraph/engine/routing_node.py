@@ -20,7 +20,7 @@ from ebiose.backends.langgraph.engine.states import (
 from ebiose.core.engines.graph_engine.nodes.routing_node import (
     RoutingNode,
 )
-
+from langgraph.runtime import Runtime
 
 class InputState(LangGraphEngineInputState):
     last_message: AnyMessage
@@ -69,7 +69,7 @@ class LangGraphRoutingNode(RoutingNode):
 
         return messages
 
-    async def call_node(self, state: BaseModel | dict, config: None = None) -> dict:  # noqa: ARG002
+    async def call_node(self, state: BaseModel | dict, runtime: Runtime[BaseModel]) -> dict:  # noqa: ARG002
         last_message_str = state.last_message.content.lower() \
             if len(state.messages)==0 else state.messages[-1].content.lower()
         possible_output = state.possible_output

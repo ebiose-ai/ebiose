@@ -9,9 +9,7 @@ from __future__ import annotations
 from abc import abstractmethod
 import traceback
 
-# TODO(xabier): replace when langfuse is updated to >=3.0
-# from langfuse import observe
-from langfuse.decorators import observe
+from langfuse import observe
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
@@ -58,7 +56,7 @@ class AgentEngine(BaseModel):
                 agent_identifier=self.agent_id,
             ) from e
 
-    @observe(name="run_agent")
+    @observe(name="run_agent_engine")
     @abstractmethod
     async def _run_implementation(self, agent_input: BaseModel, master_agent_id: str, forge_cycle_id: str | None = None, **kwargs: dict[str, any]) -> any:
         pass

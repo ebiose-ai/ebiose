@@ -302,7 +302,7 @@ class ForgeCycle:
                 continue
             self.add_agent(new_agent, source="newly_created_during_init")
 
-        initialization_cost = self.llm_api.get_total_cost()
+        initialization_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id)
         remaining_budget, initial_budget = self.get_budget_info()
         PopulationInitializationCompletedEvent(
             num_agents_initialized=len(self.agents),
@@ -472,7 +472,7 @@ class ForgeCycle:
         else:
             logger.info(f"Cycle completed in {human_readable_duration(t0)} with a total cost of {total_cycle_cost} $")
             if self.config.mode == "cloud":
-                logger.info(f"Budget left at final: {self.config.budget - self.llm_api.get_total_cost()} $")
+                logger.info(f"Budget left at final: {self.config.budget - self.llm_api.get_total_cost(forge_cycle_id=self.id)} $")
             logger.info(f"Returning {self.config.n_best_agents_to_return} best agents")
 
             selected_agents = {
@@ -735,7 +735,7 @@ class ForgeCycle:
         ).log()
 
         crossover_start_time = time()
-        previous_cost = self.llm_api.get_total_cost()
+        previous_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id)
         offsprings = []
         tasks = []
 
@@ -863,7 +863,7 @@ class ForgeCycle:
                     initial_budget=initial_budget,
                 ).log()
 
-        current_phase_cost = self.llm_api.get_total_cost() - previous_cost
+        current_phase_cost = self.llm_api.get_total_cost(forge_cycle_id=self.id) - previous_cost
         remaining_budget, initial_budget = self.get_budget_info()
         CrossoverAndMutationCompletedEvent(
             generation_number=self.cur_generation,
