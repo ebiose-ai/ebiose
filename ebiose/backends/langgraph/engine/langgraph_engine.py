@@ -141,7 +141,6 @@ class LangGraphEngine(GraphEngine):
         fields = {
             "agent_id": (str, Field(default=self.agent_id)),
             "forge_cycle_id": (str | None, Field(default=None)),
-            "extra_config": (dict, Field(default_factory=dict)),
         }
         for node in self.graph.nodes:
             if isinstance(node, LLMNode):
