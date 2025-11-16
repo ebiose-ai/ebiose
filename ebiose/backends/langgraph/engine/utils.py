@@ -87,9 +87,10 @@ def get_path(conditional_edges: list[Edge], end_node_id: str) -> callable:
             if edge.condition == condition:
                 return edge.end_node_id if edge.end_node_id != end_node_id else END
 
-        message = f"No condition found in the last {start_node_id} response." \
-            if condition is None else f"No edge found with the condition {condition}."
-        raise ValueError(message)
+        if condition is None:
+            message = f"No condition found in the last {start_node_id} response."
+            raise ValueError(message)
+        raise EdgeConditionError(condition)
 
     # Unlike LangGraph's documentation indicates, the path_map is required
     path_map = [

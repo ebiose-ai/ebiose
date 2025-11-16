@@ -16,6 +16,9 @@ from ebiose.core.engines.graph_engine.nodes.pydantic_validator_node import (
 from ebiose.core.engines.graph_engine.nodes.routing_node import (
     RoutingNode,  # noqa: F401
 )
+from ebiose.core.engines.graph_engine.nodes.persistent_memory_node import (
+    PersistentMemoryNode,  # noqa: F401
+)
 
 
 def get_all_subclasses(cls: BaseModel) -> list:
