@@ -32,19 +32,23 @@ class Ecosystem(BaseModel):
 
     @classmethod
     def new(cls, initial_agents: list["Agent"] | None = None) -> Ecosystem:
-
-        initial_architect_agents = [GraphUtils.get_architect_agent(ModelEndpoints.get_default_meta_agent_endpoint_id())]
-        initial_genetic_operator_agents = [
-            GraphUtils.get_crossover_agent(ModelEndpoints.get_default_meta_agent_endpoint_id()),
-            GraphUtils.get_mutation_agent(ModelEndpoints.get_default_meta_agent_endpoint_id()),
-        ]
-        # TODO(xabier): fix this import to avoid circular dependency
+        # Importing here to avoid circular dependency and rebuild model if needed
         from ebiose.core.agent import Agent
-        cls.model_rebuild()
+        
+        # Only rebuild if not already built
+        if not hasattr(cls, '_model_rebuilt'):
+            cls.model_rebuild()
+            cls._model_rebuilt = True
+        
+        initial_architect_agents = [GraphUtils.get_architect_agent(ModelEndpoints.get_default_model_endpoint_id())]
+        initial_genetic_operator_agents = [
+            GraphUtils.get_crossover_agent(ModelEndpoints.get_default_model_endpoint_id()),
+            GraphUtils.get_mutation_agent(ModelEndpoints.get_default_model_endpoint_id()),
+        ]
         return cls(
             initial_architect_agents=initial_architect_agents,
             initial_genetic_operator_agents=initial_genetic_operator_agents,
-            agents = initial_agents if initial_agents is not None else [],
+            agents={agent.id: agent for agent in initial_agents} if initial_agents is not None else {},
         )
 
     def get_agent(self, agent_id: str) -> "Agent" | None:
