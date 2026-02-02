@@ -6,7 +6,6 @@ and edge cases.
 """
 
 import pytest
-from pydantic import BaseModel
 
 from ebiose.core.agent import Agent
 
