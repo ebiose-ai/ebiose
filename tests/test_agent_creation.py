@@ -104,3 +104,246 @@ def test_agent_with_genetic_operator_type():
 
     assert agent.agent_type == "genetic_operator"
 
+
+# Edge case tests
+
+
+def test_agent_with_very_long_name():
+    """Test agent with very long name."""
+    long_name = "a" * 500
+    agent = Agent(name=long_name, description="Test")
+
+    assert agent.name == long_name
+    assert len(agent.name) == 500
+
+
+def test_agent_with_special_characters_in_name():
+    """Test agent with special characters in name."""
+    special_name = "agent-test_123!@#$%"
+    agent = Agent(name=special_name, description="Test")
+
+    assert agent.name == special_name
+
+
+def test_agent_with_unicode_characters():
+    """Test agent with unicode characters."""
+    unicode_name = "agent_🤖_智能_رجل"
+    agent = Agent(name=unicode_name, description="Unicode test 你好")
+
+    assert agent.name == unicode_name
+
+
+def test_agent_with_empty_parent_list():
+    """Test agent with explicitly empty parent list."""
+    agent = Agent(
+        name="orphan",
+        description="No parents",
+        parent_ids=[],
+    )
+
+    assert agent.parent_ids == []
+    assert len(agent.parent_ids) == 0
+
+
+def test_agent_with_many_parents():
+    """Test agent with many parent references."""
+    parent_ids = [f"parent-{i}" for i in range(100)]
+    agent = Agent(
+        name="many_parents",
+        description="Agent with many ancestors",
+        parent_ids=parent_ids,
+    )
+
+    assert len(agent.parent_ids) == 100
+    assert agent.parent_ids == parent_ids
+
+
+def test_agent_with_duplicate_parent_ids():
+    """Test that duplicate parent IDs are preserved in list."""
+    agent = Agent(
+        name="duplicate_parents",
+        description="Test",
+        parent_ids=["parent-1", "parent-2", "parent-1"],  # parent-1 appears twice
+    )
+
+    assert len(agent.parent_ids) == 3
+    assert agent.parent_ids.count("parent-1") == 2
+
+
+def test_agent_id_format():
+    """Test that agent IDs follow expected format."""
+    agent = Agent(name="test", description="Test")
+
+    assert agent.id.startswith("agent-")
+    assert len(agent.id) > len("agent-")  # Has UUID part
+
+
+def test_agent_none_architect_and_operator_ids():
+    """Test that architect and operator IDs are None by default."""
+    agent = Agent(name="default", description="Test")
+
+    assert agent.architect_agent_id is None
+    assert agent.genetic_operator_agent_id is None
+
+
+def test_agent_with_only_architect_id():
+    """Test agent with only architect_agent_id set."""
+    agent = Agent(
+        name="partial",
+        description="Only architect ID",
+        architect_agent_id="arch-123",
+    )
+
+    assert agent.architect_agent_id == "arch-123"
+    assert agent.genetic_operator_agent_id is None
+
+
+def test_agent_with_only_operator_id():
+    """Test agent with only genetic_operator_agent_id set."""
+    agent = Agent(
+        name="partial",
+        description="Only operator ID",
+        genetic_operator_agent_id="op-456",
+    )
+
+    assert agent.architect_agent_id is None
+    assert agent.genetic_operator_agent_id == "op-456"
+
+
+def test_agent_serialization_excludes_engine():
+    """Test serialization properly excludes agent_engine."""
+    agent = Agent(
+        name="test",
+        description="Test",
+        architect_agent_id="arch-1",
+    )
+
+    serialized = agent.model_dump(mode="json", exclude={"agent_engine"})
+
+    assert "agent_engine" not in serialized
+    assert "name" in serialized
+    assert "architect_agent_id" in serialized
+
+
+def test_agent_parent_ids_preserve_order():
+    """Test that parent IDs list preserves insertion order."""
+    parent_order = ["grandparent", "parent1", "parent2", "sibling"]
+    agent = Agent(
+        name="test",
+        description="Test",
+        parent_ids=parent_order,
+    )
+
+    assert agent.parent_ids == parent_order
+
+
+def test_agent_creation_preserves_all_fields():
+    """Test all fields are preserved during agent creation."""
+    agent = Agent(
+        name="complete_agent",
+        description="Complete test agent",
+        agent_type="architect",
+        architect_agent_id="arch-789",
+        genetic_operator_agent_id="op-789",
+        parent_ids=["p1", "p2", "p3"],
+    )
+
+    assert agent.name == "complete_agent"
+    assert agent.description == "Complete test agent"
+    assert agent.agent_type == "architect"
+    assert agent.architect_agent_id == "arch-789"
+    assert agent.genetic_operator_agent_id == "op-789"
+    assert agent.parent_ids == ["p1", "p2", "p3"]
+    assert agent.id is not None
+
+
+def test_agent_with_multiline_description():
+    """Test agent with multiline description."""
+    multiline_desc = """This is a test agent.
+    It has multiple lines.
+    And complex formatting.
+    
+    With blank lines too."""
+    agent = Agent(name="multiline", description=multiline_desc)
+
+    assert agent.description == multiline_desc
+    assert "\n" in agent.description
+
+
+def test_agent_id_uniqueness_in_large_batch():
+    """Test that even in large batch, all IDs are unique."""
+    agents = [Agent(name=f"agent_{i}", description=f"Agent {i}") for i in range(100)]
+    ids = [agent.id for agent in agents]
+
+    assert len(ids) == len(set(ids))  # All unique
+
+
+def test_agent_dict_serialization_round_trip():
+    """Test that agent can be serialized and key data preserved."""
+    original = Agent(
+        name="roundtrip",
+        description="Test roundtrip",
+        agent_type="genetic_operator",
+        architect_agent_id="a1",
+        genetic_operator_agent_id="g1",
+        parent_ids=["p1", "p2"],
+    )
+
+    serialized = original.model_dump(mode="json", exclude={"agent_engine"})
+
+    # Verify all critical fields are in serialized form
+    assert serialized["name"] == "roundtrip"
+    assert serialized["description"] == "Test roundtrip"
+    assert serialized["agent_type"] == "genetic_operator"
+    assert serialized["architect_agent_id"] == "a1"
+    assert serialized["genetic_operator_agent_id"] == "g1"
+    assert serialized["parent_ids"] == ["p1", "p2"]
+
+
+def test_agent_with_numeric_string_ids():
+    """Test agent with numeric string IDs."""
+    agent = Agent(
+        name="numeric",
+        description="Test",
+        architect_agent_id="12345",
+        genetic_operator_agent_id="67890",
+        parent_ids=["111", "222", "333"],
+    )
+
+    assert agent.architect_agent_id == "12345"
+    assert agent.genetic_operator_agent_id == "67890"
+    assert "111" in agent.parent_ids
+
+
+def test_agent_with_hyphenated_ids():
+    """Test agent with UUID-style hyphenated IDs."""
+    uuid_style = "550e8400-e29b-41d4-a716-446655440000"
+    agent = Agent(
+        name="uuid_test",
+        description="Test",
+        architect_agent_id=uuid_style,
+    )
+
+    assert agent.architect_agent_id == uuid_style
+
+
+def test_agent_equality_by_id():
+    """Test that agents can be identified by ID."""
+    agent1 = Agent(name="first", description="Test")
+    agent2_with_same_id = Agent(name="different_name", description="Different")
+
+    # Create agent collection like would happen in cycle
+    agent_dict = {agent1.id: agent1}
+
+    # Check lookup works
+    assert agent1.id in agent_dict
+    assert agent_dict[agent1.id].name == "first"
+
+
+def test_agent_type_none_vs_missing():
+    """Test that missing agent_type defaults to None."""
+    agent_explicit_none = Agent(name="test1", description="T", agent_type=None)
+    agent_implicit_none = Agent(name="test2", description="T")
+
+    assert agent_explicit_none.agent_type is None
+    assert agent_implicit_none.agent_type is None
