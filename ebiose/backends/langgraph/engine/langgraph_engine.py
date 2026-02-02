@@ -9,9 +9,9 @@ from __future__ import annotations
 from collections.abc import Sequence  # noqa: TC003
 from typing import Self
 
-from langfuse import observe, get_client
 from langfuse import Langfuse
-from langfuse.langchain import CallbackHandler
+from langfuse.callback import CallbackHandler
+from langfuse.decorators import observe
 from langgraph.graph import StateGraph
 from langgraph.graph import END, START
 from langgraph.pregel import Pregel
