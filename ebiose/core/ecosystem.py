@@ -41,10 +41,11 @@ class Ecosystem(BaseModel):
         # TODO(xabier): fix this import to avoid circular dependency
         from ebiose.core.agent import Agent
         cls.model_rebuild()
+        agents_dict = {agent.id: agent for agent in initial_agents} if initial_agents else {}
         return cls(
             initial_architect_agents=initial_architect_agents,
             initial_genetic_operator_agents=initial_genetic_operator_agents,
-            agents = initial_agents if initial_agents is not None else [],
+            agents=agents_dict,
         )
 
     def get_agent(self, agent_id: str) -> "Agent" | None:
