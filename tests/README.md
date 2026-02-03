@@ -22,7 +22,7 @@ open htmlcov/index.html
 
 ## Organization
 
-**171 tests** across 8 files • **21 fixtures** • **~0.4s** execution
+**252 tests** across 8 files • **21 fixtures** • **~0.4s** execution
 
 ### Test Categories
 - `@pytest.mark.unit` - Fast unit tests (45 tests, ~0.2s)
