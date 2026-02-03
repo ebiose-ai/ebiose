@@ -12,7 +12,7 @@ from typing import Self
 from langfuse import Langfuse
 try:
     from langfuse.callback import CallbackHandler
-except Exception:  # pragma: no cover - optional integration
+except ImportError:  # pragma: no cover - optional integration
     CallbackHandler = None
 from langfuse.decorators import observe
 from langgraph.graph import StateGraph
