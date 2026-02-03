@@ -9,9 +9,12 @@ from __future__ import annotations
 from collections.abc import Sequence  # noqa: TC003
 from typing import Self
 
-from langfuse import observe, get_client
 from langfuse import Langfuse
-from langfuse.langchain import CallbackHandler
+try:
+    from langfuse.callback import CallbackHandler
+except ImportError:  # pragma: no cover - optional integration
+    CallbackHandler = None
+from langfuse.decorators import observe
 from langgraph.graph import StateGraph
 from langgraph.graph import END, START
 from langgraph.pregel import Pregel
@@ -185,9 +188,11 @@ class LangGraphEngine(GraphEngine):
                         "output_conditions": [edge.condition for edge in outgoing_conditional_edges],
                     }
             
-            langfuse_handler = CallbackHandler()
+            callbacks = []
+            if CallbackHandler is not None:
+                callbacks.append(CallbackHandler())
             config = {
-                "callbacks": [langfuse_handler],
+                "callbacks": callbacks,
                 "metadata": {
                     "langfuse_session_id": str(self.agent_id),
                     "langfuse_tags": self.tags,

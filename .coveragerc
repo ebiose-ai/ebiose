@@ -1,0 +1,25 @@
+[run]
+branch = True
+source =
+    ebiose
+omit =
+    ebiose/backends/langgraph/*
+    ebiose/cloud_client/*
+    ebiose/core/forge_cycle.py
+    ebiose/core/events.py
+    ebiose/core/agent_forge.py
+    ebiose/core/engines/graph_engine/*
+    ebiose/core/agent_factory.py
+    ebiose/core/model_endpoint.py
+    ebiose/core/llm_api_factory.py
+    ebiose/tools/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod

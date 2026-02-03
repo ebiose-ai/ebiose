@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import abstractmethod
 import traceback
 
-from langfuse import observe
+from langfuse.decorators import observe
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
