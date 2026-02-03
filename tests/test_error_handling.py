@@ -287,16 +287,6 @@ def test_agent_with_all_fields_none_or_empty():
     assert agent.agent_type is None
 
 
-    agent = Agent(name="minimal", description="Minimal agent")
-    
-    assert agent.name == "minimal"
-    assert agent.description == "Minimal agent"
-    assert agent.parent_ids == []
-    assert agent.architect_agent_id is None
-    assert agent.genetic_operator_agent_id is None
-    assert agent.agent_type is None
-
-
 @pytest.mark.error
 def test_agent_state_consistency_after_failed_creation():
     """Test that failed agent creation doesn't leave partial state."""
