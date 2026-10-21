@@ -132,4 +132,4 @@ For answers to common questions about this code of conduct, see the FAQ at
 [FAQ]: https://www.contributor-covenant.org/faq
 [translations]: https://www.contributor-covenant.org/translations
 
-[discord]: https://discord.com/invite/P5pEuG5a4V
+[discord]: https://discord.com/invite/WuChCBAzEw
